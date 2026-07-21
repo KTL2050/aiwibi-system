@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aiwibi — Submit Content</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* ── Sidebar (UNCHANGED — Sky Nursery) ── */
+      --brand: #3db8e8;
+      --brand-soft: #89d4f5;
+      --brand-gradient: linear-gradient(135deg, #3db8e8 0%, #5dd6c0 100%);
+      --sky-2: #89d4f5;
+      --sidebar-bg: #1b2950;
+      --sidebar-active-bg: linear-gradient(90deg, rgba(61,184,232,0.28) 0%, rgba(61,184,232,0.08) 100%);
+
+      /* ── Main area: Monochrome Premium ── */
+      --ink: #101113;
+      --ink-soft: #3a3d42;
+      --muted: #8a8f98;
+      --faint: #b6bac1;
+
+      --surface: #ffffff;
+      --bg-solid: #eef0f2;
+      --raise: #f5f6f7;
+
+      --border: #e5e7ea;
+      --border-soft: #eef0f2;
+
+      /* ── Mother & baby accents (soft, used sparingly) ── */
+      --rose: #e2578f;
+      --rose-deep: #c9407a;
+      --rose-bg: #fdeef5;
+      --rose-soft: #f8c3da;
+      --baby: #3f9fd4;
+      --baby-bg: #e8f4fb;
+      --mint: #2fae95;
+      --mint-bg: #e5f7f2;
+      --sun: #dd9328;
+      --sun-bg: #fdf3e0;
+      --sage: #2e9e5b;
+      --sage-bg: #e7f6ec;
+      --instagram: #e1306c;
+
+      --radius: 20px;
+      --radius-sm: 12px;
+      --pill: 999px;
+
+      --shadow-card: 0 1px 2px rgba(16,17,19,0.04), 0 8px 24px rgba(16,17,19,0.05);
+      --shadow-hover: 0 2px 4px rgba(16,17,19,0.05), 0 14px 34px rgba(16,17,19,0.09);
+
+      --sidebar-w: 220px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-solid);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "cv02","cv03","cv04";
+    }
+
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ════════════════════════════════════════════════
+       SIDEBAR — untouched (original Sky Nursery look)
+       ════════════════════════════════════════════════ */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--sidebar-bg);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      z-index: 100; overflow-y: auto;
+    }
+    .sidebar-logo {
+      padding: 20px 18px 16px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .logo-icon-wrap {
+      width: 36px; height: 36px; background: var(--brand-gradient);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .logo-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #fff; line-height: 1.3; }
+    .logo-label span { color: var(--sky-2); font-weight: 400; display: block; }
+
+    .sidebar-section { padding: 10px 10px 4px; }
+    .sidebar-section-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 1.8px;
+      color: rgba(189,232,255,0.4); text-transform: uppercase;
+      padding: 0 8px; margin-bottom: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 10px;
+      font-size: 13.5px; font-weight: 500; color: rgba(255,255,255,0.55);
+      cursor: pointer; transition: background 0.15s, color 0.15s;
+      margin-bottom: 2px; text-decoration: none;
+    }
+    .nav-item i { font-size: 17px; flex-shrink: 0; }
+    .nav-item:hover { background: rgba(61,184,232,0.12); color: #b5e8f8; }
+    .nav-item.active {
+      background: var(--sidebar-active-bg);
+      color: var(--brand-soft);
+      border-left: 3px solid var(--brand);
+    }
+    .nav-item .badge {
+      margin-left: auto; background: #ef4444;
+      color: #fff; font-size: 10px; font-weight: 700;
+      border-radius: 20px; padding: 1px 6px; min-width: 18px; text-align: center;
+    }
+    .sidebar-bottom {
+      margin-top: auto; padding: 12px 10px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .user-pill {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 12px;
+      background: rgba(255,255,255,0.06); cursor: pointer;
+    }
+    .user-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, #f472a8, #3db8e8);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 11px; color: var(--brand-soft); }
+    .user-level {
+      background: linear-gradient(135deg, #3db8e8, #5dd6c0);
+      color: #fff; font-size: 9px; font-weight: 700;
+      border-radius: 6px; padding: 2px 6px; white-space: nowrap;
+    }
+    .help-link {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; margin-top: 8px;
+      font-size: 12px; color: rgba(255,255,255,0.4); cursor: pointer;
+    }
+    .help-link i { font-size: 16px; }
+    .help-link a { color: var(--brand-soft); text-decoration: none; font-size: 11px; }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(10,61,98,0.45);
+      z-index: 99;
+    }
+
+    /* ════════════════════════════════════════════════
+       MAIN AREA — Monochrome Premium + pastel accents
+       ════════════════════════════════════════════════ */
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ── Mobile hamburger ── */
+    .hamburger {
+      display: none; align-items: center; justify-content: center;
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--surface);
+      cursor: pointer; color: var(--ink); font-size: 18px;
+    }
+
+    /* ── Topbar with stepper ── */
+    .topbar {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+      gap: 10px;
+    }
+    .topbar-left-group { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+    /* ── Stepper ── */
+    .stepper {
+      display: flex; align-items: center; gap: 0;
+      flex: 1; overflow: hidden;
+    }
+    .step {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 500; color: var(--muted);
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .step-circle {
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700;
+      border: 1.5px solid var(--border);
+      background: var(--surface); color: var(--muted);
+      flex-shrink: 0;
+    }
+    .step.done .step-circle { background: var(--sage); border-color: var(--sage); color: #fff; }
+    .step.active .step-circle { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .step.active { color: var(--ink); font-weight: 700; }
+    .step-line { flex: 1; height: 1.5px; background: var(--border); margin: 0 5px; min-width: 12px; border-radius: 2px; }
+    .step-line.done { background: var(--sage); }
+    .step-label { font-size: 10.5px; letter-spacing: 0.01em; }
+
+    .step-label-hide { display: inline; }
+
+    .topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .notif-btn {
+      position: relative; width: 38px; height: 38px;
+      border-radius: 50%; border: 1px solid var(--border);
+      background: var(--surface); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--ink-soft); font-size: 18px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .notif-btn:hover { border-color: var(--ink); background: var(--raise); color: var(--ink); }
+    .notif-btn .dot {
+      position: absolute; top: 4px; right: 4px;
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--rose); border: 1.5px solid #fff;
+      font-size: 0; color: transparent;
+    }
+
+    /* ── Page content ── */
+    .page { padding: 24px 28px 60px; }
+
+    .page-grid {
+      display: grid;
+      grid-template-columns: 1fr 330px;
+      gap: 20px;
+      align-items: start;
+    }
+    .form-col { min-width: 0; }
+
+    /* ── Right rail ── */
+    .side-rail {
+      display: flex; flex-direction: column; gap: 16px;
+      position: sticky; top: 84px;
+    }
+    .rail-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      padding: 20px;
+    }
+    .rail-title {
+      font-size: 13.5px; font-weight: 700; color: var(--ink);
+      letter-spacing: -0.01em; margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* Earn card — rose hero */
+    .earn-card {
+      background: linear-gradient(140deg, #c9407a 0%, #e2578f 55%, #f08cb4 100%);
+      border: none;
+      color: #fff;
+    }
+    .earn-eyebrow {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.12em; color: rgba(255,255,255,0.75); margin-bottom: 6px;
+    }
+    .earn-points {
+      font-size: 30px; font-weight: 800; letter-spacing: -0.03em; line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .earn-points span { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.8); }
+    .earn-note { font-size: 12px; color: rgba(255,255,255,0.85); margin-top: 8px; line-height: 1.5; }
+    .earn-bonus {
+      margin-top: 14px; padding-top: 13px;
+      border-top: 1px solid rgba(255,255,255,0.25);
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .earn-bonus-row {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 12px;
+    }
+    .earn-bonus-row .b-label { color: rgba(255,255,255,0.85); display: flex; align-items: center; gap: 6px; }
+    .earn-bonus-row .b-val {
+      font-weight: 700; background: rgba(255,255,255,0.2);
+      border-radius: var(--pill); padding: 2px 9px; font-variant-numeric: tabular-nums;
+    }
+
+    /* Tips card */
+    .tip-item { display: flex; gap: 11px; align-items: flex-start; padding: 9px 0; }
+    .tip-item + .tip-item { border-top: 1px solid var(--border-soft); }
+    .tip-icon {
+      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 15px;
+    }
+    .tip-icon.blue { background: var(--baby-bg); color: var(--baby); }
+    .tip-icon.mint { background: var(--mint-bg); color: var(--mint); }
+    .tip-icon.sun  { background: var(--sun-bg);  color: var(--sun); }
+    .tip-icon.rose { background: var(--rose-bg); color: var(--rose); }
+    .tip-text { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; }
+    .tip-text b { color: var(--ink); font-weight: 600; }
+
+    /* Campaign mini card */
+    .camp-mini-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+      background: var(--mint-bg); color: var(--mint);
+      border-radius: var(--pill); padding: 4px 11px; margin-bottom: 10px;
+    }
+    .camp-mini-name { font-size: 14.5px; font-weight: 700; color: var(--ink); letter-spacing: -0.015em; margin-bottom: 5px; }
+    .camp-mini-desc { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin-bottom: 13px; }
+    .camp-mini-meta {
+      display: flex; align-items: center; gap: 14px;
+      font-size: 11.5px; color: var(--muted); margin-bottom: 15px;
+    }
+    .camp-mini-meta span { display: flex; align-items: center; gap: 5px; }
+    .camp-mini-btn {
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      width: 100%; padding: 11px 0; border-radius: var(--pill);
+      background: var(--ink); color: #fff; border: none;
+      font-size: 12.5px; font-weight: 600; font-family: inherit; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .camp-mini-btn:hover { background: #26282d; }
+
+    /* Help strip */
+    .help-strip {
+      display: flex; align-items: center; gap: 11px;
+      background: var(--raise); border: 1px solid var(--border-soft);
+      border-radius: 14px; padding: 13px 15px;
+    }
+    .help-strip i { font-size: 18px; color: var(--muted); flex-shrink: 0; }
+    .help-strip .h-text { font-size: 12px; color: var(--ink-soft); line-height: 1.45; }
+    .help-strip .h-text a { color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+
+    .page-title {
+      font-size: 24px; font-weight: 800; color: var(--ink);
+      letter-spacing: -0.03em; margin-bottom: 5px;
+    }
+    .page-sub { font-size: 13.5px; color: var(--muted); margin-bottom: 24px; }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 11px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.09em;
+      margin-bottom: 10px; margin-top: 26px;
+    }
+
+    /* ── Platform selector ── */
+    .platform-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .platform-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 13px 20px; border-radius: 16px;
+      border: 1.5px solid var(--border); background: var(--surface);
+      font-size: 14px; font-weight: 600; color: var(--ink);
+      font-family: inherit;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+      flex: 1; min-width: 130px;
+    }
+    .platform-btn:hover { border-color: var(--faint); }
+    .platform-btn.selected {
+      border-color: var(--ink); background: var(--raise);
+      box-shadow: var(--shadow-card);
+    }
+    .plat-icon {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .plat-icon.tiktok { background: #010101; }
+    .plat-icon.instagram { background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af); }
+
+    /* ── URL input ── */
+    .url-input-wrap { position: relative; }
+    .url-input-wrap i.link-icon {
+      position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+      font-size: 16.5px; color: var(--muted);
+    }
+    .url-input {
+      width: 100%; padding: 14px 44px 14px 44px;
+      border: 1.5px solid var(--border); border-radius: 16px;
+      font-size: 13.5px; color: var(--ink); background: var(--surface);
+      font-family: inherit;
+      outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .url-input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(16,17,19,0.06); }
+    .url-input::placeholder { color: var(--faint); }
+    .url-clear {
+      position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+      color: var(--muted); font-size: 18px; cursor: pointer;
+      transition: color 0.15s;
+    }
+    .url-clear:hover { color: var(--ink); }
+
+    .detect-success {
+      display: flex; align-items: center; gap: 6px;
+      margin-top: 10px; font-size: 12.5px; color: var(--sage); font-weight: 600;
+    }
+
+    /* ── Video Preview card ── */
+    .video-preview-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; margin-top: 4px;
+      box-shadow: var(--shadow-card);
+    }
+    .preview-inner { display: flex; gap: 0; }
+    .preview-thumb {
+      width: 140px; flex-shrink: 0;
+      background: #17181b;
+      position: relative; cursor: pointer; min-height: 110px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .thumb-placeholder {
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #26282d 0%, #17181b 100%);
+      display: flex; align-items: center; justify-content: center;
+      min-height: 110px;
+    }
+    .play-btn {
+      position: absolute; width: 40px; height: 40px; border-radius: 50%;
+      background: rgba(255,255,255,0.95);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    }
+    .preview-details { padding: 16px 18px; flex: 1; min-width: 0; }
+    .preview-plat-row {
+      display: flex; align-items: center; gap: 7px; margin-bottom: 9px; flex-wrap: wrap;
+    }
+    .preview-plat-icon {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #010101; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .preview-plat-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .preview-handle { font-size: 12px; color: var(--muted); }
+    .preview-dot { font-size: 11px; color: var(--faint); }
+    .preview-caption { font-size: 13px; color: var(--ink-soft); line-height: 1.55; margin-bottom: 11px; }
+    .preview-caption .hashtag { color: var(--baby); font-weight: 500; }
+    .preview-stats {
+      display: flex; align-items: center; gap: 14px;
+      font-size: 12px; color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .preview-stats span { display: flex; align-items: center; gap: 4px; }
+    .preview-stats i { font-size: 14px; }
+
+    .change-link-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12.5px; color: var(--ink); font-weight: 600;
+      margin-top: 14px; cursor: pointer; text-decoration: none;
+      border-bottom: 1px solid var(--ink); padding-bottom: 1px;
+      transition: opacity 0.15s;
+    }
+    .change-link-btn:hover { opacity: 0.6; }
+
+    /* ── Submitted links table ── */
+    .submitted-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 32px; margin-bottom: 12px;
+    }
+    .submitted-title {
+      font-size: 15.5px; font-weight: 700; color: var(--ink);
+      letter-spacing: -0.015em;
+    }
+    .view-all-link {
+      font-size: 12px; color: var(--ink); font-weight: 600; text-decoration: none;
+      border-bottom: 1px solid var(--ink); padding-bottom: 1px;
+      transition: opacity 0.15s;
+    }
+    .view-all-link:hover { opacity: 0.6; }
+
+    .links-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .links-table {
+      width: 100%; border-collapse: collapse;
+      background: var(--surface); border-radius: var(--radius);
+      overflow: hidden; border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+      min-width: 480px;
+    }
+    .links-table thead th {
+      padding: 11px 16px; font-size: 10.5px; font-weight: 600; color: var(--muted);
+      text-align: left; background: var(--raise);
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .links-table tbody tr { border-bottom: 1px solid var(--border-soft); transition: background 0.1s; }
+    .links-table tbody tr:last-child { border-bottom: none; }
+    .links-table tbody tr:hover { background: #fafbfb; }
+    .links-table tbody td { padding: 13px 16px; font-size: 12.5px; color: var(--ink); vertical-align: middle; }
+
+    .plat-icon-sm {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .plat-icon-sm.tiktok { background: #010101; }
+    .plat-icon-sm.instagram { background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af); }
+
+    .thumb-placeholder-sm {
+      width: 44px; height: 34px; border-radius: 8px;
+      background: linear-gradient(135deg, #26282d, #17181b);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .thumb-placeholder-sm i { font-size: 13px; color: rgba(255,255,255,0.4); }
+
+    .caption-cell { max-width: 200px; }
+    .caption-text {
+      font-size: 12.5px; font-weight: 500; color: var(--ink); line-height: 1.4; margin-bottom: 3px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; text-overflow: ellipsis; word-break: break-word;
+    }
+    .caption-date { font-size: 11px; color: var(--muted); }
+
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 11px; border-radius: var(--pill); font-size: 11px; font-weight: 600;
+    }
+    .status-pill.synced { background: var(--sage-bg); color: var(--sage); }
+    .status-pill.syncing { background: var(--baby-bg); color: var(--baby); }
+    .status-pill.failed { background: var(--rose-bg); color: var(--rose-deep); }
+
+    .action-row { display: flex; align-items: center; gap: 4px; }
+    .action-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--muted); font-size: 15px;
+      border: none; background: none; transition: background 0.1s, color 0.1s;
+    }
+    .action-btn:hover { background: var(--raise); color: var(--ink); }
+
+    /* ── Bottom action buttons ── */
+    .form-actions {
+      display: flex; align-items: center; justify-content: flex-end;
+      gap: 12px; margin-top: 32px; padding-top: 22px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-draft {
+      padding: 13px 26px; border-radius: var(--pill);
+      border: 1.5px solid var(--border); background: var(--surface);
+      font-size: 13.5px; font-weight: 600; color: var(--ink);
+      font-family: inherit;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+    }
+    .btn-draft:hover { border-color: var(--ink); background: var(--raise); }
+    .btn-submit {
+      padding: 13px 28px; border-radius: var(--pill);
+      border: none; background: var(--ink);
+      font-size: 13.5px; font-weight: 600; color: #fff;
+      font-family: inherit;
+      cursor: pointer; display: flex; align-items: center; gap: 8px;
+      transition: background 0.15s, transform 0.15s;
+    }
+    .btn-submit:hover { background: #26282d; transform: translateY(-1px); }
+
+    .tiktok-svg { fill: white; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #c9ccd1; border-radius: 6px; }
+    ::-webkit-scrollbar-thumb:hover { background: #a8abb0; }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+
+    /* ══════════════════════════════
+       RESPONSIVE — same pattern as mothersdas.html
+    ══════════════════════════════ */
+    @media (max-width: 1150px) {
+      .page-grid { grid-template-columns: 1fr; }
+      .side-rail { position: static; }
+    }
+    @media (max-width: 800px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+
+      .main { margin-left: 0; width: 100%; overflow-x: hidden; }
+
+      .hamburger { display: flex; }
+
+      .topbar { padding: 0 12px; height: 58px; overflow: hidden; }
+
+      .step-label-hide { display: none; }
+      .step { gap: 0; }
+      .step-circle { width: 22px; height: 22px; font-size: 9px; }
+      .step-line { min-width: 8px; }
+
+      .page { padding: 16px 12px 48px; width: 100%; box-sizing: border-box; }
+      .page-title { font-size: 19px; }
+
+      .platform-row { gap: 8px; }
+      .platform-btn { min-width: 0; padding: 12px 12px; font-size: 13px; flex: 1; }
+
+      .video-preview-card { width: 100%; box-sizing: border-box; overflow: hidden; }
+      .preview-inner { width: 100%; }
+      .preview-thumb { width: 100px; flex-shrink: 0; }
+      .preview-details { min-width: 0; overflow: hidden; }
+      .preview-plat-row { flex-wrap: wrap; gap: 4px; }
+      .preview-handle { font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+
+      .url-input-wrap { width: 100%; }
+      .url-input { width: 100%; box-sizing: border-box; }
+
+      .links-table-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .links-table { min-width: 420px; }
+
+      .links-table thead th:nth-child(4),
+      .links-table tbody td:nth-child(4) { display: none; }
+
+      .form-actions { flex-direction: column; gap: 8px; }
+      .btn-draft, .btn-submit { width: 100%; justify-content: center; box-sizing: border-box; }
+    }
+
+    @media (max-width: 480px) {
+      .page { padding: 14px 10px 48px; }
+      .page-title { font-size: 18px; }
+
+      .step-circle { width: 20px; height: 20px; font-size: 8px; }
+      .step-line { min-width: 6px; }
+
+      .preview-inner { flex-direction: column; }
+      .preview-thumb { width: 100%; min-height: 120px; }
+      .thumb-placeholder { min-height: 120px; }
+      .preview-details { padding: 12px; }
+      .preview-caption { font-size: 12px; }
+      .preview-stats { gap: 10px; font-size: 10.5px; }
+
+      .platform-btn { font-size: 12px; padding: 10px 10px; }
+
+      .links-table { min-width: 360px; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ══ SIDEBAR (unchanged) ══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+      <div class="logo-label">AIWIBI<span>SYSTEM</span></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Overview</div>
+      <a class="nav-item" href="mothersdas.html"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">My Content</div>
+      <a class="nav-item active" href="mothercont.html"><i class="ti ti-square-rounded-plus"></i> Content</a>
+      <a class="nav-item" href="motherperf.html"><i class="ti ti-chart-bar"></i> Performance</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Earnings</div>
+      <a class="nav-item" href="motherreward.html"><i class="ti ti-trophy"></i> Rewards</a>
+      <a class="nav-item" href="mothercamp.html"><i class="ti ti-speakerphone"></i> Campaigns</a>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-pill">
+        <div class="user-avatar">S</div>
+        <div class="user-info">
+          <div class="user-name"></div>
+          <div class="user-role"></div>
+        </div>
+        <div class="user-level">Gold</div>
+      </div>
+      <a href="login.html" class="nav-item" id="logout-link" style="margin-top:6px;color:#e57373 !important;"><i class="ti ti-logout"></i> Logout</a>
+    </div>
+  </aside>
+
+  <!-- Dark overlay when sidebar open on mobile -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- ══ MAIN ══ -->
+  <div class="main">
+
+    <!-- Topbar with stepper -->
+    <div class="topbar">
+      <!-- Left: hamburger (mobile only) -->
+      <div class="topbar-left-group">
+        <button class="hamburger" id="hamburger"><i class="ti ti-menu-2"></i></button>
+      </div>
+
+      <!-- Stepper -->
+      <div class="stepper">
+        <div class="step done">
+          <div class="step-circle"><i class="ti ti-check" style="font-size:11px"></i></div>
+          <span class="step-label step-label-hide">Connect Account</span>
+        </div>
+        <div class="step-line done"></div>
+
+        <div class="step active">
+          <div class="step-circle">2</div>
+          <span class="step-label step-label-hide">Submit Content</span>
+        </div>
+        <div class="step-line"></div>
+
+        <div class="step">
+          <div class="step-circle">3</div>
+          <span class="step-label step-label-hide">Sync &amp; Track</span>
+        </div>
+        <div class="step-line"></div>
+
+        <div class="step">
+          <div class="step-circle">4</div>
+          <span class="step-label step-label-hide">Analyze &amp; Score</span>
+        </div>
+        <div class="step-line"></div>
+
+        <div class="step">
+          <div class="step-circle">5</div>
+          <span class="step-label step-label-hide">Reward &amp; Motivate</span>
+        </div>
+      </div>
+
+      <!-- Right: notification bell -->
+      <div class="topbar-right">
+        <div class="notif-btn">
+          <i class="ti ti-bell"></i>
+          <div class="dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Page ── -->
+    <div class="page">
+      <div class="page-title">Submit Content</div>
+      <div class="page-sub">Paste your uploaded video link below to submit your content for tracking.</div>
+
+      <div class="page-grid">
+      <div class="form-col">
+
+      <!-- 1. Select Platform -->
+      <div class="section-label">1. Select Platform</div>
+      <div class="platform-row">
+        <button class="platform-btn selected" id="btn-tiktok" onclick="selectPlatform('tiktok')">
+          <div class="plat-icon tiktok">
+            <svg width="15" height="15" viewBox="0 0 24 24" class="tiktok-svg"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/></svg>
+          </div>
+          TikTok
+        </button>
+        <button class="platform-btn" id="btn-instagram" onclick="selectPlatform('instagram')">
+          <div class="plat-icon instagram">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </div>
+          Instagram
+        </button>
+      </div>
+
+      <div class="detect-success" id="platform-mismatch-msg" style="display:none;color:var(--sun);"></div>
+
+      <!-- 2. Paste Video Link -->
+      <div class="section-label">2. Paste Video Link</div>
+      <div class="url-input-wrap">
+        <i class="ti ti-link link-icon"></i>
+        <input class="url-input" type="text" id="url-input"
+          value=""
+          placeholder="https://www.tiktok.com/@username/video/..."/>
+        <i class="ti ti-x url-clear" onclick="clearUrl()"></i>
+      </div>
+      <div class="detect-success" id="detect-msg">
+        <i class="ti ti-circle-check"></i> Link detected successfully!
+      </div>
+      <div class="detect-success" id="preview-loading" style="display:none;color:var(--muted);">
+        <i class="ti ti-loader-2"></i> Fetching preview...
+      </div>
+
+      <!-- 3. Video Preview -->
+      <div class="section-label">3. Video Preview</div>
+      <div class="video-preview-card">
+        <div class="preview-inner">
+          <div class="preview-thumb">
+            <div class="thumb-placeholder">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="rgba(255,255,255,0.15)"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/></svg>
+            </div>
+            <div class="play-btn">
+              <i class="ti ti-player-play-filled" style="font-size:15px;color:#101113;margin-left:2px;"></i>
+            </div>
+          </div>
+          <div class="preview-details">
+            <div class="preview-plat-row">
+              <div class="preview-plat-icon">
+                <svg width="13" height="13" viewBox="0 0 24 24" class="tiktok-svg"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/></svg>
+              </div>
+              <span class="preview-plat-name">TikTok</span>
+              <span class="preview-dot">·</span>
+              <span class="preview-handle">@sarahmama · 2d ago</span>
+            </div>
+            <div class="preview-caption">
+              Morning routine with my little one 🌸<br>
+              Aiwibi diapers keep him dry and comfortable all day long! 💙<br>
+              <span class="hashtag">#Aiwibi #MomLife #BabyCare</span>
+            </div>
+            <div class="preview-stats">
+              <span><i class="ti ti-player-play"></i> 12.4K</span>
+              <span><i class="ti ti-heart"></i> 1.2K</span>
+              <span><i class="ti ti-message-circle"></i> 85</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:14px;">
+        <a class="change-link-btn" href="#" onclick="return false;" style="margin-top:0;">
+          <i class="ti ti-pencil"></i> Change link
+        </a>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-draft">Save Draft</button>
+          <button class="btn-submit">Submit Content <i class="ti ti-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <!-- Submitted Links -->
+      <div class="submitted-header">
+        <div class="submitted-title">Your Submitted Links</div>
+        <a class="view-all-link" href="#">View all</a>
+      </div>
+
+      <div class="links-table-wrap">
+        <table class="links-table">
+          <thead>
+            <tr>
+              <th>Platform</th>
+              <th>Video Preview</th>
+              <th>Caption</th>
+              <th>Submitted</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="links-tbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">Loading your submissions...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      </div><!-- /form-col -->
+
+      <!-- ══ RIGHT RAIL ══ -->
+      <aside class="side-rail">
+
+        <!-- What you'll earn -->
+        <div class="rail-card earn-card">
+          <div class="earn-eyebrow">You'll earn for this post</div>
+          <div class="earn-points">+50 <span>pts</span></div>
+          <div class="earn-note">Awarded once your video syncs successfully. Bonus points as it grows:</div>
+          <div class="earn-bonus">
+            <div class="earn-bonus-row">
+              <span class="b-label"><i class="ti ti-eye" style="font-size:13px"></i> Reach 10K views</span>
+              <span class="b-val">+30 pts</span>
+            </div>
+            <div class="earn-bonus-row">
+              <span class="b-label"><i class="ti ti-heart" style="font-size:13px"></i> Reach 1K engagements</span>
+              <span class="b-val">+20 pts</span>
+            </div>
+            <div class="earn-bonus-row">
+              <span class="b-label"><i class="ti ti-flame" style="font-size:13px"></i> Top post of the week</span>
+              <span class="b-val">+100 pts</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active campaign -->
+        <div class="rail-card">
+          <div class="camp-mini-tag"><i class="ti ti-speakerphone" style="font-size:12px"></i> Active campaign</div>
+          <div class="camp-mini-name">Dry Nights, Happy Mornings</div>
+          <div class="camp-mini-desc">Share your night-time routine with Aiwibi overnight diapers. Posts tagged #AiwibiDryNights count toward campaign rewards.</div>
+          <div class="camp-mini-meta">
+            <span><i class="ti ti-calendar" style="font-size:13px"></i> Ends May 31</span>
+            <span><i class="ti ti-users" style="font-size:13px"></i> 240 moms joined</span>
+          </div>
+          <button class="camp-mini-btn">View campaign brief <i class="ti ti-arrow-right" style="font-size:13px"></i></button>
+        </div>
+
+        <!-- Tips -->
+        <div class="rail-card">
+          <div class="rail-title"><i class="ti ti-bulb" style="font-size:16px;color:var(--sun)"></i> Tips for a great post</div>
+          <div class="tip-item">
+            <div class="tip-icon blue"><i class="ti ti-clock"></i></div>
+            <div class="tip-text"><b>Post 7–9 PM.</b> That's when other moms are scrolling — your videos get the most reach.</div>
+          </div>
+          <div class="tip-item">
+            <div class="tip-icon rose"><i class="ti ti-hash"></i></div>
+            <div class="tip-text"><b>Always tag #Aiwibi.</b> Untagged posts can't be tracked, so they won't earn points.</div>
+          </div>
+          <div class="tip-item">
+            <div class="tip-icon mint"><i class="ti ti-video"></i></div>
+            <div class="tip-text"><b>Keep it real.</b> Everyday moments with your little one outperform polished ads every time.</div>
+          </div>
+        </div>
+
+        <!-- Help strip -->
+        <div class="help-strip">
+          <i class="ti ti-help-circle"></i>
+          <div class="h-text">Link not detecting? Make sure your video is public, then <a href="#">see our submission guide</a>.</div>
+        </div>
+
+      </aside>
+
+      </div><!-- /page-grid -->
+
+    </div><!-- /page -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+  const SUPABASE_URL = 'https://cqtebvfegeojjkrkzboq.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdGVidmZlZ2Vvamprcmt6Ym9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODQ2NjksImV4cCI6MjA5ODU2MDY2OX0.OcCwAD-q6d1XeyHW6f1Gy9r_sBdRV3eWAOUsKLemKEA'
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  async function loadUserProfile() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('full_name, email, role')
+      .eq('id', session.user.id)
+      .single();
+
+    if (error || !profile) {
+      console.error('Profile load error:', error);
+      return;
+    }
+
+    const name = profile.full_name || profile.email || session.user.email;
+    const initial = name.charAt(0).toUpperCase();
+
+    const avatarEl = document.querySelector('.user-avatar');
+    const nameEl = document.querySelector('.user-name');
+    const roleEl = document.querySelector('.user-role');
+    if (avatarEl) avatarEl.textContent = initial;
+    if (nameEl) nameEl.textContent = name;
+    if (roleEl) roleEl.textContent = profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : '';
+  }
+
+  loadUserProfile();
+
+  const TIKTOK_ICON_SVG = '<svg width="13" height="13" viewBox="0 0 24 24" class="tiktok-svg"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/></svg>'
+  const INSTAGRAM_ICON_SVG = '<svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>'
+
+  function statusPillHtml(status) {
+    if (status === 'synced') return '<span class="status-pill synced"><i class="ti ti-circle-check"></i> Synced</span>'
+    if (status === 'failed') return '<span class="status-pill failed"><i class="ti ti-alert-circle"></i> Failed</span>'
+    return '<span class="status-pill syncing"><i class="ti ti-refresh"></i> Pending sync</span>'
+  }
+
+  function formatSubmittedAt(iso) {
+    const d = new Date(iso)
+    const datePart = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    const timePart = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+    return { datePart, timePart }
+  }
+
+  async function loadSubmittedContent() {
+    const tbody = document.getElementById('links-tbody')
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const { data: rows, error } = await supabase
+      .from('submitted_content')
+      .select('id, platform, video_url, caption, thumbnail_url, status, submitted_at')
+      .eq('user_id', session.user.id)
+      .order('submitted_at', { ascending: false })
+      .limit(20)
+
+    if (error) {
+      console.log('Failed to load submitted content:', error)
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load your submissions.</td></tr>'
+      return
+    }
+
+    if (!rows || rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">You haven\'t submitted any links yet.</td></tr>'
+      return
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div')
+      div.textContent = str
+      return div.innerHTML
+    }
+
+    tbody.innerHTML = rows.map(row => {
+      const iconSvg = row.platform === 'tiktok' ? TIKTOK_ICON_SVG : INSTAGRAM_ICON_SVG
+      const iconClass = row.platform === 'tiktok' ? 'tiktok' : 'instagram'
+      const { datePart, timePart } = formatSubmittedAt(row.submitted_at)
+      const captionText = row.caption ? escapeHtml(row.caption) : '<span style="color:var(--faint);font-style:italic;">No caption yet</span>'
+
+      const thumbHtml = row.thumbnail_url
+        ? `<div class="thumb-placeholder-sm" style="background-image:url('${row.thumbnail_url}');background-size:cover;background-position:center;"></div>`
+        : `<div class="thumb-placeholder-sm"><i class="ti ti-video"></i></div>`
+
+      return `
+        <tr>
+          <td><div class="plat-icon-sm ${iconClass}">${iconSvg}</div></td>
+          <td>${thumbHtml}</td>
+          <td class="caption-cell">
+            <div class="caption-text">${captionText}</div>
+          </td>
+          <td><div class="caption-date" style="white-space:nowrap;">${datePart}<br>${timePart}</div></td>
+          <td>${statusPillHtml(row.status)}</td>
+          <td>
+            <div class="action-row">
+              <button class="action-btn"><i class="ti ti-eye"></i></button>
+              <button class="action-btn"><i class="ti ti-dots-vertical"></i></button>
+            </div>
+          </td>
+        </tr>
+      `
+    }).join('')
+  }
+
+  let selectedPlatform = 'tiktok'
+  let currentPreviewCaption = null
+  let currentPreviewThumbnail = null
+  window.selectPlatform = function(p, manual = true) {
+    selectedPlatform = p
+    document.getElementById('btn-tiktok').classList.toggle('selected', p === 'tiktok')
+    document.getElementById('btn-instagram').classList.toggle('selected', p === 'instagram')
+    const warn = document.getElementById('platform-mismatch-msg')
+    if (warn && manual) warn.style.display = 'none'
+  }
+
+  function detectPlatformFromUrl(url) {
+    const u = url.toLowerCase()
+    if (u.includes('tiktok.com')) return 'tiktok'
+    if (u.includes('instagram.com')) return 'instagram'
+    return null
+  }
+
+  let previewDebounce = null
+
+  async function fetchOembedPreview(url, platform) {
+    const loadingEl = document.getElementById('preview-loading')
+    if (loadingEl) loadingEl.style.display = 'flex'
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+if (!session) { window.location.href = 'login.html'; return }
+
+const res = await fetch(`${SUPABASE_URL}/functions/v1/oembed-preview`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': `Bearer ${session.access_token}`
+  },
+  body: JSON.stringify({ url, platform })
+})
+      const data = await res.json()
+      if (loadingEl) loadingEl.style.display = 'none'
+
+      if (!data.success) {
+        console.log('Preview fetch failed:', data.error)
+        return
+      }
+
+      const thumbEl = document.querySelector('.preview-thumb')
+      if (thumbEl && data.thumbnail_url) {
+        thumbEl.style.backgroundImage = `url('${data.thumbnail_url}')`
+        thumbEl.style.backgroundSize = 'cover'
+        thumbEl.style.backgroundPosition = 'center'
+        const placeholder = thumbEl.querySelector('.thumb-placeholder')
+        if (placeholder) placeholder.style.background = 'transparent'
+      }
+
+      const handleEl = document.querySelector('.preview-handle')
+      if (handleEl && data.author_name) handleEl.textContent = `@${data.author_name}`
+
+      const captionEl = document.querySelector('.preview-caption')
+      if (captionEl && data.caption) {
+        captionEl.textContent = data.caption
+      }
+      currentPreviewCaption = data.caption ?? null
+      currentPreviewThumbnail = data.thumbnail_url ?? null
+
+      // Views/likes/comments aren't available from oEmbed — only after PostPeer sync
+      const statsEl = document.querySelector('.preview-stats')
+      if (statsEl) {
+        statsEl.innerHTML = '<span style="color:var(--muted);font-style:italic;">Stats will appear once this post syncs</span>'
+      }
+    } catch (err) {
+      if (loadingEl) loadingEl.style.display = 'none'
+      console.log('Preview fetch error:', err)
+    }
+  }
+
+  const urlInputEl = document.getElementById('url-input')
+  urlInputEl.addEventListener('input', function() {
+    currentPreviewCaption = null
+    currentPreviewThumbnail = null
+    const detected = detectPlatformFromUrl(this.value.trim())
+    const warn = document.getElementById('platform-mismatch-msg')
+    if (detected && detected !== selectedPlatform) {
+      selectPlatform(detected, false)
+      if (warn) {
+        warn.textContent = `Detected a ${detected === 'tiktok' ? 'TikTok' : 'Instagram'} link — platform updated to match.`
+        warn.style.display = 'flex'
+      }
+    } else if (warn) {
+      warn.style.display = 'none'
+    }
+
+    clearTimeout(previewDebounce)
+    const val = this.value.trim()
+    const finalPlatform = detected || selectedPlatform
+    if (val.length > 10 && detected) {
+      const cleanUrl = val.split('?')[0]
+      previewDebounce = setTimeout(() => fetchOembedPreview(cleanUrl, finalPlatform), 600)
+    }
+  })
+
+  document.querySelector('.btn-submit').addEventListener('click', async () => {
+    const url = urlInputEl.value.trim()
+    if (!url) return
+
+    const detected = detectPlatformFromUrl(url)
+    if (detected && detected !== selectedPlatform) {
+      alert(`This looks like a ${detected} link, but ${selectedPlatform} is selected. Please double-check before submitting.`)
+      return
+    }
+    if (!detected) {
+      alert('Please paste a valid TikTok or Instagram video link.')
+      return
+    }
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { window.location.href = 'login.html'; return }
+
+    const { error } = await supabase.from('submitted_content').insert({
+      user_id: session.user.id,
+      platform: detected,
+      video_url: url,
+      status: 'pending',
+      caption: currentPreviewCaption,
+      thumbnail_url: currentPreviewThumbnail
+    })
+
+    if (error) {
+      console.error('Submit error:', error)
+      alert('Something went wrong submitting your link.')
+      return
+    }
+
+    alert('Content submitted! It will sync shortly.')
+    urlInputEl.value = ''
+    document.getElementById('detect-msg').style.display = 'none'
+    currentPreviewCaption = null
+    currentPreviewThumbnail = null
+    loadSubmittedContent()
+  })
+
+  loadSubmittedContent()
+</script>
+
+<script>
+  /* ── Sidebar toggle (mobile) — same logic as mothersdas.html ── */
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+
+  document.getElementById('hamburger').addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  });
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  });
+
+  /* ── URL clear ── */
+  function clearUrl() {
+    document.getElementById('url-input').value = '';
+    document.getElementById('detect-msg').style.display = 'none';
+  }
+
+  document.getElementById('url-input').addEventListener('input', function() {
+    const msg = document.getElementById('detect-msg');
+    msg.style.display = this.value.trim().length > 10 ? 'flex' : 'none';
+  });
+</script>
+</body>
+</html>

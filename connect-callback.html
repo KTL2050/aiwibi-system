@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Connecting your account...</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+    .box {
+      text-align: center;
+    }
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #334155;
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    p { font-size: 15px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="spinner"></div>
+    <p id="status">Finishing up your connection...</p>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+    const SUPABASE_URL = 'https://cqtebvfegeojjkrkzboq.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdGVidmZlZ2Vvamprcmt6Ym9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODQ2NjksImV4cCI6MjA5ODU2MDY2OX0.OcCwAD-q6d1XeyHW6f1Gy9r_sBdRV3eWAOUsKLemKEA'
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    const statusEl = document.getElementById('status')
+
+    async function finishConnect() {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        statusEl.textContent = 'Session expired — please log in again.'
+        setTimeout(() => {
+          window.location.href = '/login.html'
+        }, 1500)
+        return
+      }
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/postpeer-sync-accounts`, {
+  headers: {
+    'Authorization': `Bearer ${session.access_token}`,
+    'apikey': SUPABASE_ANON_KEY
+  }
+})
+
+        if (!res.ok) {
+          throw new Error(`Sync failed with status ${res.status}`)
+        }
+
+        const data = await res.json()
+
+        if (data.synced && data.synced.length > 0) {
+          statusEl.textContent = `Connected! Redirecting...`
+        } else {
+          statusEl.textContent = 'No new account detected. Redirecting...'
+        }
+      } catch (err) {
+        console.error('Sync error:', err)
+        statusEl.textContent = 'Something went wrong syncing your account. Redirecting...'
+      }
+
+      setTimeout(() => {
+        window.location.href = '/mothersdas.html'
+      }, 1200)
+    }
+
+    finishConnect()
+  </script>
+</body>
+</html>

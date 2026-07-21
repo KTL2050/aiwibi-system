@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aiwibi — My Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* ── Sidebar (UNCHANGED — Sky Nursery) ── */
+      --brand: #3db8e8;
+      --brand-deep: #1a8fc1;
+      --brand-soft: #89d4f5;
+      --brand-gradient: linear-gradient(135deg, #3db8e8 0%, #5dd6c0 100%);
+      --sky-2: #89d4f5;
+      --sidebar-bg: #1b2950;
+      --sidebar-gradient: #1b2950;
+      --sidebar-active-bg: linear-gradient(90deg, rgba(61,184,232,0.28) 0%, rgba(61,184,232,0.08) 100%);
+
+      /* ── Main area: Monochrome Premium ── */
+      --ink: #101113;            /* near-black, primary text + accents */
+      --ink-soft: #3a3d42;       /* secondary text */
+      --muted: #8a8f98;          /* tertiary text */
+      --faint: #b6bac1;          /* hints, placeholders */
+
+      --surface: #ffffff;        /* cards */
+      --bg-solid: #eef0f2;       /* page background (cool light grey, like the reference) */
+      --raise: #f5f6f7;          /* inner chips / soft fills */
+
+      --border: #e5e7ea;
+      --border-soft: #eef0f2;
+
+      /* ── Mother & baby accents (soft, used sparingly) ── */
+      --rose: #e2578f;         /* blush — rewards, love, hearts */
+      --rose-deep: #c9407a;
+      --rose-bg: #fdeef5;
+      --rose-soft: #f8c3da;
+      --baby: #3f9fd4;         /* baby blue — views, data */
+      --baby-bg: #e8f4fb;
+      --mint: #2fae95;         /* mint — links, growth */
+      --mint-bg: #e5f7f2;
+      --sun: #dd9328;          /* warm honey — rewards points */
+      --sun-bg: #fdf3e0;
+      --sage: #2e9e5b;         /* gentle green — positive status */
+      --sage-bg: #e7f6ec;
+      --instagram: #e1306c;
+
+      --radius: 20px;            /* generous, soft — matches the reference cards */
+      --radius-sm: 12px;
+      --pill: 999px;
+
+      --shadow-card: 0 1px 2px rgba(16,17,19,0.04), 0 8px 24px rgba(16,17,19,0.05);
+      --shadow-hover: 0 2px 4px rgba(16,17,19,0.05), 0 14px 34px rgba(16,17,19,0.09);
+
+      --sidebar-w: 220px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-solid);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "cv02","cv03","cv04";
+    }
+
+    /* ── Layout ── */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ════════════════════════════════════════════════
+       SIDEBAR — untouched (original Sky Nursery look)
+       ════════════════════════════════════════════════ */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--sidebar-gradient);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      padding: 20px 18px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .logo-icon-wrap {
+      width: 36px; height: 36px;
+      background: var(--brand-gradient);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #fff; line-height: 1.3; }
+    .logo-label span { color: var(--sky-2); font-weight: 400; display: block; }
+
+    .sidebar-section { padding: 10px 10px 4px; }
+    .sidebar-section-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 1.8px;
+      color: rgba(189,232,255,0.4); text-transform: uppercase;
+      padding: 0 8px; margin-bottom: 4px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 10px;
+      font-size: 13.5px; font-weight: 500; color: rgba(255,255,255,0.55);
+      cursor: pointer; transition: background 0.15s, color 0.15s;
+      margin-bottom: 2px;
+      text-decoration: none;
+    }
+    .nav-item i { font-size: 17px; flex-shrink: 0; }
+    .nav-item:hover { background: rgba(61,184,232,0.12); color: #b5e8f8; }
+    .nav-item.active {
+      background: var(--sidebar-active-bg);
+      color: var(--brand-soft);
+      border-left: 3px solid var(--brand);
+    }
+    .nav-item .badge {
+      margin-left: auto; background: #ef4444;
+      color: #fff; font-size: 10px; font-weight: 700;
+      border-radius: 20px; padding: 1px 6px; min-width: 18px; text-align: center;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      padding: 12px 10px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .user-pill {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 12px;
+      background: rgba(255,255,255,0.06); cursor: pointer;
+    }
+    .user-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, #f472a8, #3db8e8);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 11px; color: var(--brand-soft); }
+    .user-level {
+      background: linear-gradient(135deg, #3db8e8, #5dd6c0);
+      color: #fff; font-size: 9px; font-weight: 700;
+      border-radius: 6px; padding: 2px 6px; white-space: nowrap;
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(10,61,98,0.45);
+      z-index: 99;
+    }
+
+    /* ════════════════════════════════════════════════
+       MAIN AREA — Monochrome Premium
+       ════════════════════════════════════════════════ */
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ── Topbar ── */
+    .topbar {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-left { display: flex; flex-direction: column; }
+    .topbar-greeting {
+      font-size: 16px; font-weight: 700; color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+    .topbar-sub { font-size: 12.5px; color: var(--muted); margin-top: 1px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+
+    .date-chip {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--ink); color: #fff;
+      border-radius: var(--pill);
+      padding: 8px 15px; font-size: 12px; font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+    .date-chip i { opacity: 0.7; }
+
+    .icon-btn {
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--ink-soft); font-size: 17px;
+      position: relative; transition: background 0.15s, border-color 0.15s;
+    }
+    #topbar-account-btn {
+      background: linear-gradient(135deg, #f472a8, #3db8e8);
+      border: none; color: #fff; font-size: 14px; font-weight: 700;
+    }
+    .icon-btn:hover { border-color: var(--ink); background: var(--raise); color: var(--ink); }
+    .icon-btn .dot {
+      position: absolute; top: 6px; right: 7px;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--rose); border: 1.5px solid #fff;
+    }
+
+    /* ── Content ── */
+    .content { padding: 24px 28px 48px; flex: 1; }
+
+    /* ── Stats row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 20px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+    .stat-icon-badge {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      margin-bottom: 14px;
+    }
+    .stat-card--views .stat-icon-badge       { background: var(--baby-bg); color: var(--baby); }
+    .stat-card--engagements .stat-icon-badge { background: var(--rose-bg); color: var(--rose); }
+    .stat-card--links .stat-icon-badge       { background: var(--mint-bg); color: var(--mint); }
+    .stat-card--rewards .stat-icon-badge     { background: var(--sun-bg);  color: var(--sun); }
+
+    /* ── Bold color cards (reference: Photos/Music/Videos/Documents style) ── */
+    .stat-card--views {
+      background: linear-gradient(135deg, #4f7cff 0%, #3d5fe0 100%);
+      border: none;
+    }
+    .stat-card--engagements {
+      background: linear-gradient(135deg, #ff5f9e 0%, #e2427f 100%);
+      border: none;
+    }
+    .stat-card--links {
+      background: linear-gradient(135deg, #a06bff 0%, #7c4fe0 100%);
+      border: none;
+    }
+    .stat-card--rewards {
+      background: linear-gradient(135deg, #ffb648 0%, #f5942c 100%);
+      border: none;
+    }
+    .stat-card--views .stat-icon-badge,
+    .stat-card--engagements .stat-icon-badge,
+    .stat-card--links .stat-icon-badge,
+    .stat-card--rewards .stat-icon-badge {
+      background: rgba(255,255,255,0.22);
+      color: #fff;
+      width: 44px; height: 44px; border-radius: 14px;
+    }
+    .stat-card--views .stat-label,
+    .stat-card--engagements .stat-label,
+    .stat-card--links .stat-label,
+    .stat-card--rewards .stat-label {
+      color: rgba(255,255,255,0.85);
+      font-size: 13px; text-transform: none; letter-spacing: 0; font-weight: 700;
+    }
+    .stat-card--views .stat-value,
+    .stat-card--engagements .stat-value,
+    .stat-card--links .stat-value,
+    .stat-card--rewards .stat-value {
+      color: #fff;
+    }
+    .stat-card--views .stat-value span,
+    .stat-card--engagements .stat-value span,
+    .stat-card--links .stat-value span,
+    .stat-card--rewards .stat-value span {
+      color: rgba(255,255,255,0.75) !important;
+    }
+    .stat-card--views .stat-period,
+    .stat-card--engagements .stat-period,
+    .stat-card--links .stat-period,
+    .stat-card--rewards .stat-period {
+      color: rgba(255,255,255,0.75);
+    }
+    .stat-card--views .stat-delta,
+    .stat-card--engagements .stat-delta,
+    .stat-card--links .stat-delta,
+    .stat-card--rewards .stat-delta {
+      background: rgba(255,255,255,0.22) !important;
+      color: #fff !important;
+    }
+    .stat-label {
+      font-size: 11px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.09em;
+      margin-bottom: 6px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .stat-value {
+      font-size: 30px; font-weight: 800; color: var(--ink);
+      letter-spacing: -0.03em; line-height: 1; margin-bottom: 8px;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-foot { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+    .stat-delta {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11.5px; font-weight: 600; border-radius: var(--pill);
+      padding: 4px 10px;
+    }
+    .stat-delta.up { color: var(--sage); background: var(--sage-bg); }
+    .stat-delta.down { color: var(--rose-deep); background: var(--rose-bg); }
+    .stat-period { font-size: 11.5px; color: var(--muted); margin-left: 0; }
+
+    /* ── Two-col grid ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 340px; gap: 16px; margin-bottom: 16px; }
+    .grid-2-equal { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+    /* ── Panel ── */
+    .panel {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 20px 14px;
+    }
+    .panel-title {
+      font-size: 15.5px; font-weight: 700; color: var(--ink);
+      letter-spacing: -0.015em;
+    }
+    .panel-action {
+      font-size: 12px; font-weight: 600; color: var(--ink);
+      cursor: pointer; text-decoration: none;
+      border-bottom: 1px solid var(--ink);
+      padding-bottom: 1px;
+      transition: opacity 0.15s;
+    }
+    .panel-action:hover { opacity: 0.6; }
+
+    /* ── Chart area ── */
+    .chart-tabs {
+      display: flex; gap: 6px;
+      padding: 0 20px 14px;
+    }
+    .chart-tab {
+      font-size: 12.5px; font-weight: 600; padding: 7px 15px;
+      border-radius: var(--pill); cursor: pointer; color: var(--ink-soft);
+      background: var(--raise); border: 1px solid transparent; font-family: inherit;
+      transition: background 0.15s, color 0.15s;
+    }
+    .chart-tab:hover { background: #ebedef; }
+    .chart-tab.active { background: var(--ink); color: #fff; }
+
+    .chart-wrap { padding: 0 20px 20px; position: relative; }
+    canvas#perf-chart { width: 100% !important; height: 180px !important; }
+
+    /* ── Donut ── */
+    .donut-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 8px 20px 16px;
+      position: relative;
+    }
+    .donut-center {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -30%);
+      text-align: center;
+    }
+    .donut-center-value {
+      font-size: 26px; font-weight: 800; color: var(--ink);
+      letter-spacing: -0.03em; line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .donut-center-label { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+
+    .platform-legend { width: 100%; margin-top: 10px; }
+    .legend-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0; border-bottom: 1px solid var(--border-soft);
+    }
+    .legend-item:last-child { border: none; }
+    .legend-left { display: flex; align-items: center; gap: 9px; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .legend-name { font-size: 13.5px; font-weight: 500; color: var(--ink); }
+    .legend-val { font-size: 13.5px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .legend-pct { font-size: 12px; color: var(--muted); margin-left: 5px; }
+
+    /* ── Content table ── */
+    .content-table { width: 100%; border-collapse: collapse; }
+    .content-table th {
+      font-size: 10.5px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      padding: 10px 20px; text-align: left;
+      border-bottom: 1px solid var(--border);
+      background: var(--raise);
+    }
+    .content-table td { padding: 13px 20px; border-bottom: 1px solid var(--border-soft); vertical-align: middle; }
+    .content-table tr:last-child td { border-bottom: none; }
+    .content-table tr:hover td { background: #fafbfb; }
+
+    .platform-tag {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 1px solid var(--border);
+    }
+    .platform-tag.tiktok { background: #101113; border-color: #101113; }
+    .platform-tag.instagram { background: linear-gradient(45deg,#f09433,#dc2743,#bc1888); border: none; }
+
+    .caption-cell { max-width: 200px; }
+    .caption-text { font-size: 13px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .caption-date { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 600; border-radius: var(--pill); padding: 4px 11px;
+    }
+    .status-pill.synced { background: var(--sage-bg); color: var(--sage); }
+    .status-pill.syncing { background: var(--baby-bg); color: var(--baby); }
+    .status-pill.pending { background: var(--sun-bg); color: var(--sun); }
+
+    .metric-pair { display: flex; flex-direction: column; }
+    .metric-main { font-size: 13.5px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .metric-sub { font-size: 11px; color: var(--muted); }
+
+    /* ── Rewards panel ── */
+    .rewards-body { padding: 0 20px 20px; }
+    .points-hero {
+      background: linear-gradient(140deg, #c9407a 0%, #e2578f 55%, #f08cb4 100%);
+      border-radius: 16px; padding: 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .points-label {
+      font-size: 10.5px; color: rgba(255,255,255,0.75);
+      text-transform: uppercase; letter-spacing: 0.12em;
+      margin-bottom: 6px; font-weight: 600;
+    }
+    .points-value {
+      font-size: 34px; font-weight: 800; color: #fff;
+      letter-spacing: -0.03em; line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .points-sub { font-size: 11.5px; color: rgba(255,255,255,0.78); margin-top: 5px; }
+    .points-icon-wrap {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+    }
+
+    .progress-section { margin-bottom: 16px; }
+    .progress-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .progress-label { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+    .progress-value { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .progress-bar { height: 6px; background: var(--raise); border-radius: var(--pill); overflow: hidden; }
+    .progress-fill {
+      height: 100%; border-radius: var(--pill);
+      background: linear-gradient(90deg, var(--rose-deep), var(--rose-soft));
+      transition: width 1s ease;
+    }
+
+    .rewards-list { display: flex; flex-direction: column; gap: 8px; }
+    .reward-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border-radius: 14px;
+      background: var(--raise); border: 1px solid var(--border-soft);
+      transition: border-color 0.15s;
+    }
+    .reward-item:hover { border-color: var(--border); }
+    .reward-emoji { font-size: 21px; flex-shrink: 0; }
+    .reward-info { flex: 1; min-width: 0; }
+    .reward-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .reward-pts { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+    .reward-status {
+      font-size: 10.5px; font-weight: 600; border-radius: var(--pill);
+      padding: 4px 10px; white-space: nowrap;
+    }
+    .reward-status.earned { background: var(--sage-bg); color: var(--sage); }
+    .reward-status.next { background: var(--rose-bg); color: var(--rose-deep); border: 1px dashed var(--rose-soft); }
+
+    /* ── Mobile hamburger ── */
+    .hamburger {
+      display: none; align-items: center; justify-content: center;
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--surface);
+      cursor: pointer; color: var(--ink); font-size: 18px;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #c9ccd1; border-radius: 6px; }
+    ::-webkit-scrollbar-thumb:hover { background: #a8abb0; }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 1100px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 800px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .hamburger { display: flex; }
+      .date-chip { display: none; }
+      .content { padding: 16px 14px 40px; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .grid-2-equal { grid-template-columns: 1fr; }
+      .content-table th:nth-child(4),
+      .content-table td:nth-child(4) { display: none; }
+      .topbar { padding: 0 14px; }
+    }
+    @media (max-width: 480px) {
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .stat-value { font-size: 22px; }
+    }
+  </style>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ══ SIDEBAR (unchanged) ══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+      <div class="logo-label">AIWIBI<span>SYSTEM</span></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Overview</div>
+      <a class="nav-item active" href="mothersdas.html"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">My Content</div>
+      <a class="nav-item" href="mothercont.html"><i class="ti ti-square-rounded-plus"></i> Content</a>
+      <a class="nav-item" href="motherperf.html"><i class="ti ti-chart-bar"></i> Performance</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Earnings</div>
+      <a class="nav-item" href="motherreward.html"><i class="ti ti-trophy"></i> Rewards</a>
+      <a class="nav-item" href="mothercamp.html"><i class="ti ti-speakerphone"></i> Campaigns</a>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-pill">
+        <div class="user-avatar">S</div>
+        <div class="user-info">
+          <div class="user-name"></div>
+          <div class="user-role"></div>
+        </div>
+        <div class="user-level">Gold</div>
+      </div>
+      <a href="#" class="nav-item" id="logout-link" style="margin-top:6px;color:#e57373 !important;"><i class="ti ti-logout"></i> Logout</a>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- ══ MAIN ══ -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="hamburger" id="hamburger"><i class="ti ti-menu-2"></i></button>
+        <div class="topbar-left">
+          <div class="topbar-greeting">Welcome back, Sarah! 👋</div>
+          <div class="topbar-sub">Here's your content performance overview</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="date-chip"><i class="ti ti-calendar" style="font-size:13px"></i> <span id="current-date-label">Loading...</span></div>
+        <div class="icon-btn" id="topbar-account-btn"><span id="topbar-account-initial">S</span></div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card stat-card--views">
+          <div class="stat-icon-badge"><i class="ti ti-eye"></i></div>
+          <div class="stat-label">Total Views</div>
+          <div class="stat-value" id="total-views-value">0</div>
+          <div class="stat-foot" id="total-views-foot"><span class="stat-period">Start your journey now</span></div>
+        </div>
+        <div class="stat-card stat-card--engagements">
+          <div class="stat-icon-badge"><i class="ti ti-heart"></i></div>
+          <div class="stat-label">Total Engagements</div>
+          <div class="stat-value" id="total-engagements-value">0</div>
+          <div class="stat-foot" id="total-engagements-foot"><span class="stat-period">Start your journey now</span></div>
+        </div>
+        <div class="stat-card stat-card--links">
+          <div class="stat-icon-badge"><i class="ti ti-link"></i></div>
+          <div class="stat-label">Links Submitted</div>
+          <div class="stat-value" id="links-submitted-total">—</div>
+          <div class="stat-foot" id="links-submitted-foot"></div>
+        </div>
+        <div class="stat-card stat-card--rewards">
+          <div class="stat-icon-badge"><i class="ti ti-trophy"></i></div>
+          <div class="stat-label">Rewards Earned</div>
+          <div class="stat-value" id="rewards-points-value">0<span style="font-size:14px;font-weight:600;color:var(--muted)"> pts</span></div>
+          <div class="stat-foot" id="rewards-points-foot"><span class="stat-period">Start your journey now</span></div>
+        </div>
+      </div>
+
+      <!-- Performance Chart + Platform Breakdown -->
+      <div class="grid-2">
+        <!-- Chart -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Performance Overview</div>
+          </div>
+          <div class="chart-tabs">
+            <button class="chart-tab active" onclick="switchTab(this,'views')">Views</button>
+            <button class="chart-tab" onclick="switchTab(this,'engagements')">Engagements</button>
+            <button class="chart-tab" onclick="switchTab(this,'clicks')">Clicks</button>
+            <button class="chart-tab" onclick="switchTab(this,'watchtime')">Watch Time</button>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="perf-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Donut -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Platform Breakdown</div>
+          </div>
+          <div class="donut-wrap">
+            <canvas id="donut-chart" width="200" height="200" style="width:180px;height:180px;"></canvas>
+            <div class="donut-center">
+              <div class="donut-center-value" id="donut-center-value">0</div>
+              <div class="donut-center-label">Total Views</div>
+            </div>
+          </div>
+          <div class="platform-legend" style="padding:0 20px;">
+            <div style="text-align:center;color:var(--muted);font-size:12.5px;padding:20px 0;">No content yet — submit your first link to see your platform breakdown.</div>
+          </div>
+          <div style="height:14px"></div>
+        </div>
+      </div>
+
+      <!-- Recent Content + Rewards -->
+      <div class="grid-2">
+        <!-- Content Table -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Recent Submitted Content</div>
+            <a class="panel-action" href="#">View all</a>
+          </div>
+          <table class="content-table">
+            <thead>
+              <tr>
+                <th>Platform</th>
+                <th>Caption</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th>Performance</th>
+              </tr>
+            </thead>
+            <tbody id="recent-content-tbody">
+              <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Loading your recent content...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Rewards panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Your Rewards Summary</div>
+            <a class="panel-action" href="#">View all</a>
+          </div>
+          <div class="rewards-body">
+            <div class="points-hero">
+              <div>
+                <div class="points-label">Total Points</div>
+                <div class="points-value" id="dash-points-value">0</div>
+                <div class="points-sub" id="dash-points-sub">Loading...</div>
+              </div>
+              <div class="points-icon-wrap">🏆</div>
+            </div>
+
+            <div class="progress-section">
+              <div class="progress-top">
+                <span class="progress-label" id="dash-progress-label">Loading...</span>
+                <span class="progress-value" id="dash-progress-value"></span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+              </div>
+            </div>
+
+            <div class="rewards-list" id="dash-rewards-list">
+              <div style="text-align:center;color:var(--muted);font-size:12.5px;padding:12px 0;">Loading rewards...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- ══ Missing Social Connection Prompt ══ -->
+<div id="social-prompt-overlay" style="display:none;position:fixed;inset:0;background:rgba(16,17,19,0.55);z-index:200;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:24px;padding:28px 26px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(16,17,19,0.25);">
+    <div style="width:56px;height:56px;border-radius:50%;background:#fdeef5;border:1px solid #f8c3da;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:26px;">🔗</div>
+    <div style="font-size:17px;font-weight:700;color:#101113;letter-spacing:-0.02em;margin-bottom:8px;">Finish connecting your accounts</div>
+    <div id="social-prompt-text" style="font-size:13.5px;color:#8a8f98;line-height:1.6;margin-bottom:22px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button id="social-prompt-no" style="flex:1;height:46px;border-radius:999px;border:1px solid #e5e7ea;background:#fff;color:#3a3d42;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Not now</button>
+      <button id="social-prompt-yes" style="flex:1;height:46px;border-radius:999px;border:none;background:linear-gradient(135deg,#c9407a,#e2578f);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Connect</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+  const SUPABASE_URL = 'https://cqtebvfegeojjkrkzboq.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdGVidmZlZ2Vvamprcmt6Ym9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODQ2NjksImV4cCI6MjA5ODU2MDY2OX0.OcCwAD-q6d1XeyHW6f1Gy9r_sBdRV3eWAOUsKLemKEA'
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  window.supabase = supabase; // TEMPORARY - for console debugging, remove later
+
+  document.getElementById('logout-link').addEventListener('click', async (e) => {
+    e.preventDefault()
+    await supabase.auth.signOut()
+    window.location.href = 'login.html'
+  })
+
+  async function loadUserProfile() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('full_name, email, role')
+      .eq('id', session.user.id)
+      .single();
+
+    if (error || !profile) {
+      console.error('Profile load error:', error);
+      return;
+    }
+
+    const name = profile.full_name || profile.email || session.user.email;
+    const initial = name.charAt(0).toUpperCase();
+
+    const avatarEl = document.querySelector('.user-avatar');
+    const nameEl = document.querySelector('.user-name');
+    const roleEl = document.querySelector('.user-role');
+    if (avatarEl) avatarEl.textContent = initial;
+    if (nameEl) nameEl.textContent = name;
+    if (roleEl) roleEl.textContent = profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : '';
+
+    const topbarInitialEl = document.getElementById('topbar-account-initial');
+    if (topbarInitialEl) topbarInitialEl.textContent = initial;
+
+    const greetingEl = document.querySelector('.topbar-greeting');
+    const firstName = name.split(' ')[0];
+    if (greetingEl) greetingEl.textContent = `Welcome back, ${firstName}! 👋`;
+  }
+  const ALL_PLATFORMS = ['tiktok', 'instagram'];
+
+  async function checkMissingSocialConnections() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: accounts, error } = await supabase
+      .from('social_accounts')
+      .select('platform')
+      .eq('user_id', session.user.id);
+
+    if (error) {
+      console.error('Social accounts check error:', error);
+      return;
+    }
+
+    const connectedPlatforms = (accounts || []).map(a => a.platform);
+    const missing = ALL_PLATFORMS.filter(p => !connectedPlatforms.includes(p));
+
+    if (missing.length === 0) return;
+
+    const missingLabels = missing.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' and ');
+    const promptText = document.getElementById('social-prompt-text');
+    if (promptText) {
+      promptText.textContent = `You haven't connected ${missingLabels} yet. Connect it now so we can track that content too?`;
+    }
+
+    const overlay = document.getElementById('social-prompt-overlay');
+    if (overlay) overlay.style.display = 'flex';
+
+    const yesBtn = document.getElementById('social-prompt-yes');
+    const noBtn = document.getElementById('social-prompt-no');
+    if (yesBtn) yesBtn.onclick = () => { window.location.href = 'onboarding-step1.html'; };
+    if (noBtn) noBtn.onclick = () => { if (overlay) overlay.style.display = 'none'; };
+  }
+
+  function formatNumber(n) {
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+    return String(n);
+  }
+
+  function renderCurrentDate() {
+    const el = document.getElementById('current-date-label');
+    if (!el) return;
+    const today = new Date();
+    el.textContent = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  }
+
+  /* ── Sidebar toggle (mobile) ── */
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  document.getElementById('hamburger').addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  });
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  });
+
+  /* ── Chart data (populated from real analytics) ── */
+  let labels = ['May 14','May 15','May 16','May 17','May 18','May 19','May 20'];
+  let datasets = {
+    views:       [0, 0, 0, 0, 0, 0, 0],
+    engagements: [0, 0, 0, 0, 0, 0, 0],
+    clicks:      [0, 0, 0, 0, 0, 0, 0],
+    watchtime:   [0, 0, 0, 0, 0, 0, 0],
+  };
+
+  let activeTab = 'views';
+
+  /* Platform brand palette (used by donut + legend) */
+  const platformColors = { tiktok: '#101113', instagram: '#e1306c' };
+
+  async function loadRealAnalytics() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.log('No session — showing mock data');
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('postpeer-get-analytics', {
+        method: 'GET'
+      });
+
+      if (error) {
+        console.error('Analytics fetch error:', error);
+        return;
+      }
+
+      console.log('Real analytics data:', data);
+
+      if (!data.posts || data.posts.length === 0) {
+        console.log('No posts found yet');
+        return;
+      }
+
+      // Update stat cards
+      const totalViewsEl = document.getElementById('total-views-value');
+      const totalEngEl = document.getElementById('total-engagements-value');
+      if (totalViewsEl) totalViewsEl.textContent = formatNumber(data.summary.totalViews);
+      if (totalEngEl) totalEngEl.textContent = formatNumber(data.summary.totalEngagements);
+
+      const totalViewsFoot = document.getElementById('total-views-foot');
+      const totalEngFoot = document.getElementById('total-engagements-foot');
+      if (totalViewsFoot) totalViewsFoot.innerHTML = '<span class="stat-period">Across all connected platforms</span>';
+      if (totalEngFoot) totalEngFoot.innerHTML = '<span class="stat-period">Across all connected platforms</span>';
+
+      // Update donut center
+      const donutCenter = document.getElementById('donut-center-value');
+      if (donutCenter) donutCenter.textContent = formatNumber(data.summary.totalViews);
+
+      // Group posts by platform for donut
+      const platformTotals = {};
+      data.posts.forEach(p => {
+        platformTotals[p.platform] = (platformTotals[p.platform] || 0) + (p.views || 0);
+      });
+      console.log('Platform totals:', platformTotals);
+
+      // Rebuild line chart from real posts, sorted by date
+      const sorted = [...data.posts].sort((a, b) => new Date(a.publishedAt) - new Date(b.publishedAt));
+      labels = sorted.map(p => new Date(p.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+      datasets.views = sorted.map(p => p.views || 0);
+      datasets.engagements = sorted.map(p => (p.likes || 0) + (p.comments || 0) + (p.shares || 0));
+
+      perfChart.data.labels = labels;
+      perfChart.data.datasets[0].data = datasets[activeTab];
+      perfChart.update();
+
+      // Update donut chart with real platform split
+      const donutLabels = Object.keys(platformTotals).map(p => p.charAt(0).toUpperCase() + p.slice(1));
+      const donutValues = Object.values(platformTotals);
+      const donutBg = Object.keys(platformTotals).map(p => platformColors[p] || '#d5d7da');
+
+      donutChart.data.labels = donutLabels;
+      donutChart.data.datasets[0].data = donutValues;
+      donutChart.data.datasets[0].backgroundColor = donutBg;
+      donutChart.update();
+
+      // Update platform legend
+      const legendContainer = document.querySelector('.platform-legend');
+      if (legendContainer) {
+        const totalViews = data.summary.totalViews || 1;
+        legendContainer.innerHTML = Object.entries(platformTotals).map(([platform, views]) => {
+          const pct = Math.round((views / totalViews) * 100);
+          const color = platformColors[platform] || '#d5d7da';
+          const name = platform.charAt(0).toUpperCase() + platform.slice(1);
+          return `
+            <div class="legend-item">
+              <div class="legend-left">
+                <div class="legend-dot" style="background:${color}"></div>
+                <span class="legend-name">${name}</span>
+              </div>
+              <div><span class="legend-val">${formatNumber(views)}</span><span class="legend-pct">(${pct}%)</span></div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Build a lookup so the real submitted-content table can enrich rows with
+      // view/engagement numbers when PostPeer data is available for that URL
+      postpeerPostsByUrl = {};
+      data.posts.forEach(p => {
+        if (p.url) postpeerPostsByUrl[normalizeUrl(p.url)] = p;
+      });
+
+    } catch (err) {
+      console.error('Failed to load analytics:', err);
+    }
+  }
+
+  function normalizeUrl(u) {
+    if (!u) return '';
+    return u.split('?')[0].replace(/\/$/, '').toLowerCase();
+  }
+
+  let postpeerPostsByUrl = {};
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  async function loadRecentSubmittedContent() {
+    const tbody = document.getElementById('recent-content-tbody');
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: rows, error } = await supabase
+      .from('submitted_content')
+      .select('platform, video_url, caption, thumbnail_url, status, submitted_at')
+      .eq('user_id', session.user.id)
+      .order('submitted_at', { ascending: false })
+      .limit(5);
+
+    if (error) {
+      console.error('Failed to load submitted content:', error);
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load your recent content.</td></tr>';
+      return;
+    }
+
+    if (!rows || rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">You haven\'t submitted any content yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = rows.map(row => {
+      const platformClass = row.platform === 'tiktok' ? 'tiktok' : 'instagram';
+      const iconClass = row.platform === 'tiktok' ? 'brand-tiktok' : 'brand-instagram';
+      const dateStr = new Date(row.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      const caption = row.caption ? escapeHtml(row.caption) : '<span style="color:var(--faint);font-style:italic;">No caption yet</span>';
+      const statusHtml = row.status === 'synced'
+        ? '<span class="status-pill synced"><i class="ti ti-circle-check" style="font-size:11px"></i> Synced</span>'
+        : row.status === 'failed'
+        ? '<span class="status-pill failed"><i class="ti ti-alert-circle" style="font-size:11px"></i> Failed</span>'
+        : '<span class="status-pill syncing"><i class="ti ti-refresh" style="font-size:11px"></i> Pending sync</span>';
+
+      const match = postpeerPostsByUrl[normalizeUrl(row.video_url)];
+      const views = match ? formatNumber(match.views || 0) : '—';
+      const eng = match ? formatNumber((match.likes || 0) + (match.comments || 0) + (match.shares || 0)) : '—';
+
+      return `
+        <tr style="cursor:pointer" onclick="window.open('${row.video_url}', '_blank')" title="Open on ${row.platform}">
+          <td><div class="platform-tag ${platformClass}"><i class="ti ti-${iconClass}" style="color:#fff;font-size:13px"></i></div></td>
+          <td class="caption-cell"><div class="caption-text">${caption}</div><div class="caption-date">${dateStr}</div></td>
+          <td>${statusHtml}</td>
+          <td><div class="metric-pair"><span class="metric-main">${views}</span><span class="metric-sub">Views</span></div></td>
+          <td><div class="metric-pair"><span class="metric-main">${eng}</span><span class="metric-sub">Eng.</span></div></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  const TIERS = [
+    { name: 'Bronze', min: 0 },
+    { name: 'Silver', min: 500 },
+    { name: 'Gold', min: 750 },
+    { name: 'Platinum', min: 1000 }
+  ];
+
+  function currentTier(points) {
+    let tier = TIERS[0];
+    for (const t of TIERS) if (points >= t.min) tier = t;
+    return tier;
+  }
+
+  function nextTier(points) {
+    return TIERS.find(t => t.min > points) || null;
+  }
+
+  async function getUniqueLinkCount(userId) {
+    const { data, error } = await supabase
+      .from('submitted_content')
+      .select('video_url')
+      .eq('user_id', userId);
+    if (error) { console.error('Failed to load points:', error); return 0; }
+    return new Set(data.map(r => normalizeUrl(r.video_url))).size;
+  }
+
+  async function loadRewardsSummary() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const linkCount = await getUniqueLinkCount(session.user.id);
+    const points = linkCount * 100;
+
+    const pointsValueEl = document.getElementById('rewards-points-value');
+    const pointsFootEl = document.getElementById('rewards-points-foot');
+    if (pointsValueEl) pointsValueEl.innerHTML = `${points}<span style="font-size:14px;font-weight:600;color:var(--muted)"> pts</span>`;
+    if (pointsFootEl) pointsFootEl.innerHTML = linkCount > 0
+      ? `<span class="stat-period">${linkCount} video${linkCount === 1 ? '' : 's'} submitted · 100 pts each</span>`
+      : `<span class="stat-period">Submit your first link to start earning</span>`;
+
+    const tier = currentTier(points);
+    const next = nextTier(points);
+
+    document.getElementById('dash-points-value').textContent = points;
+    document.getElementById('dash-points-sub').textContent = `AIWIBI Ambassador · ${tier.name} Level`;
+
+    const progressLabelEl = document.getElementById('dash-progress-label');
+    const progressValueEl = document.getElementById('dash-progress-value');
+    const progressFillEl = document.getElementById('progress-fill');
+    if (next) {
+      const ptsToGo = next.min - points;
+      progressLabelEl.textContent = `Next Reward: ${ptsToGo} pts to go`;
+      progressValueEl.textContent = `${points} / ${next.min}`;
+      progressFillEl.style.width = `${Math.min(100, Math.round((points / next.min) * 100))}%`;
+    } else {
+      progressLabelEl.textContent = `You've reached the top tier!`;
+      progressValueEl.textContent = `${points} pts`;
+      progressFillEl.style.width = `100%`;
+    }
+
+    const { data: rewards, error: rewardsError } = await supabase
+      .from('rewards')
+      .select('*')
+      .eq('is_active', true)
+      .order('points_cost', { ascending: true });
+
+    const listEl = document.getElementById('dash-rewards-list');
+    if (rewardsError || !rewards || rewards.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:12px 0;">No rewards set up yet.</div>';
+      return;
+    }
+
+    listEl.innerHTML = rewards.slice(0, 3).map(r => {
+      const earned = points >= r.points_cost;
+      const linksNeeded = Math.max(0, Math.ceil((r.points_cost - points) / 100));
+      return `
+        <div class="reward-item">
+          <div class="reward-emoji">🎁</div>
+          <div class="reward-info">
+            <div class="reward-name">${escapeHtml(r.title)}</div>
+            <div class="reward-pts">Unlocks at ${r.points_cost} pts</div>
+          </div>
+          <div class="reward-status ${earned ? 'earned' : 'next'}">${earned ? 'Earned' : linksNeeded + ' link' + (linksNeeded === 1 ? '' : 's') + ' away'}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function loadLinksSubmittedStat() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: rows, error } = await supabase
+      .from('submitted_content')
+      .select('submitted_at')
+      .eq('user_id', session.user.id);
+
+    const totalEl = document.getElementById('links-submitted-total');
+    const footEl = document.getElementById('links-submitted-foot');
+
+    if (error || !rows) {
+      console.error('Failed to load links submitted count:', error);
+      if (totalEl) totalEl.textContent = '0';
+      return;
+    }
+
+    if (totalEl) totalEl.textContent = String(rows.length);
+
+    const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const thisWeekCount = rows.filter(r => new Date(r.submitted_at).getTime() >= oneWeekAgo).length;
+
+    if (footEl) {
+      footEl.innerHTML = thisWeekCount > 0
+        ? `<span class="stat-delta up"><i class="ti ti-trending-up" style="font-size:11px"></i> +${thisWeekCount}</span><span class="stat-period">this week</span>`
+        : `<span class="stat-period">No new links this week</span>`;
+    }
+  }
+
+  /* ── Line chart: monochrome ── */
+  const ctx = document.getElementById('perf-chart').getContext('2d');
+  const gradientInk = ctx.createLinearGradient(0, 0, 0, 180);
+  gradientInk.addColorStop(0, 'rgba(63,159,212,0.18)');
+  gradientInk.addColorStop(1, 'rgba(63,159,212,0)');
+
+  const perfChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: datasets.views,
+        borderColor: '#3f9fd4',
+        backgroundColor: gradientInk,
+        borderWidth: 2,
+        pointBackgroundColor: '#3f9fd4',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 1.5,
+        pointRadius: 3.5,
+        pointHoverRadius: 5.5,
+        fill: true,
+        tension: 0.4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: {
+          label: ctx => {
+            const v = ctx.parsed.y;
+            return activeTab === 'views' ? ` Views: ${v.toLocaleString()}` :
+                   activeTab === 'engagements' ? ` Eng: ${v.toLocaleString()}` :
+                   activeTab === 'clicks' ? ` Clicks: ${v}` : ` Watch: ${v}m`;
+          }
+        },
+        backgroundColor: '#101113', titleFont: { size: 11, family: 'Inter' }, bodyFont: { size: 12, family: 'Inter' },
+        padding: 10, cornerRadius: 10, displayColors: false,
+      }},
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11.5, family: 'Inter' }, color: '#8a8f98' } },
+        y: { grid: { color: '#eef0f2' }, border: { display: false }, ticks: { font: { size: 11.5, family: 'Inter' }, color: '#8a8f98' } }
+      }
+    }
+  });
+
+  function switchTab(el, key) {
+    document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    activeTab = key;
+    perfChart.data.datasets[0].data = datasets[key];
+    perfChart.update();
+  }
+  window.switchTab = switchTab;
+
+  /* ── Donut: monochrome ── */
+  const dCtx = document.getElementById('donut-chart').getContext('2d');
+  const donutChart = new Chart(dCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['No data yet'],
+      datasets: [{ data: [1], backgroundColor: ['#e5e7ea'], borderWidth: 0, hoverOffset: 0, borderRadius: 6, spacing: 0 }]
+    },
+    options: {
+      cutout: '74%',
+      plugins: { legend: { display: false }, tooltip: {
+        backgroundColor: '#101113', bodyFont: { size: 12, family: 'Inter' }, padding: 10, cornerRadius: 10, displayColors: false,
+      }},
+    }
+  });
+
+  /* ── Hide chart tabs with no real data source yet ── */
+  document.querySelectorAll('.chart-tab').forEach(tab => {
+    const label = tab.textContent.trim();
+    if (label === 'Clicks' || label === 'Watch Time') {
+      tab.style.display = 'none';
+    }
+  });
+
+ loadUserProfile();
+  loadRealAnalytics().then(loadRecentSubmittedContent);
+  loadLinksSubmittedStat();
+  loadRewardsSummary();
+  checkMissingSocialConnections();
+</script>
+</body>
+</html>

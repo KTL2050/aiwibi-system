@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Aiwibi System — Connect Accounts</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #ede9ff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 16px;
+      background: #ede9ff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .blob { position: absolute; border-radius: 50%; }
+    .blob-tl { top: -70px; left: -70px; width: 220px; height: 220px; background: #c9bfff; opacity: 0.5; }
+    .blob-br { bottom: -60px; right: -40px; width: 190px; height: 190px; background: #b8acff; opacity: 0.4; }
+
+    /* ══ Split-panel shell — matches the login screen ══ */
+    .auth-shell {
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      width: 100%;
+      max-width: 1040px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+      background: #fff;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 24px 70px rgba(20,20,46,0.18);
+    }
+    .auth-form-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 1 440px;
+      padding: 24px 0;
+    }
+    .auth-visual-panel {
+      flex: 1 1 480px;
+      position: relative;
+      overflow: hidden;
+      min-height: 600px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    .auth-visual-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background-image: linear-gradient(180deg, rgba(20,14,50,0.05) 0%, rgba(20,14,50,0.1) 45%, rgba(15,10,40,0.7) 100%);
+    }
+    .visual-slides {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background: #6c5ce7;
+    }
+    .visual-slide {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center top;
+      opacity: 0;
+      transition: opacity 1.2s ease-in-out;
+    }
+    .visual-slide.active {
+      opacity: 1;
+    }
+    .visual-close {
+      position: absolute; top: 18px; right: 18px;
+      width: 34px; height: 34px; border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      border: none; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 16px;
+      backdrop-filter: blur(4px);
+      transition: background 0.15s;
+      z-index: 2;
+    }
+    .visual-close:hover { background: rgba(255,255,255,0.28); }
+
+    .floater {
+      position: absolute;
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(6px);
+      border-radius: 16px;
+      padding: 12px 16px;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.28);
+      max-width: 220px;
+      z-index: 2;
+    }
+    .floater-sync { top: 36px; left: 28px; animation: floatY 3.4s ease-in-out infinite; }
+    .floater-reward { top: 120px; left: 64px; z-index: 2; animation: floatY 3.8s ease-in-out infinite 0.4s; }
+    @keyframes floatY { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+    .floater-dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; flex-shrink: 0; box-shadow: 0 0 0 4px rgba(34,197,94,0.18); }
+    .floater-emoji { font-size: 20px; }
+    .floater-title { font-size: 13px; font-weight: 700; color: #1a1a2e; }
+    .floater-sub { font-size: 11px; color: #999; }
+
+    .avatar-cluster {
+      position: absolute; top: 200px; right: 36px;
+      display: flex;
+      z-index: 2;
+    }
+    .avatar-chip {
+      width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; font-size: 13px;
+      border: 2px solid #fff;
+      margin-left: -10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    .avatar-chip:first-child { margin-left: 0; }
+
+    .week-strip {
+      width: 100%;
+      background: rgba(255,255,255,0.14);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px;
+      padding: 16px 18px;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 2;
+    }
+    .week-strip-title { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); margin-bottom: 10px; }
+    .week-days { display: flex; justify-content: space-between; margin-bottom: 12px; }
+    .week-days span { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 600; width: 26px; text-align: center; }
+    .week-days span.active { color: #fff; background: rgba(255,255,255,0.25); border-radius: 8px; padding: 4px 0; }
+    .week-stat { display: flex; align-items: baseline; gap: 8px; }
+    .week-stat-value { font-size: 22px; font-weight: 800; color: #fff; }
+    .week-stat-label { font-size: 12px; color: rgba(255,255,255,0.75); }
+
+    .visual-headline { color: #fff; position: relative; z-index: 2; }
+    .visual-headline-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; line-height: 1.25; }
+    .visual-headline-sub { font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; max-width: 320px; }
+
+    .card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 18px 20px 20px;
+      width: 100%;
+      max-width: 360px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 8px 40px rgba(108,92,231,0.13);
+    }
+    .auth-shell .card { box-shadow: none; }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .logo-wrap { display: flex; align-items: center; gap: 8px; }
+    .logo-text {
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      color: #6c5ce7; line-height: 1.3;
+    }
+    .logo-text span { display: block; color: #a29bfe; font-weight: 400; letter-spacing: 1.5px; }
+    .skip-btn {
+      font-size: 13px; font-weight: 600; color: #6c5ce7;
+      background: none; border: none; cursor: pointer;
+      font-family: inherit; -webkit-tap-highlight-color: transparent;
+      padding: 4px 0;
+    }
+    .skip-btn:active { opacity: 0.7; }
+
+    /* ── Illustration ── */
+    .illustration {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      height: 110px;
+      margin-bottom: 8px;
+    }
+
+    /* person SVG centered */
+    .person-wrap {
+      position: relative; z-index: 2;
+    }
+
+    /* floating platform icons */
+    .platform-icon {
+      position: absolute;
+      width: 52px; height: 52px;
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      z-index: 3;
+    }
+    .platform-icon.tiktok {
+      left: 10px; top: 4px;
+      background: #000;
+      animation: float1 3s ease-in-out infinite;
+    }
+    .platform-icon.instagram {
+      right: 10px; top: 4px;
+      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+      animation: float2 3.4s ease-in-out infinite;
+    }
+
+    /* dots */
+    .dot {
+      position: absolute;
+      border-radius: 50%;
+      background: #e8e4ff;
+    }
+    .dot1 { width: 6px; height: 6px; top: 40px; left: 80px; animation: pulse 2s ease-in-out infinite; }
+    .dot2 { width: 4px; height: 4px; top: 90px; right: 85px; animation: pulse 2.5s ease-in-out infinite 0.5s; }
+    .dot3 { width: 5px; height: 5px; bottom: 20px; left: 100px; animation: pulse 2.2s ease-in-out infinite 1s; }
+
+    @keyframes float1 {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    @keyframes float2 {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.4); }
+    }
+
+    /* ── Heading ── */
+    .heading { font-size: 19px; font-weight: 700; color: #1a1a2e; text-align: center; margin-bottom: 6px; }
+    .subheading { font-size: 13px; color: #999; text-align: center; line-height: 1.5; margin-bottom: 14px; }
+
+    /* ── Connect cards ── */
+    .connect-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .connect-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 16px 14px 14px;
+      border: 1.5px solid #eae6ff;
+      border-radius: 16px;
+      background: #faf9ff;
+      cursor: pointer;
+      transition: border-color 0.18s, background 0.18s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+    }
+    .connect-card:active { transform: scale(0.98); background: #f3f0ff; }
+    .connect-card.connected { border-color: #22c55e; background: #f0fdf4; }
+
+    .platform-logo {
+      width: 42px; height: 42px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-bottom: 12px;
+    }
+    .platform-logo.tiktok-logo { background: #000; }
+    .platform-logo.ig-logo {
+      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    }
+
+    .connect-info { width: 100%; padding-right: 22px; }
+    .connect-title { font-size: 14px; font-weight: 700; color: #111319; margin-bottom: 3px; }
+    .connect-sub { font-size: 11.5px; color: #8b8b95; line-height: 1.4; }
+
+    .connect-arrow {
+      position: absolute; top: 14px; right: 14px;
+      width: 24px; height: 24px; border-radius: 50%;
+      border: 1.5px solid #ddd9f2;
+      background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      color: #111319; font-size: 12px; flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .connect-card:not(.connected):active .connect-arrow {
+      background: #111319; border-color: #111319; color: #fff;
+    }
+    .connect-card.connected .connect-arrow {
+      background: #22c55e; border-color: #22c55e; color: #fff;
+    }
+
+    .connected-badge {
+      position: absolute;
+      top: -7px; right: 10px;
+      background: #22c55e; color: #fff;
+      font-size: 10px; font-weight: 600;
+      padding: 2px 8px; border-radius: 20px;
+      display: none;
+    }
+    .connect-card.connected .connected-badge { display: block; }
+
+    /* ── Safety note ── */
+    .safety-note {
+      background: #f4f4f6;
+      border: 1.5px solid #eae6ff;
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-top: 8px;
+    }
+    .safety-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: #ecebee; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; color: #111319; font-size: 18px;
+    }
+    .safety-title { font-size: 13px; font-weight: 600; color: #111319; margin-bottom: 3px; }
+    .safety-text { font-size: 12px; color: #77777f; line-height: 1.5; }
+
+    /* ── Continue button ── */
+    .btn-primary {
+      width: 100%; height: 48px;
+      background: linear-gradient(135deg, #6c5ce7 0%, #9b8fef 100%);
+      color: #fff; border: none; border-radius: 14px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: opacity 0.18s, transform 0.1s;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-top: 12px;
+    }
+    .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #1a1a2e; color: #fff;
+      padding: 10px 22px; border-radius: 10px;
+      font-size: 13px; font-weight: 500;
+      opacity: 0; transition: opacity 0.3s;
+      pointer-events: none; white-space: nowrap; z-index: 999;
+    }
+    .toast.show { opacity: 1; }
+
+    /* ── Modal overlay ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(26,26,46,0.45);
+      z-index: 50;
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
+
+    .modal-sheet {
+      background: #fff;
+      border-radius: 24px 24px 0 0;
+      padding: 24px 22px 36px;
+      width: 100%; max-width: 420px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+    }
+    .modal-overlay.show .modal-sheet { transform: translateY(0); }
+
+    .modal-handle {
+      width: 40px; height: 4px; border-radius: 2px;
+      background: #e0e0e0; margin: 0 auto 20px;
+    }
+    .modal-logo {
+      width: 56px; height: 56px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px;
+    }
+    .modal-title { font-size: 17px; font-weight: 700; color: #1a1a2e; text-align: center; margin-bottom: 6px; }
+    .modal-sub { font-size: 13px; color: #999; text-align: center; line-height: 1.5; margin-bottom: 22px; }
+
+    .perm-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid #f5f3ff;
+    }
+    .perm-item:last-of-type { border-bottom: none; margin-bottom: 14px; }
+    .perm-icon { color: #6c5ce7; font-size: 18px; flex-shrink: 0; }
+    .perm-text { font-size: 13px; color: #555; }
+
+    .btn-connect-modal {
+      width: 100%; height: 48px;
+      background: linear-gradient(135deg, #6c5ce7 0%, #9b8fef 100%);
+      color: #fff; border: none; border-radius: 12px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      font-family: inherit; display: flex; align-items: center; justify-content: center;
+      margin-bottom: 10px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-connect-modal:active { opacity: 0.9; }
+    .btn-cancel-modal {
+      width: 100%; height: 44px;
+      background: none; border: 1.5px solid #eae6ff; border-radius: 12px;
+      font-size: 14px; font-weight: 500; color: #999; cursor: pointer;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* spinner */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2.5px solid rgba(255,255,255,0.35);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* screens */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ══ Mobile: curved hero image on top, card slides up under it ══ */
+    @media (max-width: 960px) {
+      .page { padding: 0; align-items: flex-start; }
+      .blob { display: none; }
+
+      .auth-shell {
+        flex-direction: column;
+        max-width: 100%;
+        width: 100%;
+        min-height: 100vh;
+        min-height: 100dvh;
+        border-radius: 0;
+        box-shadow: none;
+        background: transparent;
+      }
+
+      .auth-visual-panel {
+        order: -1;
+        min-height: 220px;
+        max-height: 30vh;
+        padding: 0;
+        border-radius: 0 0 40px 40px;
+        box-shadow: 0 8px 24px rgba(20,14,50,0.2);
+      }
+      .visual-close,
+      .floater,
+      .avatar-cluster,
+      .week-strip,
+      .visual-headline {
+        display: none;
+      }
+
+      .auth-form-panel {
+        margin-top: -32px;
+        z-index: 2;
+        flex: 1;
+        padding: 0;
+      }
+      .card {
+        border-radius: 32px 32px 0 0;
+        max-width: 100%;
+        width: 100%;
+        min-height: calc(100vh - 188px);
+        min-height: calc(100dvh - 188px);
+        box-shadow: 0 -10px 30px rgba(20,14,50,0.08);
+        padding: 28px 24px 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+  <div class="blob blob-tl"></div>
+  <div class="blob blob-br"></div>
+
+  <div class="auth-shell">
+  <div class="auth-form-panel">
+  <div class="card">
+
+    <!-- ══ MAIN SCREEN ══ -->
+    <div class="screen active" id="screen-main">
+
+      <!-- Top bar -->
+      <div class="topbar">
+        <div class="logo-wrap">
+          <svg width="34" height="34" viewBox="0 0 52 52" fill="none">
+            <circle cx="26" cy="26" r="26" fill="#f0eeff"/>
+            <circle cx="26" cy="26" r="16" stroke="#6c5ce7" stroke-width="1.8" fill="none"/>
+            <path d="M19 27 L26 17 L33 27" stroke="#6c5ce7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M20 33 Q26 29 32 33" stroke="#a29bfe" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <circle cx="26" cy="36" r="2.2" fill="#6c5ce7"/>
+          </svg>
+          <div class="logo-text">AIWIBI <span>SYSTEM</span></div>
+        </div>
+        <button class="skip-btn" id="skip-btn" type="button">Skip for now</button>
+      </div>
+
+      <!-- Illustration -->
+      <div class="illustration">
+        <!-- TikTok icon -->
+        <div class="platform-icon tiktok">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+            <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/>
+          </svg>
+        </div>
+
+        <!-- Instagram icon -->
+        <div class="platform-icon instagram">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+          </svg>
+        </div>
+
+        <!-- Animated dots -->
+        <div class="dot dot1"></div>
+        <div class="dot dot2"></div>
+        <div class="dot dot3"></div>
+
+        <!-- Person illustration (SVG) -->
+        <div class="person-wrap">
+          <svg width="88" height="116" viewBox="0 0 110 145" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- body/outfit -->
+            <ellipse cx="55" cy="130" rx="28" ry="10" fill="#e8e4ff" opacity="0.5"/>
+            <!-- legs -->
+            <rect x="44" y="108" width="10" height="22" rx="5" fill="#6c5ce7" opacity="0.7"/>
+            <rect x="56" y="108" width="10" height="22" rx="5" fill="#6c5ce7" opacity="0.7"/>
+            <!-- torso -->
+            <rect x="36" y="72" width="38" height="40" rx="10" fill="#7c6ce7"/>
+            <!-- left arm -->
+            <rect x="20" y="74" width="18" height="9" rx="4.5" fill="#7c6ce7"/>
+            <!-- right arm holding phone -->
+            <rect x="72" y="74" width="18" height="9" rx="4.5" fill="#7c6ce7"/>
+            <!-- phone -->
+            <rect x="74" y="72" width="14" height="22" rx="3" fill="#1a1a2e"/>
+            <rect x="76" y="75" width="10" height="16" rx="2" fill="#6c5ce7" opacity="0.6"/>
+            <!-- neck -->
+            <rect x="49" y="60" width="12" height="14" rx="6" fill="#f5c5a3"/>
+            <!-- head -->
+            <ellipse cx="55" cy="48" rx="18" ry="20" fill="#f5c5a3"/>
+            <!-- hair -->
+            <ellipse cx="55" cy="33" rx="19" ry="14" fill="#2d1b4e"/>
+            <ellipse cx="37" cy="50" rx="5" ry="12" fill="#2d1b4e"/>
+            <ellipse cx="73" cy="50" rx="5" ry="12" fill="#2d1b4e"/>
+            <!-- face features -->
+            <ellipse cx="48" cy="50" rx="2.5" ry="2.5" fill="#1a1a2e"/>
+            <ellipse cx="62" cy="50" rx="2.5" ry="2.5" fill="#1a1a2e"/>
+            <path d="M50 57 Q55 61 60 57" stroke="#e8a090" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Text -->
+      <div class="heading">Let's connect your accounts</div>
+      <div class="subheading">Link TikTok and Instagram and we'll keep track of your posts for you — no manual updates needed.</div>
+
+      <!-- Connect cards -->
+      <div class="connect-grid">
+      <div class="connect-card" id="card-tiktok" data-platform="tiktok">
+        <div class="connected-badge">Connected</div>
+        <div class="platform-logo tiktok-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/>
+          </svg>
+        </div>
+        <div class="connect-info">
+          <div class="connect-title">TikTok</div>
+          <div class="connect-sub">Tap to link your account</div>
+        </div>
+        <div class="connect-arrow" id="arrow-tiktok">
+          <i class="ti ti-chevron-right" aria-hidden="true"></i>
+        </div>
+      </div>
+
+      <div class="connect-card" id="card-instagram" data-platform="instagram">
+        <div class="connected-badge">Connected</div>
+        <div class="platform-logo ig-logo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+          </svg>
+        </div>
+        <div class="connect-info">
+          <div class="connect-title">Instagram</div>
+          <div class="connect-sub">Tap to link your account</div>
+        </div>
+        <div class="connect-arrow" id="arrow-instagram">
+          <i class="ti ti-chevron-right" aria-hidden="true"></i>
+        </div>
+      </div>
+      </div><!-- /connect-grid -->
+
+      <!-- Safety note -->
+      <div class="safety-note">
+        <div class="safety-icon">
+          <i class="ti ti-lock" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div class="safety-title">We keep this private</div>
+          <div class="safety-text">We only pull what's needed to show your stats — nothing gets posted or shared without you.</div>
+        </div>
+      </div>
+
+
+      <!-- Continue -->
+      <button class="btn-primary" id="continue-btn" type="button" disabled>
+        Continue
+        <i class="ti ti-arrow-right" aria-hidden="true"></i>
+      </button>
+
+    </div>
+
+    <!-- ══ ALL DONE SCREEN ══ -->
+    <div class="screen" id="screen-done">
+      <div style="display:flex;flex-direction:column;align-items:center;padding:20px 0 10px;text-align:center;">
+        <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+          <i class="ti ti-check" style="color:#fff;font-size:32px"></i>
+        </div>
+        <div style="font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:8px;">Accounts connected! &#x1F389;</div>
+        <div style="font-size:13px;color:#999;line-height:1.6;margin-bottom:10px;">Both TikTok and Instagram are now linked. You're ready for the next step.</div>
+
+        <div style="display:flex;gap:10px;margin:14px 0 20px;">
+          <div style="display:flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;padding:6px 12px;">
+            <div style="width:20px;height:20px;border-radius:6px;background:#000;display:flex;align-items:center;justify-content:center;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/></svg>
+            </div>
+            <span style="font-size:12px;font-weight:600;color:#16a34a;">TikTok</span>
+            <i class="ti ti-circle-check" style="color:#22c55e;font-size:14px"></i>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;padding:6px 12px;">
+            <div style="width:20px;height:20px;border-radius:6px;background:linear-gradient(45deg,#f09433,#dc2743,#bc1888);display:flex;align-items:center;justify-content:center;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </div>
+            <span style="font-size:12px;font-weight:600;color:#16a34a;">Instagram</span>
+            <i class="ti ti-circle-check" style="color:#22c55e;font-size:14px"></i>
+          </div>
+        </div>
+
+        <button class="btn-primary" style="margin-top:4px" onclick="window.location.href='mothersdas.html'" type="button">
+          Go to Dashboard
+          <i class="ti ti-arrow-right" aria-hidden="true"></i>
+        </button>
+        <button style="margin-top:12px;background:none;border:none;font-size:13px;color:#999;cursor:pointer;font-family:inherit;" onclick="showMain()" type="button">Go back</button>
+      </div>
+    </div>
+
+  </div><!-- /card -->
+  </div><!-- /auth-form-panel -->
+
+  <div class="auth-visual-panel">
+    <div class="visual-slides" id="visual-slides">
+      <div class="visual-slide active" style="background-image:url('https://ik.imagekit.io/6kafqkidx/image4.jpg')"></div>
+      <div class="visual-slide" style="background-image:url('https://ik.imagekit.io/6kafqkidx/image7.jpg')"></div>
+      <div class="visual-slide" style="background-image:url('https://ik.imagekit.io/6kafqkidx/image6.jpg')"></div>
+    </div>
+    <button class="visual-close" type="button" aria-label="Close" onclick="this.closest('.auth-visual-panel').style.display='none'">
+      <i class="ti ti-x" aria-hidden="true"></i>
+    </button>
+
+    <div class="floater floater-sync">
+      <div class="floater-dot"></div>
+      <div>
+        <div class="floater-title">Auto-Sync Enabled</div>
+        <div class="floater-sub">TikTok · Instagram</div>
+      </div>
+    </div>
+
+    <div class="floater floater-reward">
+      <div class="floater-emoji">⚡</div>
+      <div>
+        <div class="floater-title">One-Tap Connect</div>
+        <div class="floater-sub">Takes less than 30 seconds</div>
+      </div>
+    </div>
+
+    <div class="avatar-cluster">
+      <div class="avatar-chip" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe)">S</div>
+      <div class="avatar-chip" style="background:linear-gradient(135deg,#f472a8,#f9a8d4)">D</div>
+      <div class="avatar-chip" style="background:linear-gradient(135deg,#22c55e,#4ecdc4)">G</div>
+    </div>
+
+    <div class="week-strip">
+      <div class="week-strip-title">What your dashboard will track</div>
+      <div class="week-days">
+        <span>Mon</span><span>Tue</span><span class="active">Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+      </div>
+      <div class="week-stat">
+        <span class="week-stat-value">24.8K</span>
+        <span class="week-stat-label">Views tracked automatically</span>
+      </div>
+    </div>
+
+    <div class="visual-headline">
+      <div class="visual-headline-title">Connect once, track everything</div>
+      <div class="visual-headline-sub">Link TikTok and Instagram so AIWIBI can sync your posts, tally your reach, and turn it all into rewards.</div>
+    </div>
+  </div><!-- /auth-visual-panel -->
+  </div><!-- /auth-shell -->
+</div><!-- /page -->
+
+<!-- ══ MODAL ══ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-logo" id="modal-logo"></div>
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-sub" id="modal-sub"></div>
+
+    <div id="modal-perms"></div>
+
+    <button class="btn-connect-modal" id="modal-connect-btn" type="button"></button>
+    <button class="btn-cancel-modal" id="modal-cancel-btn" type="button">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+  const SUPABASE_URL = 'https://cqtebvfegeojjkrkzboq.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdGVidmZlZ2Vvamprcmt6Ym9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODQ2NjksImV4cCI6MjA5ODU2MDY2OX0.OcCwAD-q6d1XeyHW6f1Gy9r_sBdRV3eWAOUsKLemKEA'
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  const $ = id => document.getElementById(id);
+
+  const platforms = {
+    tiktok: {
+      name: 'TikTok',
+      logoBg: '#000',
+      logoSvg: `<svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/></svg>`,
+      perms: ['Read your public profile','Access your video analytics','View your follower metrics'],
+    },
+    instagram: {
+      name: 'Instagram',
+      logoBg: 'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)',
+      logoSvg: `<svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`,
+      perms: ['Read your public profile','Access your post insights','View your audience analytics'],
+    }
+  };
+
+  const connected = { tiktok: false, instagram: false };
+  let activePlatform = null;
+
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function updateContinueBtn() {
+    const btn = $('continue-btn');
+    const anyConnected = connected.tiktok || connected.instagram;
+    const bothConnected = connected.tiktok && connected.instagram;
+    btn.disabled = !anyConnected;
+    btn.innerHTML = bothConnected
+      ? 'Continue <i class="ti ti-arrow-right"></i>'
+      : anyConnected
+        ? 'Continue with one account <i class="ti ti-arrow-right"></i>'
+        : 'Continue <i class="ti ti-arrow-right"></i>';
+  }
+
+  function openModal(platform) {
+    activePlatform = platform;
+    const p = platforms[platform];
+    $('modal-logo').style.background = p.logoBg;
+    $('modal-logo').innerHTML = p.logoSvg;
+    $('modal-title').textContent = `Connect ${p.name}`;
+    $('modal-sub').textContent = `Allow AIWIBI System to access your ${p.name} data to track content performance.`;
+    $('modal-perms').innerHTML = p.perms.map(perm =>
+      `<div class="perm-item">
+        <i class="ti ti-circle-check perm-icon"></i>
+        <span class="perm-text">${perm}</span>
+      </div>`
+    ).join('');
+    $('modal-connect-btn').textContent = `Connect ${p.name}`;
+    $('modal-overlay').classList.add('show');
+  }
+
+  function closeModal() {
+    $('modal-overlay').classList.remove('show');
+    activePlatform = null;
+  }
+
+  function markConnected(platform) {
+    connected[platform] = true;
+    const card = $('card-' + platform);
+    const arrow = $('arrow-' + platform);
+    card.classList.add('connected');
+    arrow.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i>';
+    const info = card.querySelector('.connect-info');
+    info.querySelector('.connect-title').textContent =
+      platform === 'tiktok' ? 'TikTok' : 'Instagram';
+    info.querySelector('.connect-sub').textContent = 'Connected';
+    updateContinueBtn();
+    toast(`${platforms[platform].name} connected successfully!`);
+  }
+
+  // Card clicks
+  ['tiktok','instagram'].forEach(platform => {
+    $('card-' + platform).addEventListener('click', () => {
+      if(connected[platform]) {
+        toast(`${platforms[platform].name} is already connected.`);
+        return;
+      }
+      openModal(platform);
+    });
+  });
+
+ // Modal connect — real PostPeer flow
+  $('modal-connect-btn').addEventListener('click', async () => {
+    const btn = $('modal-connect-btn');
+    const platform = activePlatform;
+    const orig = btn.textContent;
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div>';
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast('Please log in again.');
+        btn.disabled = false;
+        btn.textContent = orig;
+        return;
+      }
+
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/swift-responder`, {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${session.access_token}`,
+    'apikey': SUPABASE_ANON_KEY,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ platform })
+});
+
+      const data = await res.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast('Something went wrong starting the connection.');
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
+    } catch (err) {
+      console.error(err);
+      toast('Connection failed. Try again.');
+      btn.disabled = false;
+      btn.textContent = orig;
+    }
+  });
+
+  $('modal-cancel-btn').addEventListener('click', closeModal);
+  $('modal-overlay').addEventListener('click', e => {
+    if(e.target === $('modal-overlay')) closeModal();
+  });
+
+  // Continue
+  $('continue-btn').addEventListener('click', () => {
+    if(!connected.tiktok && !connected.instagram) return;
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    $('screen-done').classList.add('active');
+  });
+
+  // Skip
+  $('skip-btn').addEventListener('click', () => {
+    toast('You can connect accounts later in Settings.');
+    setTimeout(() => { window.location.href = 'mothersdas.html'; }, 1000);
+  });
+
+  function showMain() {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    $('screen-main').classList.add('active');
+  }
+  window.showMain = showMain;
+</script>
+
+<!-- ── background image slideshow (visual panel) ── -->
+<script>
+  (function () {
+    const slides = document.querySelectorAll('#visual-slides .visual-slide');
+    if (slides.length < 2) return;
+    let current = 0;
+    setInterval(() => {
+      slides[current].classList.remove('active');
+      current = (current + 1) % slides.length;
+      slides[current].classList.add('active');
+    }, 4000);
+  })();
+</script>
+</body>
+</html>

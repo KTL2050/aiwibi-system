@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aiwibi — My Rewards</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* ── Brand: Sky Nursery palette ── */
+      --brand: #3db8e8;
+      --brand-deep: #1a8fc1;
+      --brand-soft: #89d4f5;
+      --brand-bg: #e8f7fd;
+      --brand-gradient: linear-gradient(135deg, #3db8e8 0%, #5dd6c0 100%);
+
+      /* ── Accent: Blush Petal ── */
+      --accent: #f472a8;
+      --accent-soft: #f7a8c4;
+      --accent-bg: #ffeef6;
+      --accent-gradient: linear-gradient(135deg, #f472a8 0%, #f9a8d4 100%);
+
+      /* ── Mint / Aqua ── */
+      --mint: #4ecdc4;
+      --mint-soft: #a8edea;
+      --mint-bg: #edfbfa;
+
+      /* ── Sky blues palette ── */
+      --sky-1: #bde8ff;
+      --sky-2: #89d4f5;
+      --sky-3: #5bb8f5;
+      --sky-4: #3db8e8;
+      --sky-5: #1a8fc1;
+
+      /* ── Surfaces ── */
+      --surface: #ffffff;
+      --bg: linear-gradient(160deg, #f0fbff 0%, #fef6fa 50%, #edfbfa 100%);
+      --bg-solid: #f4fafe;
+
+      /* ── Sidebar: deep ocean → teal gradient ── */
+      --sidebar-bg: #1b2950;
+      --sidebar-gradient: #1b2950;
+      --sidebar-active: #3db8e8;
+      --sidebar-active-bg: linear-gradient(90deg, rgba(61,184,232,0.28) 0%, rgba(61,184,232,0.08) 100%);
+
+      /* ── Text ── */
+      --text: #0d2540;
+      --text-soft: #2a5f7a;
+      --muted: #6fa3b8;
+
+      /* ── Border ── */
+      --border: #c9e9f5;
+      --border-soft: #e3f5fc;
+
+      /* ── Status colors ── */
+      --green: #22c55e;
+      --green-bg: #dcfce7;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --amber-bg: #fef3c7;
+      --blue: #3b82f6;
+
+      /* ── Social ── */
+      --tiktok: #010101;
+      --instagram: #e1306c;
+
+      /* ── Misc ── */
+      --radius: 16px;
+      --sidebar-w: 220px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .layout { display: flex; min-height: 100vh; overflow-x: hidden; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--sidebar-bg);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      z-index: 100; overflow-y: auto;
+      transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+    }
+    .sidebar-logo {
+      padding: 20px 18px 16px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .logo-icon-wrap {
+      width: 36px; height: 36px; background: var(--brand);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .logo-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #fff; line-height: 1.3; }
+    .logo-label span { color: var(--brand-soft); font-weight: 400; display: block; }
+
+    .sidebar-section { padding: 10px 10px 4px; }
+    .sidebar-section-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 1.8px;
+      color: rgba(255,255,255,0.28); text-transform: uppercase;
+      padding: 0 8px; margin-bottom: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 10px;
+      font-size: 13.5px; font-weight: 500; color: rgba(255,255,255,0.55);
+      cursor: pointer; transition: background 0.15s, color 0.15s;
+      margin-bottom: 2px; text-decoration: none;
+    }
+    .nav-item i { font-size: 17px; flex-shrink: 0; }
+    .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
+    .nav-item.active { background: var(--brand); color: #fff; }
+
+    .sidebar-bottom { margin-top: auto; padding: 12px 10px; border-top: 1px solid rgba(255,255,255,0.07); }
+    .user-pill { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.06); cursor: pointer; }
+    .user-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand), var(--brand-soft));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0; overflow: hidden;
+    }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 11px; color: var(--brand-soft); }
+
+    .ambassador-card {
+      margin: 10px; padding: 12px; border-radius: 14px;
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+    }
+    .ambassador-title { font-size: 12px; font-weight: 700; color: #fff; }
+    .ambassador-pts { font-size: 10px; color: rgba(255,255,255,0.9); margin-top: 1px; }
+    .ambassador-bar { height: 5px; border-radius: 10px; background: rgba(255,255,255,0.3); margin-top: 8px; overflow: hidden; }
+    .ambassador-fill { height: 100%; background: #fff; border-radius: 10px; }
+    .ambassador-next { font-size: 9px; color: rgba(255,255,255,0.85); margin-top: 5px; }
+
+    .help-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin-top: 4px; font-size: 12px; color: rgba(255,255,255,0.4); cursor: pointer; }
+    .help-link i { font-size: 16px; }
+    .help-link a { color: var(--brand-soft); text-decoration: none; font-size: 11px; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 99; }
+    .hamburger {
+      display: none; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 10px;
+      border: 1.5px solid var(--border); background: var(--surface);
+      cursor: pointer; color: var(--text); font-size: 18px; flex-shrink: 0;
+    }
+
+    /* ── Main ── */
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; min-width: 0; }
+
+    .topbar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 24px; height: 68px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 20px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px; }
+    .topbar-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .icon-btn {
+      width: 38px; height: 38px; border-radius: 10px;
+      border: 1.5px solid var(--border); background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--muted); font-size: 18px; position: relative;
+    }
+    .icon-btn .count {
+      position: absolute; top: -5px; right: -5px;
+      min-width: 17px; height: 17px; border-radius: 20px;
+      background: #ef4444; color: #fff; font-size: 9.5px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid #fff; padding: 0 3px;
+    }
+
+    .content { padding: 22px 24px 48px; flex: 1; }
+
+    /* ── Panel ── */
+    .panel { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 12px; gap: 10px; flex-wrap: wrap; }
+    .panel-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .panel-action { font-size: 12px; font-weight: 600; color: var(--brand); cursor: pointer; text-decoration: none; }
+    .panel-action:hover { text-decoration: underline; }
+
+    /* ── Top row: balance + progress ── */
+    .top-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+    .balance-card {
+      border-radius: var(--radius); padding: 22px;
+      background: linear-gradient(135deg, var(--brand), #8b7bf0);
+      color: #fff; position: relative; overflow: hidden;
+    }
+    .balance-card::after {
+      content: ''; position: absolute; right: -40px; top: -40px;
+      width: 160px; height: 160px; border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+    }
+    .balance-label { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85); margin-bottom: 12px; position: relative; z-index: 1; }
+    .balance-row { display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 1; }
+    .balance-pts { display: flex; align-items: center; gap: 10px; }
+    .balance-coin { font-size: 32.5px; }
+    .balance-value { font-size: 39.5px; font-weight: 800; letter-spacing: -1px; }
+    .balance-gift-wrap {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: rgba(255,255,255,0.15);
+      display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0;
+    }
+    .balance-sub { font-size: 11px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+    .balance-stats { display: flex; gap: 28px; margin-top: 20px; position: relative; z-index: 1; }
+    .balance-stat-label { font-size: 10px; color: rgba(255,255,255,0.7); margin-bottom: 3px; }
+    .balance-stat-val { font-size: 16.5px; font-weight: 800; }
+
+    .progress-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 22px; }
+    .progress-top { display: flex; align-items: flex-start; justify-content: space-between; }
+    .progress-label { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+    .progress-tier { font-size: 20px; font-weight: 800; color: var(--amber); }
+    .progress-pts { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+    .progress-badge {
+      width: 50px; height: 50px; border-radius: 50%;
+      background: linear-gradient(135deg, #fde68a, var(--amber));
+      display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; flex-shrink: 0;
+    }
+    .progress-track { height: 9px; border-radius: 10px; background: var(--bg); overflow: hidden; margin: 16px 0 8px; }
+    .progress-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--brand), var(--brand-soft)); }
+    .progress-next { font-size: 11px; color: var(--muted); }
+    .btn-tiers {
+      margin-top: 16px; width: 100%;
+      background: var(--surface); color: var(--brand); border: 1.5px solid var(--brand);
+      font-size: 12.5px; font-weight: 700; font-family: inherit;
+      padding: 10px; border-radius: 12px; cursor: pointer; transition: background 0.15s;
+    }
+    .btn-tiers:hover { background: var(--brand-bg); }
+
+    /* ── How to Earn Points ── */
+    .earn-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; padding: 4px 18px 18px; }
+    .earn-item { display: flex; align-items: center; gap: 10px; }
+    .earn-icon {
+      width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 17.5px;
+    }
+    .earn-title { font-size: 12px; font-weight: 600; color: var(--text); }
+    .earn-pts { font-size: 10.5px; color: var(--green); font-weight: 700; }
+
+    /* ── Reward Tiers ── */
+    .tiers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 4px 18px 18px; }
+    .tier-card {
+      border: 1.5px solid var(--border); border-radius: 14px; padding: 16px;
+      position: relative; transition: border-color 0.15s;
+    }
+    .tier-card.current { border-color: var(--brand); background: var(--brand-bg); }
+    .tier-current-tag {
+      position: absolute; top: -10px; right: 14px;
+      background: var(--brand); color: #fff; font-size: 9px; font-weight: 800;
+      padding: 3px 9px; border-radius: 20px; letter-spacing: 0.3px;
+    }
+    .tier-icon-wrap {
+      width: 38px; height: 38px; border-radius: 11px; margin-bottom: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 18.5px;
+    }
+    .tier-name { font-size: 14px; font-weight: 800; color: var(--text); }
+    .tier-range { font-size: 10.5px; color: var(--muted); margin-bottom: 10px; }
+    .tier-perks { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .tier-perk { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text); }
+    .tier-perk i { font-size: 13px; color: var(--green); flex-shrink: 0; }
+    .tier-perk.locked i { color: var(--muted); }
+    .tier-perk.locked { color: var(--muted); }
+    .tier-status-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10.5px; font-weight: 700; border-radius: 20px; padding: 4px 10px; width: 100%; justify-content: center;
+    }
+    .tier-status-pill.achieved { background: var(--green-bg); color: #16a34a; }
+    .tier-status-pill.current { background: var(--brand); color: #fff; }
+    .tier-status-pill.locked { background: var(--bg); color: var(--muted); }
+
+    /* ── Available Rewards ── */
+    .rewards-scroll-wrap { position: relative; padding: 4px 18px 18px; }
+    .rewards-scroll {
+      display: grid; grid-auto-flow: column; grid-auto-columns: 150px;
+      gap: 14px; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 4px;
+    }
+    .rewards-scroll::-webkit-scrollbar { height: 0; }
+    .reward-card { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .reward-img {
+      height: 110px; background: linear-gradient(135deg,#f0eeff,#e2dcff);
+      display: flex; align-items: center; justify-content: center; color: var(--brand-soft); font-size: 37px;
+    }
+    .reward-body { padding: 12px; }
+    .reward-name { font-size: 12.5px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+    .reward-pts { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+    .btn-redeem {
+      width: 100%; border: none; font-family: inherit; font-size: 12px; font-weight: 700;
+      padding: 8px; border-radius: 10px; cursor: pointer;
+      background: var(--brand); color: #fff;
+    }
+    .btn-redeem:hover { background: #5b4bc9; }
+    .btn-redeem.achieved { background: var(--green); cursor: default; }
+    .btn-redeem.achieved:hover { background: var(--green); }
+    .scroll-arrow {
+      position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
+      width: 32px; height: 32px; border-radius: 50%; background: var(--surface);
+      border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.08); z-index: 2;
+    }
+
+    /* ── Reward History ── */
+    .table-wrap { overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 560px; }
+    .data-table th {
+      padding: 9px 18px; text-align: left; font-size: 9.5px; font-weight: 700;
+      color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px;
+      background: #faf9ff; border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .data-table td { padding: 10px 18px; border-bottom: 1px solid var(--border); vertical-align: middle; white-space: nowrap; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: #faf9ff; }
+    .hist-item-cell { display: flex; align-items: center; gap: 9px; }
+    .hist-thumb {
+      width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+      background: linear-gradient(135deg,#dcd6ff,#f0eeff);
+      display: flex; align-items: center; justify-content: center; color: var(--brand-soft); font-size: 14px;
+    }
+    .pts-neg { color: var(--red); font-weight: 700; }
+    .status-pill { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; border-radius: 20px; padding: 3px 9px; }
+    .status-pill.delivered { background: var(--green-bg); color: #16a34a; }
+    .track-link { color: var(--brand); font-size: 11px; cursor: pointer; }
+    .track-link i { font-size: 13px; }
+
+    /* ── Footer CTA ── */
+    .footer-cta {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      background: var(--brand-bg); border-radius: var(--radius); padding: 18px 22px; flex-wrap: wrap;
+    }
+    .footer-cta-left { display: flex; align-items: center; gap: 12px; }
+    .footer-cta-icon {
+      width: 40px; height: 40px; border-radius: 12px; background: var(--surface);
+      display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--brand); flex-shrink: 0;
+    }
+    .footer-cta-title { font-size: 13.5px; font-weight: 700; color: var(--text); }
+    .footer-cta-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .footer-cta-sub a { color: var(--brand); font-weight: 600; text-decoration: none; }
+    .btn-policy {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--surface); color: var(--brand); border: 1.5px solid var(--brand);
+      font-size: 12.5px; font-weight: 700; font-family: inherit;
+      padding: 10px 16px; border-radius: 12px; cursor: pointer; white-space: nowrap;
+    }
+    .btn-policy:hover { background: var(--brand); color: #fff; }
+
+    /* ── Mobile ── */
+    @media (max-width: 1100px) {
+      .earn-grid { grid-template-columns: repeat(3, 1fr); }
+      .tiers-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; width: 100%; overflow-x: hidden; }
+      .hamburger { display: flex; }
+      .content { padding: 16px 10px 40px; width: 100%; box-sizing: border-box; }
+      .top-row { grid-template-columns: 1fr; }
+      .earn-grid { grid-template-columns: 1fr 1fr; }
+      .tiers-grid { grid-template-columns: 1fr 1fr; }
+      .topbar-sub { display: none; }
+      .footer-cta { flex-direction: column; align-items: flex-start; }
+      .balance-value { font-size: 30px; }
+    }
+    @media (max-width: 560px) {
+      .earn-grid { grid-template-columns: 1fr; }
+      .tiers-grid { grid-template-columns: 1fr; }
+    }
+  
+    /* ══ Sky Nursery overrides ══ */
+    html, body { background: var(--bg-solid); }
+
+    /* Sidebar gradient */
+    .sidebar { background: var(--sidebar-gradient) !important; }
+
+    /* Logo wrap — sky-blue gradient */
+    .logo-icon-wrap {
+      background: var(--brand-gradient) !important;
+    }
+
+    /* Active nav item */
+    .nav-item.active {
+      background: var(--sidebar-active-bg) !important;
+      color: var(--brand-soft) !important;
+      border-left: 3px solid var(--brand);
+    }
+    .nav-item:hover { background: rgba(61,184,232,0.12) !important; color: #b5e8f8 !important; }
+
+    /* User avatar gradient */
+    .user-avatar {
+      background: linear-gradient(135deg, #f472a8, #3db8e8) !important;
+    }
+
+    /* Topbar — glass sky shimmer */
+    .topbar {
+      background: linear-gradient(90deg, #ffffff 0%, #f0fbff 60%, #fef6fa 100%) !important;
+      border-bottom: 1px solid var(--border) !important;
+    }
+
+    /* Stat cards — sky gradient top-border accent */
+    .stat-card {
+      background: #fff !important;
+      border: 1px solid var(--border-soft) !important;
+      border-top: 3px solid transparent !important;
+      background-clip: padding-box !important;
+      position: relative;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      inset: -3px -1px -1px -1px;
+      border-radius: var(--radius);
+      background: var(--brand-gradient);
+      z-index: -1;
+    }
+
+    /* Stat label icons: brand blue */
+    .stat-label i { color: var(--brand) !important; }
+
+    /* Delta up: aqua-mint tint */
+    .stat-delta.up { color: #0e6f75 !important; background: #d0f4f1 !important; }
+
+    /* Panels */
+    .panel { border: 1px solid var(--border-soft) !important; }
+    .panel-action { color: var(--brand) !important; }
+
+    /* Chart tab active */
+    .chart-tab.active {
+      background: linear-gradient(135deg, #e8f7fd, #edfbfa) !important;
+      color: var(--brand) !important;
+    }
+
+    /* Table header */
+    .content-table th { background: #f0fbff !important; color: var(--muted) !important; }
+    .content-table tr:hover td { background: #f5fcff !important; }
+
+    /* Progress bar */
+    .progress-fill {
+      background: linear-gradient(90deg, #3db8e8, #5dd6c0) !important;
+    }
+
+    /* Points hero — signature gradient banner */
+    .points-hero {
+      background: linear-gradient(135deg, #0a3d62 0%, #136e7c 40%, #3db8e8 80%, #5dd6c0 100%) !important;
+    }
+
+    /* Reward items */
+    .reward-item { background: #f0fbff !important; border-color: var(--border) !important; }
+    .reward-status.next { background: var(--brand-bg) !important; color: var(--brand) !important; border-color: var(--brand-soft) !important; }
+
+    /* Date chip */
+    .date-chip { background: var(--brand-bg) !important; color: var(--brand) !important; }
+    .icon-btn:hover { border-color: var(--brand) !important; color: var(--brand) !important; }
+
+    /* Badge levels */
+    .user-level {
+      background: linear-gradient(135deg, #3db8e8, #5dd6c0) !important;
+    }
+
+    /* Campaign / badge cards */
+    .camp-header, .campaign-header, .camp-badge, .tier-badge,
+    .featured-banner, .hero-banner, .banner-wrap {
+      background: linear-gradient(135deg, #0a3d62 0%, #136e7c 40%, #3db8e8 80%, #5dd6c0 100%) !important;
+    }
+
+    /* Progress bars (campaign) */
+    .prog-fill, .progress-track-fill, .bar-fill, .fill {
+      background: linear-gradient(90deg, #3db8e8, #5dd6c0) !important;
+    }
+
+    /* Status pills */
+    .status-pill.synced { background: #d0f4f1 !important; color: #0e6f75 !important; }
+    .status-pill.syncing { background: #dbeafe !important; color: #1d4ed8 !important; }
+
+    /* Tag / filter pills */
+    .filter-btn.active, .tag-active, .tab-btn.active {
+      background: var(--brand-gradient) !important;
+      color: #fff !important;
+    }
+
+    /* CTA / primary buttons */
+    .btn-primary, .btn-submit, .submit-btn, .cta-btn, button[type=submit] {
+      background: var(--brand-gradient) !important;
+      border: none !important;
+      color: #fff !important;
+    }
+
+    /* Highlight cards (performance, reward) */
+    .highlight-card, .perf-highlight, .reward-highlight {
+      background: linear-gradient(135deg, #e8f7fd, #edfbfa) !important;
+      border-color: var(--border) !important;
+    }
+
+    /* Sidebar section label */
+    .sidebar-section-label { color: rgba(189,232,255,0.4) !important; }
+
+    /* Logo label */
+    .logo-label { color: #fff !important; }
+    .logo-label span { color: var(--sky-2) !important; }
+
+    /* Donut / chart tooltips already fine via JS; add overlay tint to donut center */
+    .donut-center-value { color: var(--text) !important; }
+
+    /* Mobile overlay tint */
+    .sidebar-overlay { background: rgba(10,61,98,0.45) !important; }
+
+    /* scrollbar theming */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #e8f7fd; }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(180deg,#3db8e8,#5dd6c0); border-radius: 6px; }
+
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+      <div class="logo-label">AIWIBI<span>SYSTEM</span></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Overview</div>
+      <a class="nav-item" href="mothersdas.html"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">My Content</div>
+      <a class="nav-item" href="mothercont.html"><i class="ti ti-square-rounded-plus"></i> Content</a>
+      <a class="nav-item" href="motherperf.html"><i class="ti ti-chart-bar"></i> Performance</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Earnings</div>
+      <a class="nav-item active" href="motherreward.html"><i class="ti ti-trophy"></i> Rewards</a>
+      <a class="nav-item" href="mothercamp.html"><i class="ti ti-speakerphone"></i> Campaigns</a>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-pill">
+        <div class="user-avatar">S</div>
+        <div class="user-info">
+          <div class="user-name"></div>
+          <div class="user-role"></div>
+        </div>
+      </div>
+      <a href="login.html" class="nav-item" id="logout-link" style="margin-top:6px;color:#e57373 !important;"><i class="ti ti-logout"></i> Logout</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger"><i class="ti ti-menu-2"></i></button>
+        <div>
+          <div class="topbar-title">My Rewards <span>🎁</span></div>
+          <div class="topbar-sub">Earn points, unlock rewards, and grow with Aiwibi!</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="icon-btn"><i class="ti ti-bell"></i><div class="count">3</div></div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Points Balance + Progress -->
+      <div class="top-row">
+        <div class="balance-card">
+          <div class="balance-label">Your Points Balance</div>
+          <div class="balance-row">
+            <div class="balance-pts">
+              <span class="balance-coin">🪙</span>
+              <span class="balance-value" id="balance-points-value">0 pts</span>
+            </div>
+            <div class="balance-gift-wrap">🎁</div>
+          </div>
+          <div class="balance-sub" id="balance-sub-text">Total Points Earned</div>
+          <div class="balance-stats">
+            <div>
+              <div class="balance-stat-label">All Time</div>
+              <div class="balance-stat-val" id="balance-alltime-val">0 pts</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="progress-card">
+          <div class="progress-top">
+            <div>
+              <div class="progress-label">Your Progress</div>
+              <div class="progress-tier" id="progress-tier-name">Bronze Ambassador</div>
+              <div class="progress-pts" id="progress-pts-text">0 / 500 pts</div>
+            </div>
+            <div class="progress-badge">⭐</div>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+          <div class="progress-next" id="progress-next-text">Loading...</div>
+          <button class="btn-tiers">View All Tiers</button>
+        </div>
+      </div>
+
+      <!-- How to Earn Points -->
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header"><div class="panel-title">How to Earn Points</div></div>
+        <div class="earn-grid">
+          <div class="earn-item">
+            <div class="earn-icon" style="background:#dbeafe;color:#2563eb"><i class="ti ti-video"></i></div>
+            <div>
+              <div class="earn-title">Submit Video</div>
+              <div class="earn-pts">+50 pts</div>
+            </div>
+          </div>
+          <div class="earn-item">
+            <div class="earn-icon" style="background:#fee2e2;color:#ef4444"><i class="ti ti-heart"></i></div>
+            <div>
+              <div class="earn-title">High Engagement</div>
+              <div class="earn-pts">+Up to 100 pts</div>
+            </div>
+          </div>
+          <div class="earn-item">
+            <div class="earn-icon" style="background:#f0eeff;color:#6c5ce7"><i class="ti ti-speakerphone"></i></div>
+            <div>
+              <div class="earn-title">Campaign Bonus</div>
+              <div class="earn-pts">+Up to 150 pts</div>
+            </div>
+          </div>
+          <div class="earn-item">
+            <div class="earn-icon" style="background:#dcfce7;color:#16a34a"><i class="ti ti-calendar-check"></i></div>
+            <div>
+              <div class="earn-title">Consistency</div>
+              <div class="earn-pts">+25 pts</div>
+            </div>
+          </div>
+          <div class="earn-item">
+            <div class="earn-icon" style="background:#fef9c3;color:#a16207"><i class="ti ti-users"></i></div>
+            <div>
+              <div class="earn-title">Referral Bonus</div>
+              <div class="earn-pts">+75 pts</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reward Tiers -->
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header"><div class="panel-title">Reward Tiers</div></div>
+        <div class="tiers-grid">
+          <div class="tier-card" id="tier-card-bronze">
+            <span class="tier-current-tag" id="tier-tag-bronze" style="display:none;">Current Tier</span>
+            <div class="tier-icon-wrap" style="background:#fde9d2;color:#c2761e"><i class="ti ti-medal"></i></div>
+            <div class="tier-name">Bronze</div>
+            <div class="tier-range">0 – 499 pts</div>
+            <div class="tier-perks">
+              <div class="tier-perk"><i class="ti ti-check"></i> Access to campaigns</div>
+              <div class="tier-perk"><i class="ti ti-check"></i> Bronze badge</div>
+            </div>
+            <div class="tier-status-pill locked" id="tier-status-bronze"><i class="ti ti-lock" style="font-size:11px"></i> Locked</div>
+          </div>
+
+          <div class="tier-card" id="tier-card-silver">
+            <span class="tier-current-tag" id="tier-tag-silver" style="display:none;">Current Tier</span>
+            <div class="tier-icon-wrap" style="background:#f1f5f9;color:#64748b"><i class="ti ti-medal"></i></div>
+            <div class="tier-name">Silver</div>
+            <div class="tier-range">500 – 749 pts</div>
+            <div class="tier-perks">
+              <div class="tier-perk"><i class="ti ti-check"></i> Silver badge</div>
+              <div class="tier-perk"><i class="ti ti-check"></i> Priority support</div>
+            </div>
+            <div class="tier-status-pill locked" id="tier-status-silver"><i class="ti ti-lock" style="font-size:11px"></i> Locked</div>
+          </div>
+
+          <div class="tier-card" id="tier-card-gold">
+            <span class="tier-current-tag" id="tier-tag-gold" style="display:none;">Current Tier</span>
+            <div class="tier-icon-wrap" style="background:#fef3c7;color:#b45309"><i class="ti ti-star"></i></div>
+            <div class="tier-name">Gold</div>
+            <div class="tier-range">750 – 999 pts</div>
+            <div class="tier-perks">
+              <div class="tier-perk"><i class="ti ti-check"></i> Gold badge</div>
+              <div class="tier-perk"><i class="ti ti-check"></i> Exclusive rewards</div>
+              <div class="tier-perk"><i class="ti ti-check"></i> Early access to products</div>
+            </div>
+            <div class="tier-status-pill locked" id="tier-status-gold"><i class="ti ti-lock" style="font-size:11px"></i> Locked</div>
+          </div>
+
+          <div class="tier-card" id="tier-card-platinum">
+            <span class="tier-current-tag" id="tier-tag-platinum" style="display:none;">Current Tier</span>
+            <div class="tier-icon-wrap" style="background:#ede9fe;color:#7c3aed"><i class="ti ti-diamond"></i></div>
+            <div class="tier-name">Platinum</div>
+            <div class="tier-range">1,000+ pts</div>
+            <div class="tier-perks">
+              <div class="tier-perk locked"><i class="ti ti-lock"></i> Platinum badge</div>
+              <div class="tier-perk locked"><i class="ti ti-lock"></i> Premium rewards</div>
+              <div class="tier-perk locked"><i class="ti ti-lock"></i> Special recognition</div>
+            </div>
+            <div class="tier-status-pill locked" id="tier-status-platinum"><i class="ti ti-lock" style="font-size:11px"></i> Locked</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Available Rewards -->
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header">
+          <div class="panel-title">Available Rewards</div>
+          <a class="panel-action" href="#">View All Rewards</a>
+        </div>
+        <div class="rewards-scroll-wrap">
+          <div class="rewards-scroll" id="rewards-scroll">
+            <div style="padding:20px;color:var(--muted);font-size:12.5px;">Loading rewards...</div>
+          </div>
+          <div class="scroll-arrow" onclick="document.getElementById('rewards-scroll').scrollBy({left:200,behavior:'smooth'})">
+            <i class="ti ti-chevron-right"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reward History -->
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header"><div class="panel-title">Reward History</div></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Reward</th><th>Points</th><th>Date Redeemed</th><th>Status</th><th>Tracking</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><div class="hist-item-cell"><div class="hist-thumb"><i class="ti ti-gift"></i></div>Baby Care Hamper</div></td>
+                <td class="pts-neg">-800 pts</td>
+                <td>May 15, 2024</td>
+                <td><span class="status-pill delivered"><i class="ti ti-circle-check" style="font-size:11px"></i> Delivered</span></td>
+                <td><span class="track-link">AWB123456789 <i class="ti ti-external-link"></i></span></td>
+              </tr>
+              <tr>
+                <td><div class="hist-item-cell"><div class="hist-thumb"><i class="ti ti-hat-cap"></i></div>Aiwibi Cap</div></td>
+                <td class="pts-neg">-300 pts</td>
+                <td>Apr 20, 2024</td>
+                <td><span class="status-pill delivered"><i class="ti ti-circle-check" style="font-size:11px"></i> Delivered</span></td>
+                <td><span class="track-link">AWB987654321 <i class="ti ti-external-link"></i></span></td>
+              </tr>
+              <tr>
+                <td><div class="hist-item-cell"><div class="hist-thumb"><i class="ti ti-droplet"></i></div>Facial Cream</div></td>
+                <td class="pts-neg">-400 pts</td>
+                <td>Mar 12, 2024</td>
+                <td><span class="status-pill delivered"><i class="ti ti-circle-check" style="font-size:11px"></i> Delivered</span></td>
+                <td><span class="track-link">AWB564738291 <i class="ti ti-external-link"></i></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Footer CTA -->
+      <div class="footer-cta">
+        <div class="footer-cta-left">
+          <div class="footer-cta-icon"><i class="ti ti-bulb"></i></div>
+          <div>
+            <div class="footer-cta-title">Questions about rewards?</div>
+            <div class="footer-cta-sub">Check our <a href="#">Reward Policy</a> or contact support.</div>
+          </div>
+        </div>
+        <button class="btn-policy">Reward Policy <i class="ti ti-external-link" style="font-size:13px"></i></button>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  document.getElementById('hamburger').addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  });
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  });
+</script>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+  const SUPABASE_URL = 'https://cqtebvfegeojjkrkzboq.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdGVidmZlZ2Vvamprcmt6Ym9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODQ2NjksImV4cCI6MjA5ODU2MDY2OX0.OcCwAD-q6d1XeyHW6f1Gy9r_sBdRV3eWAOUsKLemKEA'
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  document.getElementById('logout-link').addEventListener('click', async (e) => {
+    e.preventDefault()
+    await supabase.auth.signOut()
+    window.location.href = 'login.html'
+  })
+
+  async function loadUserProfile() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('full_name, email, role')
+      .eq('id', session.user.id)
+      .single();
+
+    if (error || !profile) {
+      console.error('Profile load error:', error);
+      return;
+    }
+
+    const name = profile.full_name || profile.email || session.user.email;
+    const initial = name.charAt(0).toUpperCase();
+
+    const avatarEl = document.querySelector('.user-avatar');
+    const nameEl = document.querySelector('.user-name');
+    const roleEl = document.querySelector('.user-role');
+    if (avatarEl) avatarEl.textContent = initial;
+    if (nameEl) nameEl.textContent = name;
+    if (roleEl) roleEl.textContent = profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : '';
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function normalizeUrl(u) {
+    if (!u) return '';
+    return u.split('?')[0].replace(/\/$/, '').toLowerCase();
+  }
+
+  const TIERS = [
+    { key: 'bronze', name: 'Bronze', min: 0 },
+    { key: 'silver', name: 'Silver', min: 500 },
+    { key: 'gold', name: 'Gold', min: 750 },
+    { key: 'platinum', name: 'Platinum', min: 1000 }
+  ];
+
+  function currentTier(points) {
+    let tier = TIERS[0];
+    for (const t of TIERS) if (points >= t.min) tier = t;
+    return tier;
+  }
+
+  function nextTier(points) {
+    return TIERS.find(t => t.min > points) || null;
+  }
+
+  async function getMyPoints() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return { points: 0, linkCount: 0 };
+    const { data, error } = await supabase
+      .from('submitted_content')
+      .select('video_url')
+      .eq('user_id', session.user.id);
+    if (error) { console.error(error); return { points: 0, linkCount: 0 }; }
+    const linkCount = new Set(data.map(r => normalizeUrl(r.video_url))).size;
+    return { points: linkCount * 100, linkCount };
+  }
+
+  async function loadBalanceAndTiers(points) {
+    document.getElementById('balance-points-value').textContent = `${points} pts`;
+    document.getElementById('balance-alltime-val').textContent = `${points} pts`;
+
+    const tier = currentTier(points);
+    const next = nextTier(points);
+
+    document.getElementById('progress-tier-name').textContent = `${tier.name} Ambassador`;
+    document.getElementById('progress-pts-text').textContent = next ? `${points} / ${next.min} pts` : `${points} pts`;
+    document.getElementById('progress-fill').style.width = next
+      ? `${Math.min(100, Math.round((points / next.min) * 100))}%`
+      : '100%';
+    document.getElementById('progress-next-text').textContent = next
+      ? `${next.min - points} pts to ${next.name} Ambassador`
+      : `You've reached the top tier!`;
+
+    TIERS.forEach(t => {
+      const statusEl = document.getElementById(`tier-status-${t.key}`);
+      const tagEl = document.getElementById(`tier-tag-${t.key}`);
+      const cardEl = document.getElementById(`tier-card-${t.key}`);
+      const isAchieved = points >= t.min;
+      const isCurrent = tier.key === t.key;
+
+      cardEl.classList.toggle('current', isCurrent);
+      tagEl.style.display = isCurrent ? '' : 'none';
+
+      if (isCurrent) {
+        statusEl.className = 'tier-status-pill current';
+        statusEl.textContent = 'Current';
+      } else if (isAchieved) {
+        statusEl.className = 'tier-status-pill achieved';
+        statusEl.innerHTML = '<i class="ti ti-circle-check" style="font-size:12px"></i> Achieved';
+      } else {
+        statusEl.className = 'tier-status-pill locked';
+        statusEl.innerHTML = '<i class="ti ti-lock" style="font-size:11px"></i> Locked';
+      }
+    });
+  }
+
+  async function loadAvailableRewards(points) {
+    const scroll = document.getElementById('rewards-scroll');
+    const { data: rewards, error } = await supabase
+      .from('rewards')
+      .select('*')
+      .eq('is_active', true)
+      .order('points_cost', { ascending: true });
+
+    if (error) {
+      console.error('Failed to load rewards:', error);
+      scroll.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:12.5px;">Couldn\'t load rewards.</div>';
+      return;
+    }
+
+    if (!rewards || rewards.length === 0) {
+      scroll.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:12.5px;">No rewards available yet.</div>';
+      return;
+    }
+
+    scroll.innerHTML = rewards.map(r => {
+      const earned = points >= r.points_cost;
+      const linksNeeded = Math.max(0, Math.ceil((r.points_cost - points) / 100));
+      const btnHtml = earned
+        ? '<button class="btn-redeem achieved">Achieved</button>'
+        : `<button class="btn-redeem" disabled style="opacity:0.55;cursor:not-allowed;">${linksNeeded} link${linksNeeded === 1 ? '' : 's'} to go</button>`;
+
+      return `
+        <div class="reward-card">
+          <div class="reward-img">
+            ${r.image_url ? `<img src="${r.image_url}" alt="" style="width:100%;height:100%;object-fit:cover;">` : '<i class="ti ti-gift"></i>'}
+          </div>
+          <div class="reward-body">
+            <div class="reward-name">${escapeHtml(r.title)}</div>
+            <div class="reward-pts">${r.points_cost} pts</div>
+            ${btnHtml}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function loadRewardsPage() {
+    const { points } = await getMyPoints();
+    await loadBalanceAndTiers(points);
+    await loadAvailableRewards(points);
+  }
+
+  loadUserProfile();
+  loadRewardsPage();
+</script>
+</body>
+</html>

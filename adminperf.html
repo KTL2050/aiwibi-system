@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aiwibi — Admin Performance</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* ── Brand: Sovereign Gold ── */
+      --brand: #1b7fd4;
+      --brand-deep: #0f5fa8;
+      --brand-soft: #7cc0f0;
+      --brand-bg: #e3f2fd;
+      --brand-gradient: linear-gradient(135deg, #1567b8 0%, #4aa3e8 50%, #1b7fd4 100%);
+
+      /* ── Accent: Emerald Command ── */
+      --accent: #10b981;
+      --accent-soft: #6ee7b7;
+      --accent-bg: #ecfdf5;
+      --accent-gradient: linear-gradient(135deg, #059669 0%, #10b981 100%);
+
+      /* ── Deep ruby for admin badge / alerts ── */
+      --ruby: #e11d48;
+      --ruby-soft: #fb7185;
+      --ruby-bg: #fff1f2;
+
+      /* ── Indigo highlight ── */
+      --indigo: #6366f1;
+      --indigo-soft: #a5b4fc;
+      --indigo-bg: #eef2ff;
+
+      /* ── Surfaces ── */
+      --surface: #ffffff;
+      --surface-2: #f7fbfe;
+      --bg-solid: #f0f8ff;
+
+      /* ── Sidebar: Midnight Obsidian ── */
+      --sidebar-gradient: linear-gradient(180deg,
+        #07203a 0%,
+        #0a2847 25%,
+        #0d3054 55%,
+        #0f3760 80%,
+        #123e6b 100%
+      );
+      --sidebar-active: #1b7fd4;
+      --sidebar-active-bg: linear-gradient(90deg, rgba(27,127,212,0.22) 0%, rgba(27,127,212,0.05) 100%);
+      --sidebar-hover: rgba(27,127,212,0.09);
+
+      /* ── Text ── */
+      --text: #101113;
+      --text-soft: #3a3d42;
+      --muted: #8a8f98;
+
+      /* ── Border ── */
+      --border: #d9eaf6;
+      --border-soft: #e6f2fb;
+
+      /* ── Status ── */
+      --green: #10b981;
+      --green-bg: #ecfdf5;
+      --red: #e11d48;
+      --red-bg: #fff1f2;
+      --amber: #d97706;
+      --amber-bg: #fffbeb;
+      --blue: #3b82f6;
+      --blue-bg: #eff6ff;
+
+      /* ── Social ── */
+      --tiktok: #010101;
+      --instagram: #e1306c;
+
+      /* ── Misc ── */
+      --radius: 20px;
+      --pill: 999px;
+      --sidebar-w: 220px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .layout { display: flex; min-height: 100vh; overflow-x: hidden; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--sidebar-bg);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      z-index: 100; overflow-y: auto;
+      transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+    }
+    .sidebar-logo {
+      padding: 20px 18px 16px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .logo-icon-wrap {
+      width: 36px; height: 36px; background: var(--brand);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .logo-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #fff; line-height: 1.3; }
+    .logo-label span { color: var(--brand-soft); font-weight: 400; display: block; }
+
+    .sidebar-section { padding: 10px 10px 4px; }
+    .sidebar-section-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 1.8px;
+      color: rgba(255,255,255,0.28); text-transform: uppercase;
+      padding: 0 8px; margin-bottom: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 10px;
+      font-size: 13.5px; font-weight: 500; color: rgba(255,255,255,0.55);
+      cursor: pointer; transition: background 0.15s, color 0.15s;
+      margin-bottom: 2px; text-decoration: none;
+    }
+    .nav-item i { font-size: 17px; flex-shrink: 0; }
+    .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
+    .nav-item.active { background: var(--brand); color: #fff; }
+    .nav-item .badge {
+      margin-left: auto; background: #ef4444;
+      color: #fff; font-size: 10px; font-weight: 700;
+      border-radius: 20px; padding: 1px 6px; min-width: 18px; text-align: center;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto; padding: 12px 10px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .user-pill {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 12px;
+      background: rgba(255,255,255,0.06); cursor: pointer;
+    }
+    .user-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand), var(--brand-soft));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 11px; color: var(--brand-soft); }
+
+    /* ── Overlay & hamburger ── */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 99; }
+    .hamburger {
+      display: none; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 10px;
+      border: 1.5px solid var(--border); background: var(--surface);
+      cursor: pointer; color: var(--text); font-size: 18px; flex-shrink: 0;
+    }
+
+    /* ── Main ── */
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; min-width: 0; }
+
+    /* ── Topbar ── */
+    .topbar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 24px; height: 68px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 19px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+    .topbar-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .date-chip {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--brand-bg); border-radius: 8px;
+      padding: 8px 12px; font-size: 12px; color: var(--brand); font-weight: 600;
+      border: 1px solid var(--border);
+    }
+    .icon-btn {
+      width: 38px; height: 38px; border-radius: 10px;
+      border: 1.5px solid var(--border); background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--muted); font-size: 18px; position: relative;
+    }
+    .icon-btn .count {
+      position: absolute; top: -5px; right: -5px;
+      min-width: 17px; height: 17px; border-radius: 20px;
+      background: #ef4444; color: #fff; font-size: 9.5px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid #fff; padding: 0 3px;
+    }
+
+    /* ── Content ── */
+    .content { padding: 22px 24px 48px; flex: 1; }
+
+    /* ── Stats row (6 cols on admin) ── */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(6,1fr);
+      gap: 12px; margin-bottom: 18px;
+    }
+    .stat-card {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 14px 16px; border: 1px solid var(--border);
+      min-width: 0; overflow: hidden;
+    }
+    .stat-label {
+      font-size: 10.5px; color: var(--muted); font-weight: 500;
+      margin-bottom: 8px; display: flex; align-items: center; gap: 5px; white-space: nowrap;
+    }
+    .stat-label i { font-size: 13px; }
+    .stat-value { font-size: 21px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; line-height: 1; margin-bottom: 8px; }
+    .stat-delta {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 10.5px; font-weight: 600; border-radius: 6px; padding: 2px 6px;
+    }
+    .stat-delta.up { color: #16a34a; background: #dcfce7; }
+    .stat-period { font-size: 10px; color: var(--muted); margin-left: 3px; }
+
+    /* ── Grid layouts ── */
+    .grid-3 { display: grid; grid-template-columns: 1.7fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .grid-1col { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
+
+    /* ── Panel ── */
+    .panel { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 12px; gap: 10px; flex-wrap: wrap; }
+    .panel-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .panel-action { font-size: 12px; font-weight: 600; color: var(--brand); cursor: pointer; text-decoration: none; }
+    .panel-action:hover { text-decoration: underline; }
+
+    .chart-tabs { display: flex; gap: 4px; padding: 0 18px 10px; flex-wrap: wrap; }
+    .chart-tab { font-size: 11.5px; font-weight: 600; padding: 5px 10px; border-radius: 8px; cursor: pointer; color: var(--muted); background: none; border: none; font-family: inherit; }
+    .chart-tab.active { background: var(--brand-bg); color: var(--brand); }
+    .filter-select {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 9px; padding: 6px 11px;
+      font-size: 12px; color: var(--text); cursor: pointer; font-family: inherit; font-weight: 500; white-space: nowrap;
+    }
+    .filter-select i { font-size: 12px; color: var(--muted); }
+
+    .chart-wrap { padding: 0 18px 16px; position: relative; }
+    canvas#admin-trend-chart { width: 100% !important; height: 190px !important; }
+
+    /* ── Platform Breakdown ── */
+    .platform-bd-body { display: flex; flex-direction: column; align-items: center; padding: 6px 18px 18px; }
+    .donut-canvas-pos { position: relative; width: 120px; height: 120px; flex-shrink: 0; }
+    .donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
+    .donut-center-value { font-size: 19px; font-weight: 800; color: var(--text); line-height: 1.1; }
+    .donut-center-label { font-size: 9.5px; color: var(--muted); margin-top: 3px; }
+    .platform-legend { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+    .platform-bd-item { display: flex; align-items: center; gap: 8px; }
+    .platform-bd-icon { width: 24px; height: 24px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .platform-bd-icon.tiktok { background: #000; }
+    .platform-bd-icon.instagram { background: linear-gradient(45deg,#f09433,#dc2743,#bc1888); }
+    .platform-bd-name { font-size: 12px; font-weight: 600; color: var(--text); }
+    .platform-bd-pct { font-size: 12.5px; font-weight: 800; color: var(--text); margin-left: auto; }
+    .platform-bd-sub { font-size: 10px; color: var(--muted); }
+
+    /* ── Table panels ── */
+    .table-wrap { overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 600px; }
+    .data-table th {
+      padding: 9px 14px; text-align: left; font-size: 10px; font-weight: 700;
+      color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px;
+      background: #f7fbfe; border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .data-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; white-space: nowrap; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: #f7fbfe; }
+
+    .camp-name-cell { display: flex; align-items: center; gap: 9px; }
+    .camp-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .status-pill { display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 700; border-radius: 20px; padding: 3px 9px; }
+    .status-pill.completed { background: var(--green-bg); color: #16a34a; }
+    .status-pill.active { background: var(--brand-bg); color: var(--brand); }
+    .status-pill.upcoming { background: var(--amber-bg); color: #a16207; }
+
+    .rank-num { font-weight: 800; color: var(--muted); font-size: 12px; }
+    .person-cell { display: flex; align-items: center; gap: 9px; }
+    .person-avatar {
+      width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--brand-soft), var(--brand));
+      display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 700;
+    }
+    .person-name { font-size: 12.5px; font-weight: 700; color: var(--text); }
+    .person-handle { font-size: 10.5px; color: var(--muted); }
+    .tier-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700; border-radius: 20px; padding: 3px 9px; }
+    .tier-pill.gold { background: #fef3c7; color: #b45309; }
+    .tier-pill.silver { background: #f1f5f9; color: #475569; }
+    .tier-pill.bronze { background: #fde9d2; color: #9a4f12; }
+
+    .content-thumb-cell { display: flex; align-items: center; gap: 9px; }
+    .content-thumb {
+      width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 14px;
+    }
+    .content-thumb.tiktok { background: #000; }
+    .content-thumb.instagram { background: linear-gradient(45deg,#f09433,#dc2743,#bc1888); }
+    .content-title { font-size: 12px; font-weight: 600; color: var(--text); max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .content-sub { font-size: 10.5px; color: var(--muted); }
+
+    /* ── Distribution donut panel ── */
+    .dist-legend { display: flex; flex-direction: column; gap: 9px; padding: 0 18px 18px; }
+    .dist-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .dist-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .dist-label { color: var(--text); font-weight: 500; flex: 1; }
+    .dist-val { font-weight: 700; color: var(--text); }
+
+    /* ── AI Insights ── */
+    .insights-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 14px; padding: 16px 18px; align-items: stretch; }
+    .insight-card {
+      display: flex; gap: 10px; align-items: flex-start;
+      background: var(--bg); border-radius: 12px; padding: 12px 14px;
+    }
+    .insight-icon {
+      width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 16px; color: #fff;
+    }
+    .insight-icon.purple { background: var(--brand); }
+    .insight-icon.green { background: #16a34a; }
+    .insight-icon.amber { background: #f59e0b; }
+    .insight-title { font-size: 11.5px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+    .insight-text { font-size: 11px; color: var(--muted); line-height: 1.4; }
+    .btn-insights {
+      align-self: center; white-space: nowrap;
+      background: var(--brand); color: #fff; border: none;
+      font-size: 12.5px; font-weight: 700; font-family: inherit;
+      padding: 11px 18px; border-radius: 12px; cursor: pointer;
+    }
+    .btn-insights:hover { background: #5b4bc9; }
+
+    /* ── Mobile ── */
+    @media (max-width: 1100px) {
+      .grid-3 { grid-template-columns: 1fr; }
+      .insights-row { grid-template-columns: 1fr 1fr; }
+      .btn-insights { grid-column: 1 / -1; }
+    }
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; width: 100%; overflow-x: hidden; }
+      .hamburger { display: flex; }
+      .content { padding: 16px 10px 40px; width: 100%; box-sizing: border-box; }
+      .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .stat-card { padding: 12px; }
+      .stat-value { font-size: 18px; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .topbar-sub { display: none; }
+      .date-chip { display: none; }
+      .insights-row { grid-template-columns: 1fr; }
+    }
+  
+    /* ══ Midnight Sovereign Admin Theme ══ */
+
+    html, body { background: var(--bg-solid) !important; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: var(--sidebar-gradient) !important;
+      border-right: 1px solid rgba(27,127,212,0.08) !important;
+    }
+
+    /* Logo icon — gold gradient */
+    .logo-icon-wrap {
+      background: var(--brand-gradient) !important;
+      box-shadow: 0 0 18px rgba(27,127,212,0.35) !important;
+    }
+    .logo-label { color: #e9f4fc !important; }
+    .logo-label span { color: var(--brand-soft) !important; }
+
+    /* Nav items */
+    .sidebar-section-label { color: rgba(27,127,212,0.35) !important; letter-spacing: 2px; }
+    .nav-item { color: rgba(255,255,255,0.45) !important; }
+    .nav-item:hover {
+      background: var(--sidebar-hover) !important;
+      color: var(--brand-soft) !important;
+    }
+    .nav-item.active {
+      background: var(--sidebar-active-bg) !important;
+      color: var(--brand-soft) !important;
+      border-left: 3px solid var(--brand) !important;
+      border-radius: 0 10px 10px 0 !important;
+      padding-left: 9px !important;
+    }
+
+    /* User pill */
+    .user-pill { background: rgba(27,127,212,0.07) !important; border: 1px solid rgba(27,127,212,0.15) !important; }
+    .user-avatar {
+      background: var(--brand-gradient) !important;
+      box-shadow: 0 0 12px rgba(27,127,212,0.4) !important;
+    }
+    .user-role { color: var(--brand-soft) !important; }
+
+    /* Admin badge — gold not red */
+    .admin-badge {
+      background: var(--brand-gradient) !important;
+      color: #0a2a47 !important;
+      font-weight: 800 !important;
+      box-shadow: 0 2px 8px rgba(27,127,212,0.4) !important;
+    }
+
+    /* Topbar — warm parchment shimmer */
+    .topbar {
+      background: linear-gradient(90deg, #ffffff 0%, #f2f9fe 60%, #f2f8fd 100%) !important;
+      border-bottom: 1px solid var(--border) !important;
+      box-shadow: 0 1px 0 rgba(27,127,212,0.08) !important;
+    }
+
+    /* Date chip */
+    .date-chip { background: var(--brand-bg) !important; color: var(--brand-deep) !important; }
+    .icon-btn:hover { border-color: var(--brand) !important; color: var(--brand) !important; }
+
+    /* ── Stat cards ── */
+    .stat-card {
+      background: #fff !important;
+      border: 1px solid var(--border-soft) !important;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Subtle gold shimmer top stripe */
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--brand-gradient);
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .stat-label i { color: var(--brand) !important; }
+    .stat-delta.up { color: #065f46 !important; background: #d1fae5 !important; }
+    .stat-delta.down { color: #9f1239 !important; background: #ffe4e6 !important; }
+
+    /* ── Panels ── */
+    .panel {
+      background: #fff !important;
+      border: 1px solid var(--border-soft) !important;
+      box-shadow: 0 2px 12px rgba(20,20,40,0.04) !important;
+    }
+    .panel-action { color: var(--brand-deep) !important; }
+
+    /* Chart tabs */
+    .chart-tab.active {
+      background: var(--brand-bg) !important;
+      color: var(--brand-deep) !important;
+    }
+
+    /* Table header */
+    .content-table th { background: #f5faff !important; color: var(--muted) !important; }
+    .content-table tr:hover td { background: #f2f9fe !important; }
+
+    /* ── Mother list (admin left panel) ── */
+    .mother-item.active,
+    .mother-row.active,
+    .list-item.active {
+      background: linear-gradient(90deg, #e3f2fd, #f7fbff) !important;
+      border-left: 3px solid var(--brand) !important;
+    }
+
+    /* ── Status pills ── */
+    .status-pill.synced, .pill-synced, .badge-synced { background: #d1fae5 !important; color: #065f46 !important; }
+    .status-pill.syncing, .pill-syncing { background: #eff6ff !important; color: #1e40af !important; }
+    .status-pill.failed, .pill-failed { background: var(--red-bg) !important; color: var(--red) !important; }
+    .status-pill.pending, .pill-pending { background: var(--amber-bg) !important; color: var(--amber) !important; }
+
+    /* Link status pills (admin-specific) */
+    .link-pill.synced { background: #d1fae5 !important; color: #065f46 !important; }
+    .link-pill.syncing { background: #dbeafe !important; color: #1d4ed8 !important; }
+    .link-pill.failed { background: var(--red-bg) !important; color: var(--red) !important; }
+
+    /* ── Campaign / reward hero banners ── */
+    .camp-header, .campaign-header, .points-hero,
+    .featured-banner, .hero-banner, .banner-wrap,
+    .reward-hero, .perf-hero {
+      background: linear-gradient(135deg,
+        #07203a 0%, #0a2847 30%,
+        #2a2000 60%, #1b7fd4 90%, #4aa3e8 100%) !important;
+    }
+
+    /* ── Progress bars ── */
+    .progress-fill, .prog-fill, .bar-fill, .fill {
+      background: var(--brand-gradient) !important;
+    }
+    .progress-bar, .prog-track { background: #d9eaf7 !important; }
+
+    /* ── Filter / tab pills active ── */
+    .filter-btn.active, .tag-active, .tab-btn.active,
+    .filter-pill.active, .tab.active {
+      background: var(--brand-gradient) !important;
+      color: #fff !important;
+      box-shadow: 0 2px 8px rgba(27,127,212,0.3) !important;
+    }
+
+    /* ── CTA / submit buttons ── */
+    .btn-primary, .btn-submit, .submit-btn, .cta-btn,
+    button[type=submit], .btn-add, .btn-create, .add-btn {
+      background: var(--brand-gradient) !important;
+      border: none !important;
+      color: #fff !important;
+      box-shadow: 0 3px 12px rgba(27,127,212,0.35) !important;
+    }
+
+    /* ── Reward items ── */
+    .reward-item { background: var(--brand-bg) !important; border-color: #c6e2f6 !important; }
+    .reward-status.earned { background: #d1fae5 !important; color: #065f46 !important; }
+    .reward-status.next { background: var(--brand-bg) !important; color: var(--brand-deep) !important; border-color: var(--brand-soft) !important; }
+
+    /* ── Points hero text ── */
+    .points-label, .points-sub { color: rgba(255,255,255,0.65) !important; }
+    .points-value { color: #fff !important; }
+    .points-icon-wrap { background: rgba(255,255,255,0.12) !important; }
+
+    /* ── Mother search / filter input ── */
+    .search-input:focus, .filter-input:focus {
+      border-color: var(--brand) !important;
+      box-shadow: 0 0 0 3px rgba(27,127,212,0.15) !important;
+    }
+
+    /* ── Tier / level badges ── */
+    .tier-gold, .level-gold, .badge-gold { background: var(--brand-gradient) !important; color: #0a2a47 !important; }
+    .tier-silver { background: linear-gradient(135deg,#9ca3af,#d1d5db) !important; color: #1f2937 !important; }
+    .tier-diamond { background: linear-gradient(135deg,#818cf8,#c4b5fd) !important; color: #1e1b4b !important; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #e6f2fb; }
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #1b7fd4, #4aa3e8);
+      border-radius: 6px;
+    }
+
+    /* ── Sidebar overlay ── */
+    .sidebar-overlay { background: rgba(12,12,20,0.6) !important; }
+
+    /* ── Content detail panel (right side in admin layout) ── */
+    .detail-panel, .preview-panel, .right-panel {
+      background: #fff !important;
+      border-left: 1px solid var(--border-soft) !important;
+    }
+
+    /* ── Performance metric cards ── */
+    .metric-card, .perf-card {
+      background: #fff !important;
+      border: 1px solid var(--border-soft) !important;
+    }
+    .metric-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: var(--brand-gradient);
+    }
+
+    /* ── Section dividers ── */
+    hr, .divider { border-color: var(--border-soft) !important; }
+
+    /* Panel title accent */
+    .panel-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px; height: 14px;
+      background: var(--brand-gradient);
+      border-radius: 2px;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+  
+    /* ══════════════════════════════════════════════════════════
+       AIWIBI AUSTRALIA BRAND + Monochrome Premium alignment
+       (typography, sizes, card metrics follow mothersdas.html;
+        colors follow Aiwibi AU: signature blue on #f0f8ff)
+       ══════════════════════════════════════════════════════════ */
+    :root {
+      --radius: 20px;
+      --radius-sm: 12px;
+      --pill: 999px;
+      --ink: #101113;
+      --ink-soft: #3a3d42;
+      --aiwibi: #1b7fd4;
+      --aiwibi-deep: #0f5fa8;
+      --aiwibi-soft: #7cc0f0;
+      --aiwibi-bg: #e3f2fd;
+      --shadow-card: 0 1px 2px rgba(16,17,19,0.04), 0 8px 24px rgba(16,17,19,0.05);
+      --shadow-hover: 0 2px 4px rgba(16,17,19,0.05), 0 14px 34px rgba(16,17,19,0.09);
+    }
+    html, body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+      background: #f0f8ff !important;
+      color: var(--ink) !important;
+      font-feature-settings: "cv02","cv03","cv04";
+    }
+    /* ── Topbar: glass, sticky (mothersdas) ── */
+    .topbar {
+      background: rgba(255,255,255,0.85) !important;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid #d9eaf6 !important;
+      position: sticky; top: 0; z-index: 50;
+      height: 68px;
+    }
+    .topbar-title { font-size: 18px !important; font-weight: 800 !important; letter-spacing: -0.025em !important; color: var(--ink) !important; }
+    .topbar-sub { font-size: 12.5px !important; color: #8a8f98 !important; }
+    .icon-btn { border-radius: 50% !important; }
+    /* ── Cards / panels (mothersdas metrics) ── */
+    .stat-card, .panel {
+      border-radius: var(--radius) !important;
+      border: 1px solid #d9eaf6 !important;
+      box-shadow: var(--shadow-card) !important;
+      background-image: none !important;
+    }
+    .stat-card { transition: transform 0.2s ease, box-shadow 0.2s ease !important; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover) !important; }
+    .stat-card::before { display: none !important; }
+    .stat-value { font-size: 28px !important; font-weight: 800 !important; letter-spacing: -0.03em !important; color: var(--ink) !important; line-height: 1 !important; font-variant-numeric: tabular-nums; }
+    .stat-label { font-size: 11px !important; font-weight: 600 !important; text-transform: uppercase; letter-spacing: 0.09em; }
+    .panel-title { font-size: 15px !important; font-weight: 700 !important; letter-spacing: -0.015em !important; color: var(--ink) !important; }
+    .section-label { font-size: 15px !important; font-weight: 700 !important; letter-spacing: -0.015em !important; color: var(--ink) !important; }
+    /* ── Pills & buttons ── */
+    .status-pill, .stat-delta { border-radius: var(--pill) !important; font-weight: 600 !important; }
+    .chart-tab, .filter-btn, .tab-btn, .filter-select { border-radius: var(--pill) !important; }
+    .chart-tab.active, .filter-btn.active, .tab-btn.active { background: var(--ink) !important; color: #fff !important; }
+    .btn-primary, .btn-submit, .submit-btn, .cta-btn, button[type=submit] {
+      background: var(--aiwibi) !important; color: #fff !important;
+      border: none !important; border-radius: var(--pill) !important; font-weight: 600 !important;
+    }
+    .btn-primary:hover, .btn-submit:hover, .submit-btn:hover, .cta-btn:hover { background: var(--aiwibi-deep) !important; }
+    .btn-outline { border-radius: var(--pill) !important; }
+    /* ── Tables ── */
+    table th { font-size: 10.5px !important; font-weight: 600 !important; text-transform: uppercase; letter-spacing: 0.1em; color: #8a8f98 !important; background: #f2f9fe !important; }
+    table td { font-size: 12.5px !important; }
+    tr:hover td { background: #f7fbfe !important; }
+    /* ── Numbers ── */
+    td, .stat-value, .points, .pts { font-variant-numeric: tabular-nums; }
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #b7d5ec; border-radius: 6px; }
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+
+  
+    /* ── Bold gradient stat cards (mothersdas style) ── */
+    .stat-icon-badge {
+      width: 44px; height: 44px; border-radius: 14px;
+      background: rgba(255,255,255,0.22);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: #fff; margin-bottom: 14px; flex-shrink: 0;
+    }
+    .stat-card--1, .stat-card--2, .stat-card--3,
+    .stat-card--4, .stat-card--5, .stat-card--6 { border: none !important; }
+    .stat-card--1::after, .stat-card--2::after, .stat-card--3::after,
+    .stat-card--4::after, .stat-card--5::after, .stat-card--6::after { display: none !important; }
+    .stat-card--1 { background: linear-gradient(135deg, #4f7cff 0%, #3d5fe0 100%) !important; }
+    .stat-card--2 { background: linear-gradient(135deg, #ff5f9e 0%, #e2427f 100%) !important; }
+    .stat-card--3 { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important; }
+    .stat-card--4 { background: linear-gradient(135deg, #ffb648 0%, #f5942c 100%) !important; }
+    .stat-card--5 { background: linear-gradient(135deg, #a06bff 0%, #7c4fe0 100%) !important; }
+    .stat-card--6 { background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%) !important; }
+    .stat-card--1 .stat-label, .stat-card--2 .stat-label, .stat-card--3 .stat-label,
+    .stat-card--4 .stat-label, .stat-card--5 .stat-label, .stat-card--6 .stat-label {
+      color: rgba(255,255,255,0.85) !important; font-weight: 700 !important;
+    }
+    .stat-card--1 .stat-value, .stat-card--2 .stat-value, .stat-card--3 .stat-value,
+    .stat-card--4 .stat-value, .stat-card--5 .stat-value, .stat-card--6 .stat-value { color: #fff !important; }
+    .stat-card--1 .stat-value span, .stat-card--2 .stat-value span, .stat-card--3 .stat-value span,
+    .stat-card--4 .stat-value span, .stat-card--5 .stat-value span, .stat-card--6 .stat-value span { color: rgba(255,255,255,0.75) !important; }
+    .stat-card--1 .stat-period, .stat-card--2 .stat-period, .stat-card--3 .stat-period,
+    .stat-card--4 .stat-period, .stat-card--5 .stat-period, .stat-card--6 .stat-period,
+    .stat-card--1 .stat-sub, .stat-card--2 .stat-sub, .stat-card--3 .stat-sub,
+    .stat-card--4 .stat-sub, .stat-card--5 .stat-sub, .stat-card--6 .stat-sub { color: rgba(255,255,255,0.75) !important; }
+    .stat-card--1 .stat-delta, .stat-card--2 .stat-delta, .stat-card--3 .stat-delta,
+    .stat-card--4 .stat-delta, .stat-card--5 .stat-delta, .stat-card--6 .stat-delta {
+      background: rgba(255,255,255,0.22) !important; color: #fff !important;
+    }
+    .stat-card--1 .stat-icon, .stat-card--2 .stat-icon, .stat-card--3 .stat-icon,
+    .stat-card--4 .stat-icon, .stat-card--5 .stat-icon, .stat-card--6 .stat-icon {
+      background: rgba(255,255,255,0.22) !important; color: #fff !important;
+      width: 44px; height: 44px; border-radius: 14px;
+    }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+      <div class="logo-label">AIWIBI<span>SYSTEM</span></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Main</div>
+      <a href="admindas.html" class="nav-item"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+      <a href="admincont.html" class="nav-item"><i class="ti ti-file-text"></i> Content</a>
+      <a href="admincamp.html" class="nav-item"><i class="ti ti-speakerphone"></i> Campaigns</a>
+      <a href="adminperf.html" class="nav-item active"><i class="ti ti-chart-bar"></i> Performance</a>
+      <a href="adminreward.html" class="nav-item"><i class="ti ti-gift"></i> Rewards</a>
+      <a href="#" class="nav-item"><i class="ti ti-report"></i> Reports</a>
+      <a href="adminsettings.html" class="nav-item"><i class="ti ti-settings"></i> Settings</a>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-pill">
+        <div class="user-avatar">A</div>
+        <div class="user-info">
+          <div class="user-name">Admin</div>
+          <div class="user-role">Administrator</div>
+        </div>
+        <div class="admin-badge">ADMIN</div>
+      </div>
+      <a href="login.html" class="nav-item" id="logout-link" style="margin-top:6px;color:#e57373 !important;"><i class="ti ti-logout"></i> Logout</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger"><i class="ti ti-menu-2"></i></button>
+        <div>
+          <div class="topbar-title">Performance Overview</div>
+          <div class="topbar-sub">Monitor overall performance and track ambassador impact across all campaigns.</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="date-chip"><i class="ti ti-calendar" style="font-size:13px"></i> <span id="current-date-label">Loading...</span></div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card stat-card--1">
+          <div class="stat-icon-badge"><i class="ti ti-eye"></i></div>
+          <div class="stat-label">Total Views</div>
+          <div class="stat-value">3.42M</div>
+          <span class="stat-delta up"><i class="ti ti-trending-up" style="font-size:9px"></i> +15%</span>
+          <span class="stat-period">vs last 7d</span>
+        </div>
+        <div class="stat-card stat-card--2">
+          <div class="stat-icon-badge"><i class="ti ti-heart"></i></div>
+          <div class="stat-label">Total Engagements</div>
+          <div class="stat-value">284K</div>
+          <span class="stat-delta up"><i class="ti ti-trending-up" style="font-size:9px"></i> +18%</span>
+          <span class="stat-period">vs last 7d</span>
+        </div>
+        <div class="stat-card stat-card--3">
+          <div class="stat-icon-badge"><i class="ti ti-arrows-shuffle"></i></div>
+          <div class="stat-label">Avg. Engagement Rate</div>
+          <div class="stat-value">11.6%</div>
+          <span class="stat-delta up"><i class="ti ti-trending-up" style="font-size:9px"></i> +1.6%</span>
+          <span class="stat-period">vs last 7d</span>
+        </div>
+        <div class="stat-card stat-card--4">
+          <div class="stat-icon-badge"><i class="ti ti-file-upload"></i></div>
+          <div class="stat-label">Content Submitted</div>
+          <div class="stat-value">582</div>
+          <span class="stat-delta up"><i class="ti ti-trending-up" style="font-size:9px"></i> +22%</span>
+          <span class="stat-period">vs last 7d</span>
+        </div>
+        <div class="stat-card stat-card--5">
+          <div class="stat-icon-badge"><i class="ti ti-users"></i></div>
+          <div class="stat-label">Total Mothers</div>
+          <div class="stat-value">124</div>
+          <span class="stat-delta up"><i class="ti ti-trending-up" style="font-size:9px"></i> +6%</span>
+          <span class="stat-period">vs last 7d</span>
+        </div>
+        <div class="stat-card stat-card--6">
+          <div class="stat-icon-badge"><i class="ti ti-gauge"></i></div>
+          <div class="stat-label">Avg. Performance Score</div>
+          <div class="stat-value">84.2</div>
+          <span class="stat-delta up"><i class="ti ti-trending-up" style="font-size:9px"></i> +4.3 pts</span>
+          <span class="stat-period">vs last 7d</span>
+        </div>
+      </div>
+
+      <!-- Performance Trend + Platform Breakdown -->
+      <div class="grid-3">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Performance Trend</div>
+            <div class="filter-select">This Week <i class="ti ti-chevron-down"></i></div>
+          </div>
+          <div class="chart-tabs">
+            <button class="chart-tab active" onclick="switchMetric(this,'views')">Views</button>
+            <button class="chart-tab" onclick="switchMetric(this,'engagements')">Engagements</button>
+            <button class="chart-tab" onclick="switchMetric(this,'clicks')">Clicks</button>
+            <button class="chart-tab" onclick="switchMetric(this,'watch')">Watch Time</button>
+            <button class="chart-tab" onclick="switchMetric(this,'content')">Content Submitted</button>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="admin-trend-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Platform Breakdown</div></div>
+          <div class="platform-bd-body">
+            <div class="donut-canvas-pos">
+              <canvas id="admin-platform-donut" width="130" height="130" style="width:120px;height:120px;"></canvas>
+              <div class="donut-center">
+                <div class="donut-center-value">3.42M</div>
+                <div class="donut-center-label">Total Views</div>
+              </div>
+            </div>
+            <div class="platform-legend">
+              <div class="platform-bd-item">
+                <div class="platform-bd-icon tiktok"><svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/></svg></div>
+                <div><div class="platform-bd-name">TikTok</div><div class="platform-bd-sub">2.60M Views</div></div>
+                <div class="platform-bd-pct">76%</div>
+              </div>
+              <div class="platform-bd-item">
+                <div class="platform-bd-icon instagram"><svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></div>
+                <div><div class="platform-bd-name">Instagram</div><div class="platform-bd-sub">820K Views</div></div>
+                <div class="platform-bd-pct">24%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Performance by Campaign + Distribution -->
+      <div class="grid-3">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Performance by Campaign</div>
+            <a class="panel-action" href="#">View all</a>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr><th>Campaign</th><th>Participants</th><th>Views</th><th>Engagements</th><th>Avg. Score</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div class="camp-name-cell"><span class="camp-dot" style="background:#db2777"></span>Mother's Day Special</div></td>
+                  <td>82</td><td>1.8M</td><td>156K</td><td>91</td>
+                  <td><span class="status-pill completed">Completed</span></td>
+                </tr>
+                <tr>
+                  <td><div class="camp-name-cell"><span class="camp-dot" style="background:#0f172a"></span>Back to School Ready</div></td>
+                  <td>41</td><td>820K</td><td>68K</td><td>84</td>
+                  <td><span class="status-pill active">Active</span></td>
+                </tr>
+                <tr>
+                  <td><div class="camp-name-cell"><span class="camp-dot" style="background:#0891b2"></span>Summer Care Campaign</div></td>
+                  <td>33</td><td>540K</td><td>40K</td><td>79</td>
+                  <td><span class="status-pill upcoming">Upcoming</span></td>
+                </tr>
+                <tr>
+                  <td><div class="camp-name-cell"><span class="camp-dot" style="background:#16a34a"></span>Newborn Essentials</div></td>
+                  <td>26</td><td>160K</td><td>15K</td><td>76</td>
+                  <td><span class="status-pill active">Active</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Performance Distribution (By Score)</div></div>
+          <div class="platform-bd-body">
+            <div class="donut-canvas-pos">
+              <canvas id="dist-donut" width="130" height="130" style="width:120px;height:120px;"></canvas>
+              <div class="donut-center">
+                <div class="donut-center-value">124</div>
+                <div class="donut-center-label">Total Mothers</div>
+              </div>
+            </div>
+          </div>
+          <div class="dist-legend">
+            <div class="dist-item"><span class="dist-dot" style="background:#22c55e"></span><span class="dist-label">Gold (90-100)</span><span class="dist-val">28 (23%)</span></div>
+            <div class="dist-item"><span class="dist-dot" style="background:#94a3b8"></span><span class="dist-label">Silver (70-89)</span><span class="dist-val">43 (36%)</span></div>
+            <div class="dist-item"><span class="dist-dot" style="background:#f59e0b"></span><span class="dist-label">Bronze (50-69)</span><span class="dist-val">31 (25%)</span></div>
+            <div class="dist-item"><span class="dist-dot" style="background:#ef4444"></span><span class="dist-label">Needs Improvement (&lt;50)</span><span class="dist-val">22 (17%)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Performing Mothers + Top Performing Content -->
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Top Performing Mothers</div>
+            <a class="panel-action" href="#">View all</a>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Rank</th><th>Mother</th><th>Views</th><th>Engagements</th><th>Score</th><th>Tier</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td class="rank-num">1</td>
+                  <td><div class="person-cell"><div class="person-avatar">S</div><div><div class="person-name">Sarah M.</div><div class="person-handle">@sarahmama</div></div></div></td>
+                  <td>214.3K</td><td>12.8K</td><td>98.5</td>
+                  <td><span class="tier-pill gold"><i class="ti ti-medal" style="font-size:11px"></i> Gold</span></td>
+                </tr>
+                <tr>
+                  <td class="rank-num">2</td>
+                  <td><div class="person-cell"><div class="person-avatar">G</div><div><div class="person-name">Grace K.</div><div class="person-handle">@gracek</div></div></div></td>
+                  <td>178.9K</td><td>10.4K</td><td>87.2</td>
+                  <td><span class="tier-pill silver"><i class="ti ti-medal" style="font-size:11px"></i> Silver</span></td>
+                </tr>
+                <tr>
+                  <td class="rank-num">3</td>
+                  <td><div class="person-cell"><div class="person-avatar">P</div><div><div class="person-name">Peace A.</div><div class="person-handle">@peaceaa</div></div></div></td>
+                  <td>142.6K</td><td>9.1K</td><td>76.3</td>
+                  <td><span class="tier-pill bronze"><i class="ti ti-medal" style="font-size:11px"></i> Bronze</span></td>
+                </tr>
+                <tr>
+                  <td class="rank-num">4</td>
+                  <td><div class="person-cell"><div class="person-avatar">I</div><div><div class="person-name">Irene N.</div><div class="person-handle">@ireenn</div></div></div></td>
+                  <td>110.2K</td><td>7.8K</td><td>65.1</td>
+                  <td><span class="tier-pill bronze"><i class="ti ti-medal" style="font-size:11px"></i> Bronze</span></td>
+                </tr>
+                <tr>
+                  <td class="rank-num">5</td>
+                  <td><div class="person-cell"><div class="person-avatar">J</div><div><div class="person-name">Juliet T.</div><div class="person-handle">@juliett</div></div></div></td>
+                  <td>95.4K</td><td>6.6K</td><td>58.7</td>
+                  <td><span class="tier-pill bronze"><i class="ti ti-medal" style="font-size:11px"></i> Bronze</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Top Performing Content</div>
+            <a class="panel-action" href="#">View all</a>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Content</th><th>Views</th><th>Eng. Rate</th><th>Score</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="content-thumb-cell"><div class="content-thumb tiktok"><i class="ti ti-brand-tiktok"></i></div><div><div class="content-title">Morning routine with my little one</div><div class="content-sub">Sarah M.</div></div></div></td>
+                  <td>214K</td><td>12.4%</td><td>98.5</td>
+                </tr>
+                <tr>
+                  <td><div class="content-thumb-cell"><div class="content-thumb instagram"><i class="ti ti-brand-instagram"></i></div><div><div class="content-title">New day, new adventures with Aiwibi</div><div class="content-sub">Grace K.</div></div></div></td>
+                  <td>178K</td><td>10.8%</td><td>95.1</td>
+                </tr>
+                <tr>
+                  <td><div class="content-thumb-cell"><div class="content-thumb tiktok"><i class="ti ti-brand-tiktok"></i></div><div><div class="content-title">Night time protection that moms trust</div><div class="content-sub">Peace A.</div></div></div></td>
+                  <td>142K</td><td>9.6%</td><td>92.3</td>
+                </tr>
+                <tr>
+                  <td><div class="content-thumb-cell"><div class="content-thumb instagram"><i class="ti ti-brand-instagram"></i></div><div><div class="content-title">Play time with baby and Aiwibi</div><div class="content-sub">Irene N.</div></div></div></td>
+                  <td>110K</td><td>8.9%</td><td>89.4</td>
+                </tr>
+                <tr>
+                  <td><div class="content-thumb-cell"><div class="content-thumb tiktok"><i class="ti ti-brand-tiktok"></i></div><div><div class="content-title">Aiwibi keeps him happy all day!</div><div class="content-sub">Juliet T.</div></div></div></td>
+                  <td>95K</td><td>8.2%</td><td>86.7</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Insights & Recommendations -->
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">AI Insights & Recommendations</div></div>
+        <div class="insights-row">
+          <div class="insight-card">
+            <div class="insight-icon purple"><i class="ti ti-clock"></i></div>
+            <div>
+              <div class="insight-title">Best Posting Time</div>
+              <div class="insight-text">Most engagement occurs between 6:00 PM – 9:00 PM. Post during this time for better reach!</div>
+            </div>
+          </div>
+          <div class="insight-card">
+            <div class="insight-icon green"><i class="ti ti-brand-tiktok"></i></div>
+            <div>
+              <div class="insight-title">Top Performing Platform</div>
+              <div class="insight-text">TikTok generates 3.1x more views than Instagram this week.</div>
+            </div>
+          </div>
+          <div class="insight-card">
+            <div class="insight-icon amber"><i class="ti ti-alert-triangle"></i></div>
+            <div>
+              <div class="insight-title">Opportunity Alert</div>
+              <div class="insight-text">22 mothers have low engagement. Consider re-engaging or providing content coaching.</div>
+            </div>
+          </div>
+          <button class="btn-insights">View All Insights <i class="ti ti-arrow-right" style="font-size:13px"></i></button>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+  /* Mobile sidebar */
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  document.getElementById('hamburger').addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  });
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  });
+
+  /* Performance Trend Chart */
+  const labels = ['May 14','May 15','May 16','May 17','May 18','May 19','May 20'];
+  const metricData = {
+    views:       [820000, 920000, 880000, 1020000, 940000, 1080000, 960000],
+    engagements: [62000, 71000, 68000, 79000, 73000, 84000, 75000],
+    clicks:      [4200, 4800, 4500, 5300, 4900, 5700, 5100],
+    watch:       [310, 340, 320, 380, 350, 400, 365],
+    content:     [68, 74, 71, 86, 79, 92, 84]
+  };
+  const metricFormat = {
+    views: v => v >= 1000000 ? (v/1000000).toFixed(1)+'M' : (v/1000).toFixed(0)+'K',
+    engagements: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v,
+    clicks: v => v,
+    watch: v => v + 'h',
+    content: v => v
+  };
+
+  let currentMetric = 'views';
+  const ctx = document.getElementById('admin-trend-chart').getContext('2d');
+  const gradPurple = ctx.createLinearGradient(0, 0, 0, 190);
+  gradPurple.addColorStop(0, 'rgba(27,127,212,0.18)');
+  gradPurple.addColorStop(1, 'rgba(27,127,212,0)');
+
+  const trendChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Views', data: metricData.views,
+        borderColor: '#1b7fd4', backgroundColor: gradPurple,
+        borderWidth: 2.5, pointBackgroundColor: '#1b7fd4',
+        pointRadius: 4, pointHoverRadius: 6, fill: true, tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      resizeDelay: 100,
+      animation: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: '#07203a', titleFont: { size: 11 }, bodyFont: { size: 12 }, padding: 10, cornerRadius: 8 }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#9a9070' } },
+        y: { grid: { color: '#f0eeff' }, ticks: { font: { size: 11 }, color: '#9a9070', callback: v => metricFormat[currentMetric](v) } }
+      }
+    }
+  });
+
+  function switchMetric(el, key) {
+    document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    currentMetric = key;
+    trendChart.data.datasets[0].data = metricData[key];
+    trendChart.data.datasets[0].label = el.textContent;
+    trendChart.update();
+  }
+
+  /* Platform donut */
+  new Chart(document.getElementById('admin-platform-donut').getContext('2d'), {
+    type: 'doughnut',
+    data: { labels: ['TikTok','Instagram'], datasets: [{ data: [2600000, 820000], backgroundColor: ['#010101','#e1306c'], borderWidth: 0, hoverOffset: 6 }] },
+    options: { cutout: '74%', animation: false, resizeDelay: 100, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#07203a', bodyFont: { size: 12 }, padding: 10, cornerRadius: 8 } } }
+  });
+
+  /* Distribution donut */
+  new Chart(document.getElementById('dist-donut').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Gold','Silver','Bronze','Needs Improvement'],
+      datasets: [{ data: [28, 43, 31, 22], backgroundColor: ['#22c55e','#94a3b8','#f59e0b','#ef4444'], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: { cutout: '72%', animation: false, resizeDelay: 100, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#07203a', bodyFont: { size: 12 }, padding: 10, cornerRadius: 8 } } }
+  });
+</script>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+  const SUPABASE_URL = 'https://cqtebvfegeojjkrkzboq.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdGVidmZlZ2Vvamprcmt6Ym9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODQ2NjksImV4cCI6MjA5ODU2MDY2OX0.OcCwAD-q6d1XeyHW6f1Gy9r_sBdRV3eWAOUsKLemKEA'
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  document.getElementById('logout-link').addEventListener('click', async (e) => {
+    e.preventDefault()
+    await supabase.auth.signOut()
+    window.location.href = 'login.html'
+  })
+
+  async function applyPlatformLogo() {
+    const { data, error } = await supabase.from('platform_settings').select('logo_url').eq('id', 1).single()
+    if (error || !data?.logo_url) return
+    document.querySelectorAll('.logo-icon-wrap').forEach(wrap => {
+      wrap.innerHTML = `<img src="${data.logo_url}" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:inherit;">`
+    })
+  }
+
+  async function loadUserProfile() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('full_name, email, role')
+      .eq('id', session.user.id)
+      .single();
+
+    if (error || !profile) {
+      console.error('Profile load error:', error);
+      return;
+    }
+
+    const name = profile.full_name || profile.email || session.user.email;
+    const initial = name.charAt(0).toUpperCase();
+    const roleLabel = profile.role === 'admin' ? 'Super Administrator'
+      : profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
+      : 'Administrator';
+
+    const avatarEl = document.querySelector('.user-avatar');
+    const nameEl = document.querySelector('.user-name');
+    const roleEl = document.querySelector('.user-role');
+    if (avatarEl) avatarEl.textContent = initial;
+    if (nameEl) nameEl.textContent = name;
+    if (roleEl) roleEl.textContent = roleLabel;
+  }
+
+  function renderCurrentDate() {
+    const el = document.getElementById('current-date-label');
+    if (!el) return;
+    const today = new Date();
+    el.textContent = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  }
+  renderCurrentDate();
+
+  loadUserProfile();
+  applyPlatformLogo();
+</script>
+</body>
+</html>

@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Aiwibi System — Sign Up</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #ede9ff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 16px;
+      background: #ede9ff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .blob { position: absolute; border-radius: 50%; }
+    .blob-tl { top: -70px; left: -70px; width: 220px; height: 220px; background: #c9bfff; opacity: 0.45; }
+    .blob-br { bottom: -60px; right: -40px; width: 190px; height: 190px; background: #b8acff; opacity: 0.38; }
+
+    .card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 24px 22px 28px;
+      width: 100%;
+      max-width: 360px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 8px 40px rgba(108,92,231,0.13);
+    }
+
+    /* ── Back button ── */
+    .back-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 1.5px solid #e8e4ff; background: #fff;
+      cursor: pointer; margin-bottom: 18px;
+      color: #6c5ce7; font-size: 16px;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+    .back-btn:active { background: #f0eeff; }
+
+    /* ── Headings ── */
+    .heading {
+      font-size: 20px; font-weight: 700; color: #1a1a2e;
+      margin-bottom: 6px;
+    }
+    .subheading {
+      font-size: 13px; color: #999; line-height: 1.5;
+      margin-bottom: 22px;
+    }
+
+    /* ── Fields ── */
+    .field { position: relative; margin-bottom: 12px; }
+    .field-icon {
+      position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+      color: #c0bcd8; font-size: 16px; pointer-events: none;
+    }
+    .field input {
+      width: 100%;
+      height: 50px;
+      padding: 0 44px 0 40px;
+      border: 1.5px solid #eae6ff;
+      border-radius: 12px;
+      font-size: 14px; color: #1a1a2e;
+      background: #faf9ff;
+      outline: none;
+      transition: border-color 0.18s, background 0.18s;
+      font-family: inherit;
+      -webkit-appearance: none;
+    }
+    .field input::placeholder { color: #c0bcd8; }
+    .field input:focus { border-color: #6c5ce7; background: #fff; }
+    .field input.err { border-color: #e24b4a; }
+
+    .eye-btn {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: #c0bcd8; font-size: 17px; padding: 4px;
+      display: flex; align-items: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .eye-btn:active { color: #6c5ce7; }
+
+    /* strength bar */
+    .strength-wrap { display: none; margin: -4px 0 10px; }
+    .strength-wrap.show { display: block; }
+    .strength-bar {
+      height: 3px; border-radius: 2px; background: #eee;
+      overflow: hidden; margin-bottom: 4px;
+    }
+    .strength-fill { height: 100%; border-radius: 2px; width: 0; transition: width 0.3s, background 0.3s; }
+    .strength-label { font-size: 11px; color: #999; }
+
+    /* ── Error msg ── */
+    .error-msg {
+      font-size: 11.5px; color: #e24b4a;
+      padding: 2px 2px 8px; display: none;
+    }
+
+    /* ── Terms checkbox ── */
+    .terms-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin-bottom: 18px; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .terms-box {
+      width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0; margin-top: 1px;
+      border: 1.5px solid #ddd; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .terms-box.checked { background: #6c5ce7; border-color: #6c5ce7; }
+    .terms-text { font-size: 13px; color: #555; line-height: 1.5; }
+    .terms-text a { color: #6c5ce7; font-weight: 500; text-decoration: none; }
+    .terms-text a:hover { text-decoration: underline; }
+    .terms-err { font-size: 11.5px; color: #e24b4a; margin: -12px 0 12px 28px; display: none; }
+
+    /* ── Primary button ── */
+    .btn-primary {
+      width: 100%; height: 50px;
+      background: linear-gradient(135deg, #6c5ce7 0%, #9b8fef 100%);
+      color: #fff; border: none; border-radius: 14px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: opacity 0.18s, transform 0.1s;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ── Divider ── */
+    .divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; }
+    .divider-line { flex: 1; height: 1px; background: #eee; }
+    .divider-text { font-size: 12px; color: #ccc; }
+
+    /* ── Social ── */
+    .btn-social {
+      width: 100%; height: 48px;
+      border: 1.5px solid #eae6ff; border-radius: 12px;
+      background: #fff; cursor: pointer;
+      font-size: 13px; font-weight: 500; color: #333;
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+      margin-bottom: 10px;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.15s;
+    }
+    .btn-social:active { background: #faf9ff; border-color: #a29bfe; }
+
+    /* ── Login row ── */
+    .login-row { text-align: center; margin-top: 14px; font-size: 13px; color: #999; }
+    .login-row a { color: #6c5ce7; font-weight: 600; text-decoration: none; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #1a1a2e; color: #fff;
+      padding: 10px 22px; border-radius: 10px;
+      font-size: 13px; font-weight: 500;
+      opacity: 0; transition: opacity 0.3s;
+      pointer-events: none; white-space: nowrap; z-index: 999;
+    }
+    .toast.show { opacity: 1; }
+
+    /* ── Screens ── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── Success ── */
+    .success-wrap { display: flex; flex-direction: column; align-items: center; padding: 16px 0 8px; }
+    .success-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+      display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
+    }
+    .success-title { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+    .success-sub { font-size: 13px; color: #999; text-align: center; line-height: 1.5; margin-bottom: 24px; }
+    .btn-outline {
+      border: 1.5px solid #6c5ce7; color: #6c5ce7;
+      background: none; padding: 12px 36px; border-radius: 12px;
+      font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-outline:active { background: #f0eeff; }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2.5px solid rgba(255,255,255,0.35);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* password match tick */
+    .match-icon {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      font-size: 16px; display: none;
+    }
+    .match-icon.show { display: flex; align-items: center; }
+  </style>
+</head>
+<body>
+
+<div class="page">
+  <div class="blob blob-tl"></div>
+  <div class="blob blob-br"></div>
+
+  <div class="card">
+
+    <!-- ══ SIGN UP ══ -->
+    <div class="screen active" id="screen-signup">
+
+      <button class="back-btn" id="back-to-login" type="button" aria-label="Back">
+        <i class="ti ti-chevron-left" aria-hidden="true"></i>
+      </button>
+
+      <div class="heading">Create your account</div>
+      <div class="subheading">Join AIWIBI System and automate your content journey</div>
+
+      <!-- Full name -->
+      <div class="field">
+        <i class="ti ti-user field-icon" aria-hidden="true"></i>
+        <input type="text" id="su-name" placeholder="Full name" autocomplete="name"/>
+      </div>
+      <div class="error-msg" id="name-err"></div>
+
+      <!-- Email -->
+      <div class="field">
+        <i class="ti ti-mail field-icon" aria-hidden="true"></i>
+        <input type="email" id="su-email" placeholder="Email address" inputmode="email" autocomplete="email"/>
+      </div>
+      <div class="error-msg" id="email-err"></div>
+
+      <!-- Password -->
+      <div class="field">
+        <i class="ti ti-lock field-icon" aria-hidden="true"></i>
+        <input type="password" id="su-pass" placeholder="Password" autocomplete="new-password"/>
+        <button class="eye-btn" id="eye1" type="button" aria-label="Show password">
+          <i class="ti ti-eye" id="eye1-icon" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="strength-wrap" id="strength-wrap">
+        <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+        <div class="strength-label" id="strength-label"></div>
+      </div>
+      <div class="error-msg" id="pass-err"></div>
+
+      <!-- Confirm password -->
+      <div class="field" style="position:relative">
+        <i class="ti ti-lock field-icon" aria-hidden="true"></i>
+        <input type="password" id="su-confirm" placeholder="Confirm password" autocomplete="new-password"/>
+        <button class="eye-btn" id="eye2" type="button" aria-label="Show confirm password" style="right:36px">
+          <i class="ti ti-eye" id="eye2-icon" aria-hidden="true"></i>
+        </button>
+        <i class="ti ti-circle-check match-icon" id="match-icon" style="color:#22c55e;right:10px" aria-hidden="true"></i>
+      </div>
+      <div class="error-msg" id="confirm-err"></div>
+
+      <!-- Terms -->
+      <div class="terms-row" id="terms-toggle">
+        <div class="terms-box" id="terms-box"></div>
+        <div class="terms-text">
+          I agree to the <a href="#" onclick="return false">Terms of Service</a> and
+          <a href="#" onclick="return false">Privacy Policy</a>
+        </div>
+      </div>
+      <div class="terms-err" id="terms-err">Please accept the Terms of Service to continue.</div>
+
+      <button class="btn-primary" id="signup-btn" type="button">Sign Up</button>
+
+      <div class="divider">
+        <div class="divider-line"></div>
+        <span class="divider-text">or</span>
+        <div class="divider-line"></div>
+      </div>
+
+      <button class="btn-social" id="google-btn" type="button">
+        <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <button class="btn-social" id="apple-btn" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#000" aria-hidden="true">
+          <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.7 9.05 7.36c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.39-1.32 2.76-2.53 4.03zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+        </svg>
+        Continue with Apple
+      </button>
+
+      <div class="login-row">Already have an account? <a href="#" id="login-link">Log in</a></div>
+
+    </div>
+
+    <!-- ══ SUCCESS ══ -->
+    <div class="screen" id="screen-success">
+      <div class="success-wrap">
+        <div class="success-icon">
+          <i class="ti ti-check" style="color:#fff;font-size:32px" aria-hidden="true"></i>
+        </div>
+        <div class="success-title">Account created! &#x1F389;</div>
+        <div class="success-sub" id="success-sub">Welcome to Aiwibi System.<br>You can now log in.</div>
+        <button class="btn-outline" id="go-login-btn" type="button">Go to login</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  const SUPABASE_URL = 'https://cqtebvfegeojjkrkzboq.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdGVidmZlZ2Vvamprcmt6Ym9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODQ2NjksImV4cCI6MjA5ODU2MDY2OX0.OcCwAD-q6d1XeyHW6f1Gy9r_sBdRV3eWAOUsKLemKEA';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    $(id).classList.add('active');
+    clearErrors();
+  }
+
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function clearErrors() {
+    ['name-err','email-err','pass-err','confirm-err','terms-err'].forEach(id => {
+      const el = $(id); if(el){ el.style.display='none'; el.textContent=''; }
+    });
+    document.querySelectorAll('.err').forEach(el => el.classList.remove('err'));
+  }
+
+  function showErr(errId, inputId, msg) {
+    const e = $(errId); if(e){ e.textContent=msg; e.style.display='block'; }
+    const i = $(inputId); if(i){ i.classList.add('err'); i.focus(); }
+  }
+
+  function validEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+  function setLoading(btn, on) {
+    if(on){ btn.disabled=true; btn.dataset.t=btn.innerHTML; btn.innerHTML='<div class="spinner"></div>'; }
+    else { btn.disabled=false; btn.innerHTML=btn.dataset.t; }
+  }
+
+  /* ── Password strength ── */
+  $('su-pass').addEventListener('input', () => {
+    const val = $('su-pass').value;
+    const wrap = $('strength-wrap');
+    const fill = $('strength-fill');
+    const label = $('strength-label');
+    if(!val){ wrap.classList.remove('show'); return; }
+    wrap.classList.add('show');
+    let score = 0;
+    if(val.length >= 8) score++;
+    if(/[A-Z]/.test(val)) score++;
+    if(/[0-9]/.test(val)) score++;
+    if(/[^A-Za-z0-9]/.test(val)) score++;
+    const levels = [
+      { w:'25%', c:'#e24b4a', t:'Weak' },
+      { w:'50%', c:'#f59e0b', t:'Fair' },
+      { w:'75%', c:'#3b82f6', t:'Good' },
+      { w:'100%',c:'#22c55e', t:'Strong' },
+    ];
+    const lvl = levels[Math.max(0, score-1)];
+    fill.style.width = lvl.w;
+    fill.style.background = lvl.c;
+    label.textContent = lvl.t;
+    label.style.color = lvl.c;
+    checkMatch();
+  });
+
+  /* ── Confirm password match ── */
+  function checkMatch() {
+    const p = $('su-pass').value;
+    const c = $('su-confirm').value;
+    const icon = $('match-icon');
+    if(c.length > 0 && p === c) {
+      icon.classList.add('show');
+      $('su-confirm').style.borderColor = '#22c55e';
+    } else {
+      icon.classList.remove('show');
+      if(!$('su-confirm').classList.contains('err'))
+        $('su-confirm').style.borderColor = '';
+    }
+  }
+  $('su-confirm').addEventListener('input', checkMatch);
+
+  /* ── Eye toggles ── */
+  function setupEye(btnId, iconId, inputId) {
+    let shown = false;
+    $(btnId).addEventListener('click', () => {
+      shown = !shown;
+      $(inputId).type = shown ? 'text' : 'password';
+      $(iconId).className = shown ? 'ti ti-eye-off' : 'ti ti-eye';
+    });
+  }
+  setupEye('eye1','eye1-icon','su-pass');
+  setupEye('eye2','eye2-icon','su-confirm');
+
+  /* ── Terms toggle ── */
+  let termsChecked = false;
+  $('terms-toggle').addEventListener('click', () => {
+    termsChecked = !termsChecked;
+    const box = $('terms-box');
+    box.className = 'terms-box' + (termsChecked ? ' checked' : '');
+    box.innerHTML = termsChecked
+      ? '<i class="ti ti-check" style="color:#fff;font-size:11px"></i>'
+      : '';
+    if(termsChecked) { $('terms-err').style.display='none'; }
+  });
+
+  /* ── Sign up ── */
+ $('signup-btn').addEventListener('click', async () => {
+    clearErrors();
+    const name    = $('su-name').value.trim();
+    const email   = $('su-email').value.trim();
+    const pass    = $('su-pass').value;
+    const confirm = $('su-confirm').value;
+
+    if(!name)              { showErr('name-err','su-name','Enter your full name.'); return; }
+    if(!validEmail(email)) { showErr('email-err','su-email','Enter a valid email address.'); return; }
+    if(pass.length < 8)    { showErr('pass-err','su-pass','Password must be at least 8 characters.'); return; }
+    if(pass !== confirm)   { showErr('confirm-err','su-confirm','Passwords do not match.'); return; }
+    if(!termsChecked) {
+      $('terms-err').style.display = 'block';
+      return;
+    }
+
+    const btn = $('signup-btn');
+    setLoading(btn, true);
+
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password: pass,
+      options: {
+        data: { full_name: name, role: 'mother' }
+      }
+    });
+
+    setLoading(btn, false);
+
+    if (error) {
+      showErr('email-err', 'su-email', error.message || 'Something went wrong. Please try again.');
+      return;
+    }
+
+    $('success-sub').innerHTML = `Welcome, ${name.split(' ')[0]}!<br>Check your email to confirm your account, then log in.`;
+    showScreen('screen-success');
+    setTimeout(() => {
+      window.location.href = 'login.html';
+    }, 2500);
+  });
+
+  /* ── Navigation ── */
+  $('back-to-login').addEventListener('click', () => {
+    window.location.href = 'login.html';
+  });
+  $('login-link').addEventListener('click', e => {
+    e.preventDefault();
+    window.location.href = 'login.html';
+  });
+  $('go-login-btn').addEventListener('click', () => {
+    window.location.href = 'login.html';
+  });
+
+  $('google-btn').addEventListener('click', () => toast('Google sign-up coming soon.'));
+  $('apple-btn').addEventListener('click',  () => toast('Apple sign-up coming soon.'));
+
+  /* ── Enter key ── */
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Enter') $('signup-btn').click();
+  });
+</script>
+</body>
+</html>

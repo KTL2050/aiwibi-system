@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aiwibi — My Performance</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* ── Sidebar (UNCHANGED — Sky Nursery) ── */
+      --brand: #3db8e8;
+      --brand-soft: #89d4f5;
+      --brand-gradient: linear-gradient(135deg, #3db8e8 0%, #5dd6c0 100%);
+      --sky-2: #89d4f5;
+      --sidebar-bg: #1b2950;
+      --sidebar-active-bg: linear-gradient(90deg, rgba(61,184,232,0.28) 0%, rgba(61,184,232,0.08) 100%);
+
+      /* ── Main area: Monochrome Premium ── */
+      --ink: #101113;
+      --ink-soft: #3a3d42;
+      --muted: #8a8f98;
+      --faint: #b6bac1;
+
+      --surface: #ffffff;
+      --bg-solid: #eef0f2;
+      --raise: #f5f6f7;
+
+      --border: #e5e7ea;
+      --border-soft: #eef0f2;
+
+      /* ── Mother & baby accents ── */
+      --rose: #e2578f;
+      --rose-deep: #c9407a;
+      --rose-bg: #fdeef5;
+      --rose-soft: #f8c3da;
+      --baby: #3f9fd4;
+      --baby-bg: #e8f4fb;
+      --mint: #2fae95;
+      --mint-bg: #e5f7f2;
+      --sun: #dd9328;
+      --sun-bg: #fdf3e0;
+      --sage: #2e9e5b;
+      --sage-bg: #e7f6ec;
+      --lav: #8b7fd6;
+      --lav-bg: #efecfa;
+      --instagram: #e1306c;
+
+      /* ── Signature mother & baby gradients ── */
+      --grad-rose: linear-gradient(140deg, #c9407a 0%, #e2578f 55%, #f08cb4 100%);
+      --grad-baby: linear-gradient(140deg, #2b7cb8 0%, #3f9fd4 55%, #8ccdee 100%);
+      --grad-mint: linear-gradient(140deg, #1f8f7a 0%, #2fae95 55%, #7fd6c2 100%);
+      --grad-lav:  linear-gradient(140deg, #6f61c4 0%, #8b7fd6 55%, #bcb3ea 100%);
+
+      --radius: 20px;
+      --radius-sm: 12px;
+      --pill: 999px;
+
+      --shadow-card: 0 1px 2px rgba(16,17,19,0.04), 0 8px 24px rgba(16,17,19,0.05);
+      --shadow-hover: 0 2px 4px rgba(16,17,19,0.05), 0 14px 34px rgba(16,17,19,0.09);
+
+      --sidebar-w: 220px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-solid);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "cv02","cv03","cv04";
+    }
+
+    .layout { display: flex; min-height: 100vh; overflow-x: hidden; }
+
+    /* ════════════════════════════════════════════════
+       SIDEBAR — untouched (original Sky Nursery look)
+       ════════════════════════════════════════════════ */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--sidebar-bg);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      z-index: 100; overflow-y: auto;
+      transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+    }
+    .sidebar-logo {
+      padding: 20px 18px 16px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .logo-icon-wrap {
+      width: 36px; height: 36px; background: var(--brand-gradient);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .logo-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #fff; line-height: 1.3; }
+    .logo-label span { color: var(--sky-2); font-weight: 400; display: block; }
+
+    .sidebar-section { padding: 10px 10px 4px; }
+    .sidebar-section-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 1.8px;
+      color: rgba(189,232,255,0.4); text-transform: uppercase;
+      padding: 0 8px; margin-bottom: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 10px;
+      font-size: 13.5px; font-weight: 500; color: rgba(255,255,255,0.55);
+      cursor: pointer; transition: background 0.15s, color 0.15s;
+      margin-bottom: 2px; text-decoration: none;
+    }
+    .nav-item i { font-size: 17px; flex-shrink: 0; }
+    .nav-item:hover { background: rgba(61,184,232,0.12); color: #b5e8f8; }
+    .nav-item.active {
+      background: var(--sidebar-active-bg);
+      color: var(--brand-soft);
+      border-left: 3px solid var(--brand);
+    }
+    .nav-item .badge {
+      margin-left: auto; background: #ef4444;
+      color: #fff; font-size: 10px; font-weight: 700;
+      border-radius: 20px; padding: 1px 6px; min-width: 18px; text-align: center;
+    }
+    .sidebar-bottom {
+      margin-top: auto; padding: 12px 10px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .user-pill {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 12px;
+      background: rgba(255,255,255,0.06); cursor: pointer;
+    }
+    .user-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, #f472a8, #3db8e8);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
+      overflow: hidden;
+    }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 11px; color: var(--brand-soft); }
+
+    .ambassador-card {
+      margin: 10px; padding: 12px; border-radius: 14px;
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+    }
+    .ambassador-title { font-size: 12px; font-weight: 700; color: #fff; }
+    .ambassador-pts { font-size: 10px; color: rgba(255,255,255,0.9); margin-top: 1px; }
+    .ambassador-bar { height: 5px; border-radius: 10px; background: rgba(255,255,255,0.3); margin-top: 8px; overflow: hidden; }
+    .ambassador-fill { height: 100%; background: #fff; border-radius: 10px; }
+    .ambassador-next { font-size: 9px; color: rgba(255,255,255,0.85); margin-top: 5px; }
+
+    .help-link {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; margin-top: 4px;
+      font-size: 12px; color: rgba(255,255,255,0.4); cursor: pointer;
+    }
+    .help-link i { font-size: 16px; }
+    .help-link a { color: var(--brand-soft); text-decoration: none; font-size: 11px; }
+
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(10,61,98,0.45); z-index: 99;
+    }
+
+    /* ════════════════════════════════════════════════
+       MAIN AREA — Monochrome Premium + M&B gradients
+       ════════════════════════════════════════════════ */
+    .hamburger {
+      display: none; align-items: center; justify-content: center;
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--surface);
+      cursor: pointer; color: var(--ink); font-size: 18px; flex-shrink: 0;
+    }
+
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; min-width: 0; }
+
+    /* ── Topbar ── */
+    .topbar {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px; height: 68px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+      gap: 10px;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title {
+      font-size: 18px; font-weight: 800; color: var(--ink);
+      letter-spacing: -0.025em;
+    }
+    .topbar-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .date-chip {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--ink); color: #fff;
+      border-radius: var(--pill);
+      padding: 8px 15px; font-size: 12px; font-weight: 500;
+    }
+    .date-chip i { opacity: 0.7; }
+    .icon-btn {
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--ink-soft); font-size: 17px; position: relative;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .icon-btn:hover { border-color: var(--ink); background: var(--raise); color: var(--ink); }
+    .icon-btn .count {
+      position: absolute; top: -5px; right: -5px;
+      min-width: 17px; height: 17px; border-radius: var(--pill);
+      background: var(--rose); color: #fff; font-size: 9.5px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid #fff; padding: 0 3px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Content ── */
+    .content { padding: 24px 28px 48px; flex: 1; }
+
+    /* ── Stats row ── */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 16px; margin-bottom: 18px;
+    }
+    .stat-card {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 20px; border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+      min-width: 0; overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+    .stat-icon-badge {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; margin-bottom: 14px;
+    }
+    .stat-icon-badge.blue { background: var(--baby-bg); color: var(--baby); }
+    .stat-icon-badge.rose { background: var(--rose-bg); color: var(--rose); }
+    .stat-icon-badge.lav  { background: var(--lav-bg);  color: var(--lav); }
+    .stat-icon-badge.sun  { background: var(--sun-bg);  color: var(--sun); }
+
+    /* ── Bold color cards (reference: Photos/Music/Videos/Documents style) ── */
+    .stat-card.bold-blue { background: linear-gradient(135deg, #4f7cff 0%, #3d5fe0 100%); border: none; }
+    .stat-card.bold-rose { background: linear-gradient(135deg, #ff5f9e 0%, #e2427f 100%); border: none; }
+    .stat-card.bold-lav  { background: linear-gradient(135deg, #a06bff 0%, #7c4fe0 100%); border: none; }
+    .stat-card.bold-sun  { background: linear-gradient(135deg, #ffb648 0%, #f5942c 100%); border: none; }
+    .stat-card.bold-blue .stat-icon-badge,
+    .stat-card.bold-rose .stat-icon-badge,
+    .stat-card.bold-lav .stat-icon-badge,
+    .stat-card.bold-sun .stat-icon-badge {
+      background: rgba(255,255,255,0.22) !important;
+      color: #fff !important;
+      width: 44px; height: 44px; border-radius: 14px;
+    }
+    .stat-card.bold-blue .stat-label,
+    .stat-card.bold-rose .stat-label,
+    .stat-card.bold-lav .stat-label,
+    .stat-card.bold-sun .stat-label {
+      color: rgba(255,255,255,0.85);
+      font-size: 13px; text-transform: none; letter-spacing: 0; font-weight: 700;
+    }
+    .stat-card.bold-blue .stat-value,
+    .stat-card.bold-rose .stat-value,
+    .stat-card.bold-lav .stat-value,
+    .stat-card.bold-sun .stat-value {
+      color: #fff;
+    }
+    .stat-card.bold-blue .stat-period,
+    .stat-card.bold-rose .stat-period,
+    .stat-card.bold-lav .stat-period,
+    .stat-card.bold-sun .stat-period {
+      color: rgba(255,255,255,0.75);
+    }
+    .stat-label {
+      font-size: 11px; color: var(--muted); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.09em;
+      margin-bottom: 6px;
+    }
+    .stat-value {
+      font-size: 28px; font-weight: 800; color: var(--ink);
+      letter-spacing: -0.03em; line-height: 1; margin-bottom: 8px;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-delta {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11.5px; font-weight: 600; border-radius: var(--pill); padding: 4px 10px;
+    }
+    .stat-delta.up { color: var(--sage); background: var(--sage-bg); }
+    .stat-period { font-size: 11.5px; color: var(--muted); margin-left: 6px; }
+
+    /* ── Grid layouts ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 320px; gap: 16px; margin-bottom: 16px; }
+    .grid-2-equal { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+    /* ── Panel ── */
+    .panel {
+      background: var(--surface); border-radius: var(--radius);
+      border: 1px solid var(--border); overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 20px 14px; gap: 10px; flex-wrap: wrap;
+    }
+    .panel-title {
+      font-size: 15px; font-weight: 700; color: var(--ink);
+      letter-spacing: -0.015em;
+    }
+    .panel-action {
+      font-size: 12px; font-weight: 600; color: var(--ink); cursor: pointer; text-decoration: none;
+      border-bottom: 1px solid var(--ink); padding-bottom: 1px;
+      transition: opacity 0.15s;
+    }
+    .panel-action:hover { opacity: 0.6; }
+
+    /* ── Chart tabs ── */
+    .chart-tabs { display: flex; gap: 6px; padding: 0 20px 14px; flex-wrap: wrap; }
+    .chart-tab {
+      font-size: 12.5px; font-weight: 600; padding: 7px 15px;
+      border-radius: var(--pill); cursor: pointer; color: var(--ink-soft);
+      background: var(--raise); border: none; font-family: inherit;
+      transition: background 0.15s, color 0.15s;
+    }
+    .chart-tab:hover { background: #ebedef; }
+    .chart-tab.active { background: var(--ink); color: #fff; }
+    .filter-select {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--pill); padding: 7px 14px;
+      font-size: 12px; color: var(--ink); cursor: pointer;
+      font-family: inherit; font-weight: 500; white-space: nowrap;
+      transition: border-color 0.15s;
+    }
+    .filter-select:hover { border-color: var(--ink); }
+    .filter-select i { font-size: 12px; color: var(--muted); }
+
+    .chart-wrap { padding: 0 20px 20px; position: relative; }
+    canvas#perf-chart { width: 100% !important; height: 200px !important; }
+
+    /* ── Score Breakdown donut + bars ── */
+    .donut-outer {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 8px 20px 6px; position: relative;
+    }
+    .donut-canvas-pos { position: relative; }
+    .donut-center {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center; pointer-events: none;
+    }
+    .donut-center-value {
+      font-size: 25px; font-weight: 800; color: var(--ink); line-height: 1;
+      letter-spacing: -0.03em; font-variant-numeric: tabular-nums;
+    }
+    .donut-center-label { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+    .score-bars { width: 100%; padding: 14px 20px 20px; display: flex; flex-direction: column; gap: 12px; }
+    .score-bar-row { display: flex; align-items: center; gap: 10px; }
+    .score-bar-label { font-size: 11.5px; color: var(--ink-soft); font-weight: 500; width: 110px; flex-shrink: 0; }
+    .score-bar-track { flex: 1; height: 6px; border-radius: var(--pill); background: var(--raise); overflow: hidden; }
+    .score-bar-fill { height: 100%; border-radius: var(--pill); }
+    .score-bar-val { font-size: 11px; font-weight: 700; color: var(--ink); width: 42px; text-align: right; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+
+    /* ── Campaign Performance cards — M&B gradient banners ── */
+    .camp-perf-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+      padding: 4px 20px 20px;
+    }
+    .camp-perf-card {
+      border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .camp-perf-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+    .camp-perf-banner {
+      position: relative; height: 100px; padding: 14px;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      overflow: hidden;
+    }
+    .camp-perf-banner::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.28) 100%);
+    }
+    .camp-perf-banner.rose { background: var(--grad-rose); }
+    .camp-perf-banner.baby { background: var(--grad-baby); }
+    .camp-perf-banner.mint { background: var(--grad-mint); }
+    .camp-perf-banner.lav  { background: var(--grad-lav); }
+    .camp-perf-tag {
+      position: absolute; top: 12px; right: 12px; z-index: 2;
+      font-size: 9px; font-weight: 700; padding: 4px 10px; border-radius: var(--pill);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      background: rgba(255,255,255,0.95);
+    }
+    .camp-perf-tag.completed { color: var(--sage); }
+    .camp-perf-tag.upcoming { color: var(--sun); }
+    .camp-perf-tag.active { color: var(--baby); }
+    .camp-perf-banner-title {
+      position: relative; z-index: 1; color: #fff;
+      font-size: 13.5px; font-weight: 800; line-height: 1.25;
+      letter-spacing: -0.01em;
+    }
+    .camp-perf-banner-sub { position: relative; z-index: 1; color: rgba(255,255,255,0.9); font-size: 9px; margin-top: 2px; }
+
+    .camp-perf-body { padding: 14px 16px 16px; }
+    .camp-perf-name { font-size: 13.5px; font-weight: 700; color: var(--ink); margin-bottom: 3px; letter-spacing: -0.01em; }
+    .camp-perf-dates { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+    .camp-perf-stats { display: flex; justify-content: space-between; margin-bottom: 12px; }
+    .camp-perf-stat-lbl { font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+    .camp-perf-stat-val { font-size: 13.5px; font-weight: 700; color: var(--ink); margin-top: 3px; font-variant-numeric: tabular-nums; }
+    .camp-perf-progress-row { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+    .camp-perf-progress-track { height: 6px; border-radius: var(--pill); background: var(--raise); overflow: hidden; }
+    .camp-perf-progress-fill { height: 100%; border-radius: var(--pill); }
+    .camp-perf-progress-fill.rose { background: linear-gradient(90deg, var(--rose-deep), var(--rose-soft)); }
+    .camp-perf-progress-fill.baby { background: linear-gradient(90deg, #2b7cb8, #8ccdee); }
+    .camp-perf-progress-fill.mint { background: linear-gradient(90deg, #1f8f7a, #7fd6c2); }
+    .camp-perf-progress-fill.sage { background: var(--sage); }
+
+    /* ── Submitted Videos table ── */
+    .videos-table-wrap { overflow-x: auto; }
+    .videos-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 760px; }
+    .videos-table th {
+      padding: 10px 16px; text-align: left;
+      font-size: 10.5px; font-weight: 600;
+      color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em;
+      background: var(--raise); border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .videos-table td { padding: 13px 16px; border-bottom: 1px solid var(--border-soft); vertical-align: middle; }
+    .videos-table tr:last-child td { border-bottom: none; }
+    .videos-table tr:hover td { background: #fafbfb; }
+
+    .video-cell { display: flex; align-items: center; gap: 10px; min-width: 230px; }
+    .video-thumb {
+      width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, #26282d, #17181b);
+      display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4); font-size: 16px;
+      position: relative; overflow: hidden;
+    }
+    .video-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .plat-icon-sm {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .plat-icon-sm.tiktok { background: #010101; }
+    .plat-icon-sm.instagram { background: linear-gradient(45deg,#f09433,#dc2743,#bc1888); }
+    .caption-cell { max-width: 210px; }
+    .caption-text { font-size: 12.5px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .caption-date { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 600; border-radius: var(--pill); padding: 4px 11px; white-space: nowrap;
+    }
+    .status-pill.synced { background: var(--sage-bg); color: var(--sage); }
+    .status-pill.syncing { background: var(--baby-bg); color: var(--baby); }
+
+    .perf-icons { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+    .perf-icons span { display: flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .perf-icons i { font-size: 13px; color: var(--muted); }
+
+    /* ── Platform Breakdown small (bottom-left) ── */
+    .platform-bd-row { display: flex; align-items: center; gap: 20px; padding: 14px 20px 20px; }
+    .platform-bd-legend { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+    .platform-bd-item { display: flex; align-items: center; gap: 10px; }
+    .platform-bd-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .platform-bd-icon.tiktok { background: #010101; }
+    .platform-bd-icon.instagram { background: linear-gradient(45deg,#f09433,#dc2743,#bc1888); }
+    .platform-bd-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .platform-bd-pct { font-size: 14.5px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .platform-bd-sub { font-size: 10.5px; color: var(--muted); }
+
+    /* ── Rewards Progress panel ── */
+    .rewards-progress-body { padding: 16px 20px 20px; }
+    .rewards-top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .rewards-tier { font-size: 14px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+    .rewards-pts { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .rewards-emoji { font-size: 28px; }
+    .rewards-progress-track { height: 7px; border-radius: var(--pill); background: var(--raise); overflow: hidden; margin: 10px 0 8px; }
+    .rewards-progress-fill { height: 100%; border-radius: var(--pill); background: linear-gradient(90deg, var(--rose-deep), var(--rose-soft)); }
+    .rewards-next-text { font-size: 11.5px; color: var(--muted); margin-bottom: 14px; }
+    .btn-rewards {
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      width: 100%; background: var(--ink); color: #fff; border: none;
+      font-size: 13px; font-weight: 600; font-family: inherit;
+      padding: 12px; border-radius: var(--pill); cursor: pointer; transition: background 0.15s;
+    }
+    .btn-rewards:hover { background: #26282d; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #c9ccd1; border-radius: 6px; }
+    ::-webkit-scrollbar-thumb:hover { background: #a8abb0; }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 1100px) {
+      .camp-perf-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; width: 100%; overflow-x: hidden; }
+      .hamburger { display: flex; }
+      .topbar { padding: 0 14px; }
+      .content { padding: 16px 12px 40px; width: 100%; box-sizing: border-box; }
+      .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .stat-card { padding: 14px; }
+      .stat-value { font-size: 21px; }
+      .grid-2, .grid-2-equal { grid-template-columns: 1fr; }
+      .camp-perf-grid { grid-template-columns: 1fr; }
+      .topbar-sub { display: none; }
+      .date-chip { display: none; }
+      .platform-bd-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- ══ SIDEBAR (unchanged) ══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+      <div class="logo-label">AIWIBI<span>SYSTEM</span></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Overview</div>
+      <a class="nav-item" href="mothersdas.html"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">My Content</div>
+      <a class="nav-item" href="mothercont.html"><i class="ti ti-square-rounded-plus"></i> Content</a>
+      <a class="nav-item active" href="motherperf.html"><i class="ti ti-chart-bar"></i> Performance</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Earnings</div>
+      <a class="nav-item" href="motherreward.html"><i class="ti ti-trophy"></i> Rewards</a>
+      <a class="nav-item" href="mothercamp.html"><i class="ti ti-speakerphone"></i> Campaigns</a>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-pill">
+        <div class="user-avatar">S</div>
+        <div class="user-info">
+          <div class="user-name"></div>
+          <div class="user-role"></div>
+        </div>
+      </div>
+      <a href="login.html" class="nav-item" id="logout-link" style="margin-top:6px;color:#e57373 !important;"><i class="ti ti-logout"></i> Logout</a>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger"><i class="ti ti-menu-2"></i></button>
+        <div>
+          <div class="topbar-title">Performance Overview</div>
+          <div class="topbar-sub">Track your performance, grow your score, and earn amazing rewards! ✨</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="date-chip"><i class="ti ti-calendar" style="font-size:13px"></i> May 14 – May 20, 2024</div>
+        <div class="icon-btn"><i class="ti ti-bell"></i><div class="count">3</div></div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card bold-blue">
+          <div class="stat-icon-badge blue"><i class="ti ti-eye"></i></div>
+          <div class="stat-label">Total Views</div>
+          <div class="stat-value" id="perf-total-views">0</div>
+          <span class="stat-period" id="perf-views-foot">Start your journey now</span>
+        </div>
+        <div class="stat-card bold-rose">
+          <div class="stat-icon-badge rose"><i class="ti ti-heart"></i></div>
+          <div class="stat-label">Total Engagements</div>
+          <div class="stat-value" id="perf-total-engagements">0</div>
+          <span class="stat-period" id="perf-eng-foot">Start your journey now</span>
+        </div>
+        <div class="stat-card bold-lav">
+          <div class="stat-icon-badge lav"><i class="ti ti-gauge"></i></div>
+          <div class="stat-label">Performance Score</div>
+          <div class="stat-value">—</div>
+          <span class="stat-period" style="margin-left:0">Coming soon</span>
+        </div>
+        <div class="stat-card bold-sun">
+          <div class="stat-icon-badge sun"><i class="ti ti-trophy"></i></div>
+          <div class="stat-label">Current Rank</div>
+          <div class="stat-value">—</div>
+          <span class="stat-period" style="margin-left:0">Coming soon</span>
+        </div>
+      </div>
+
+      <!-- Performance Trend + Score Breakdown -->
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Performance Trend</div>
+            <div class="filter-select">All Campaigns <i class="ti ti-chevron-down"></i></div>
+          </div>
+          <div class="chart-tabs">
+            <button class="chart-tab" onclick="switchTab(this,'today')">Today</button>
+            <button class="chart-tab active" onclick="switchTab(this,'week')">This Week</button>
+            <button class="chart-tab" onclick="switchTab(this,'month')">This Month</button>
+            <button class="chart-tab" onclick="switchTab(this,'all')">All Time</button>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="perf-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Score Breakdown</div>
+          </div>
+          <div style="padding:40px 20px;text-align:center;color:var(--muted);font-size:12.5px;">
+            Scoring isn't set up yet — this needs a points/scoring model defined before it can show real data.
+          </div>
+        </div>
+      </div>
+
+      <!-- Campaign Performance -->
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header">
+          <div class="panel-title">Campaign Performance</div>
+        </div>
+        <div style="padding:40px 20px;text-align:center;color:var(--muted);font-size:12.5px;">
+          No campaigns tracked yet.
+        </div>
+      </div>
+
+      <!-- Submitted Videos -->
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header">
+          <div class="panel-title">Submitted Videos</div>
+          <a class="panel-action" href="mothercont.html">View all</a>
+        </div>
+        <div class="videos-table-wrap">
+          <table class="videos-table">
+            <thead>
+              <tr>
+                <th>Video</th>
+                <th>Platform</th>
+                <th>Caption</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th>Performance</th>
+              </tr>
+            </thead>
+            <tbody id="perf-videos-tbody">
+              <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">Loading your submitted videos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Platform Breakdown + Rewards Progress -->
+      <div class="grid-2-equal">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Platform Breakdown</div>
+          </div>
+          <div class="platform-bd-row">
+            <div class="donut-canvas-pos">
+              <canvas id="platform-donut" width="120" height="120" style="width:110px;height:110px;"></canvas>
+            </div>
+            <div class="platform-bd-legend" id="platform-bd-legend">
+              <div style="color:var(--muted);font-size:12px;">No content yet.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Your Rewards Progress</div>
+          </div>
+          <div class="rewards-progress-body">
+            <div class="rewards-top-row">
+              <div>
+                <div class="rewards-tier">Gold Ambassador</div>
+                <div class="rewards-pts">850 / 1000 pts</div>
+              </div>
+              <div class="rewards-emoji">🎁</div>
+            </div>
+            <div class="rewards-progress-track"><div class="rewards-progress-fill" style="width:85%"></div></div>
+            <div class="rewards-next-text">150 pts to Platinum Ambassador</div>
+            <button class="btn-rewards">View Rewards <i class="ti ti-arrow-right" style="font-size:14px"></i></button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+  /* Mobile sidebar */
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  document.getElementById('hamburger').addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  });
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  });
+
+  /* Performance Trend Chart — baby blue (views) + blush rose (engagements) */
+  const labels = ['May 14','May 15','May 16','May 17','May 18','May 19','May 20'];
+  const viewsData = { today: [3000,3200,2900,3400,3100,3600,3000], week: [28000,32000,29500,34200,30100,36200,30000], month: [22000,38000,29500,54200,40100,46200,32000], all: [120000,98000,134000,162000,141000,178000,152000] };
+  const engData   = { today: [220,260,200,280,230,300,210], week: [1800,2200,1900,2400,2000,2600,1800], month: [3200,3800,3100,4200,3500,4600,3000], all: [9200,10800,9100,12200,10500,13600,9000] };
+
+  let activeTab = 'week';
+  const ctx = document.getElementById('perf-chart').getContext('2d');
+  const gradBaby = ctx.createLinearGradient(0, 0, 0, 200);
+  gradBaby.addColorStop(0, 'rgba(63,159,212,0.18)');
+  gradBaby.addColorStop(1, 'rgba(63,159,212,0)');
+  const gradRose = ctx.createLinearGradient(0, 0, 0, 200);
+  gradRose.addColorStop(0, 'rgba(226,87,143,0.15)');
+  gradRose.addColorStop(1, 'rgba(226,87,143,0)');
+
+  const perfChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Views', data: viewsData.week, borderColor: '#3f9fd4', backgroundColor: gradBaby, borderWidth: 2, pointBackgroundColor: '#3f9fd4', pointBorderColor: '#ffffff', pointBorderWidth: 1.5, pointRadius: 3.5, pointHoverRadius: 5.5, fill: true, tension: 0.4, yAxisID: 'y' },
+        { label: 'Engagements', data: engData.week, borderColor: '#e2578f', backgroundColor: gradRose, borderWidth: 2, pointBackgroundColor: '#e2578f', pointBorderColor: '#ffffff', pointBorderWidth: 1.5, pointRadius: 3.5, pointHoverRadius: 5.5, fill: true, tension: 0.4, yAxisID: 'y1' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: true, position: 'top', align: 'start', labels: { boxWidth: 8, boxHeight: 8, usePointStyle: true, font: { size: 11, family: 'Inter' }, color: '#8a8f98' } },
+        tooltip: { backgroundColor: '#101113', titleFont: { size: 11, family: 'Inter' }, bodyFont: { size: 12, family: 'Inter' }, padding: 10, cornerRadius: 10 } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11, family: 'Inter' }, color: '#8a8f98' } },
+        y: { grid: { color: '#eef0f2' }, border: { display: false }, ticks: { font: { size: 11, family: 'Inter' }, color: '#8a8f98', callback: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v } },
+        y1: { display: false }
+      }
+    }
+  });
+
+  function switchTab(el, key) {
+    document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    activeTab = key;
+    perfChart.data.datasets[0].data = viewsData[key];
+    perfChart.data.datasets[1].data = engData[key];
+    perfChart.update();
+  }
+
+  /* Score Breakdown donut — blush rose ring */
+  new Chart(document.getElementById('score-donut').getContext('2d'), {
+    type: 'doughnut',
+    data: { datasets: [{ data: [92.6, 7.4], backgroundColor: ['#e2578f', '#f5f6f7'], borderWidth: 0, hoverOffset: 0, borderRadius: 8 }] },
+    options: { cutout: '78%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+  });
+
+  /* Platform donut — real brand colors */
+  new Chart(document.getElementById('platform-donut').getContext('2d'), {
+    type: 'doughnut',
+    data: { labels: ['TikTok','Instagram'], datasets: [{ data: [188400, 59000], backgroundColor: ['#010101','#e1306c'], borderWidth: 0, hoverOffset: 6, borderRadius: 6, spacing: 3 }] },
+    options: { cutout: '70%', plugins: { legend: { display: false }, tooltip: { backgroundColor: '#101113', bodyFont: { size: 12, family: 'Inter' }, padding: 10, cornerRadius: 10, displayColors: false } } }
+  });
+</script>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+  const SUPABASE_URL = 'https://cqtebvfegeojjkrkzboq.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdGVidmZlZ2Vvamprcmt6Ym9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODQ2NjksImV4cCI6MjA5ODU2MDY2OX0.OcCwAD-q6d1XeyHW6f1Gy9r_sBdRV3eWAOUsKLemKEA'
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  document.getElementById('logout-link').addEventListener('click', async (e) => {
+    e.preventDefault()
+    await supabase.auth.signOut()
+    window.location.href = 'login.html'
+  })
+
+  function formatNumber(n) {
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'K'
+    return String(n)
+  }
+
+  function normalizeUrl(u) {
+    if (!u) return ''
+    return u.split('?')[0].replace(/\/$/, '').toLowerCase()
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div')
+    div.textContent = str
+    return div.innerHTML
+  }
+
+  const TIKTOK_ICON = '<svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/></svg>'
+  const INSTAGRAM_ICON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>'
+
+  async function loadUserProfile() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('full_name, email, role')
+      .eq('id', session.user.id)
+      .single()
+
+    if (error || !profile) {
+      console.error('Profile load error:', error)
+      return
+    }
+
+    const name = profile.full_name || profile.email || session.user.email
+    const initial = name.charAt(0).toUpperCase()
+
+    const avatarEl = document.querySelector('.user-avatar')
+    const nameEl = document.querySelector('.user-name')
+    const roleEl = document.querySelector('.user-role')
+    if (avatarEl) avatarEl.textContent = initial
+    if (nameEl) nameEl.textContent = name
+    if (roleEl) roleEl.textContent = profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : ''
+  }
+
+  let postpeerPostsByUrl = {}
+  let platformTotals = {}
+
+  async function loadRealAnalytics() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const { data, error } = await supabase.functions.invoke('postpeer-get-analytics', { method: 'GET' })
+    if (error) {
+      console.error('Analytics fetch error:', error)
+      return
+    }
+    if (!data.posts) return
+
+    postpeerPostsByUrl = {}
+    platformTotals = {}
+    data.posts.forEach(p => {
+      if (p.url) postpeerPostsByUrl[normalizeUrl(p.url)] = p
+      platformTotals[p.platform] = (platformTotals[p.platform] || 0) + (p.views || 0)
+    })
+
+    const viewsEl = document.getElementById('perf-total-views')
+    const engEl = document.getElementById('perf-total-engagements')
+    if (viewsEl) viewsEl.textContent = formatNumber(data.summary.totalViews)
+    if (engEl) engEl.textContent = formatNumber(data.summary.totalEngagements)
+
+    const viewsFoot = document.getElementById('perf-views-foot')
+    const engFoot = document.getElementById('perf-eng-foot')
+    if (viewsFoot) viewsFoot.textContent = 'Across all connected platforms'
+    if (engFoot) engFoot.textContent = 'Across all connected platforms'
+
+    renderPlatformBreakdown()
+  }
+
+  function renderPlatformBreakdown() {
+    const legendEl = document.getElementById('platform-bd-legend')
+    const entries = Object.entries(platformTotals)
+    if (!legendEl || entries.length === 0) return
+
+    const totalViews = entries.reduce((sum, [, v]) => sum + v, 0) || 1
+    const platformMeta = {
+      tiktok: { name: 'TikTok', iconClass: 'tiktok', icon: TIKTOK_ICON },
+      instagram: { name: 'Instagram', iconClass: 'instagram', icon: INSTAGRAM_ICON }
+    }
+
+    legendEl.innerHTML = entries.map(([platform, views]) => {
+      const meta = platformMeta[platform] || { name: platform, iconClass: 'tiktok', icon: '' }
+      const pct = Math.round((views / totalViews) * 100)
+      return `
+        <div class="platform-bd-item">
+          <div class="platform-bd-icon ${meta.iconClass}">${meta.icon}</div>
+          <div>
+            <div class="platform-bd-name">${meta.name}</div>
+            <div class="platform-bd-sub">${formatNumber(views)} Views</div>
+          </div>
+          <div class="platform-bd-pct" style="margin-left:auto">${pct}%</div>
+        </div>
+      `
+    }).join('')
+
+    const donutCanvas = document.getElementById('platform-donut')
+    if (donutCanvas && window.Chart) {
+      new Chart(donutCanvas.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: entries.map(([p]) => platformMeta[p]?.name || p),
+          datasets: [{
+            data: entries.map(([, v]) => v),
+            backgroundColor: entries.map(([p]) => p === 'tiktok' ? '#010101' : '#e1306c'),
+            borderWidth: 0, hoverOffset: 6, borderRadius: 6, spacing: 3
+          }]
+        },
+        options: { cutout: '70%', plugins: { legend: { display: false }, tooltip: { backgroundColor: '#101113', bodyFont: { size: 12, family: 'Inter' }, padding: 10, cornerRadius: 10, displayColors: false } } }
+      })
+    }
+  }
+
+  async function loadSubmittedVideos() {
+    const tbody = document.getElementById('perf-videos-tbody')
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const { data: rows, error } = await supabase
+      .from('submitted_content')
+      .select('platform, video_url, caption, thumbnail_url, status, submitted_at')
+      .eq('user_id', session.user.id)
+      .order('submitted_at', { ascending: false })
+
+    if (error) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load your videos.</td></tr>'
+      return
+    }
+    if (!rows || rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">You haven\'t submitted any videos yet.</td></tr>'
+      return
+    }
+
+    tbody.innerHTML = rows.map(row => {
+      const platformClass = row.platform === 'tiktok' ? 'tiktok' : 'instagram'
+      const icon = row.platform === 'tiktok' ? TIKTOK_ICON : INSTAGRAM_ICON
+      const dateStr = new Date(row.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
+      const caption = row.caption ? escapeHtml(row.caption) : '<span style="color:var(--faint);font-style:italic;">No caption yet</span>'
+      const statusHtml = row.status === 'synced'
+        ? '<span class="status-pill synced"><i class="ti ti-circle-check" style="font-size:11px"></i> Synced</span>'
+        : row.status === 'failed'
+        ? '<span class="status-pill failed"><i class="ti ti-alert-circle" style="font-size:11px"></i> Failed</span>'
+        : '<span class="status-pill syncing"><i class="ti ti-refresh" style="font-size:11px"></i> Pending sync</span>'
+
+      const match = postpeerPostsByUrl[normalizeUrl(row.video_url)]
+      const thumbHtml = row.thumbnail_url
+        ? `<div class="video-thumb"><img src="${row.thumbnail_url}" alt=""></div>`
+        : `<div class="video-thumb"><i class="ti ti-video"></i></div>`
+
+      const perfHtml = match
+        ? `<div class="perf-icons">
+             <span><i class="ti ti-player-play"></i> ${formatNumber(match.views || 0)}</span>
+             <span><i class="ti ti-heart"></i> ${formatNumber(match.likes || 0)}</span>
+             <span><i class="ti ti-message-circle"></i> ${formatNumber(match.comments || 0)}</span>
+             <span><i class="ti ti-share"></i> ${formatNumber(match.shares || 0)}</span>
+           </div>`
+        : `<span style="color:var(--muted);font-size:11.5px;">—</span>`
+
+      return `
+        <tr style="cursor:pointer" onclick="window.open('${row.video_url}', '_blank')">
+          <td>${thumbHtml}</td>
+          <td><div class="plat-icon-sm ${platformClass}">${icon}</div></td>
+          <td class="caption-cell"><div class="caption-text">${caption}</div></td>
+          <td><div class="caption-date">${dateStr}</div></td>
+          <td>${statusHtml}</td>
+          <td>${perfHtml}</td>
+        </tr>
+      `
+    }).join('')
+  }
+
+  loadUserProfile()
+  loadRealAnalytics().then(loadSubmittedVideos)
+</script>
+</body>
+</html>
