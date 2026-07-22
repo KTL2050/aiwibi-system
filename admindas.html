@@ -850,14 +850,21 @@
 
       <!-- Performance Chart + Platform Breakdown (grid-2 wide+narrow) -->
       <div class="grid-2">
-        <div class="panel">
+       <div class="panel">
           <div class="panel-header">
             <div class="panel-title">Performance Overview</div>
+            <div class="platform-toggle">
+              <button class="platform-toggle-btn active" onclick="switchPlatform(this,'tiktok')">
+                <i class="ti ti-brand-tiktok" style="font-size:13px"></i> TikTok
+              </button>
+              <button class="platform-toggle-btn" onclick="switchPlatform(this,'instagram')">
+                <i class="ti ti-brand-instagram" style="font-size:13px"></i> Instagram
+              </button>
+            </div>
           </div>
-          <div class="chart-tabs">
+          <div class="chart-tabs" id="chart-tabs">
             <button class="chart-tab active" onclick="switchTab(this,'views')">Views</button>
-            <button class="chart-tab" onclick="switchTab(this,'engagements')">Clicks</button>
-            <button class="chart-tab" onclick="switchTab(this,'watchtime')">Watch Time</button>
+            <button class="chart-tab" onclick="switchTab(this,'engagements')">Engagements</button>
           </div>
           <div class="chart-wrap">
             <canvas id="perf-chart"></canvas>
@@ -873,8 +880,8 @@
             <div class="donut-canvas-pos">
               <canvas id="donut-chart" width="220" height="220" style="width:220px;height:220px;"></canvas>
               <div class="donut-center">
-                <div class="donut-center-value">–</div>
-                <div class="donut-center-label">Total Views</div>
+                <div class="donut-center-value" id="admin-donut-value">–</div>
+                <div class="donut-center-label" id="admin-donut-label">Total Views</div>
               </div>
             </div>
           </div>
