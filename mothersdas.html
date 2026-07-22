@@ -920,7 +920,9 @@
       // Rebuild line chart from real posts, sorted by date
       const sorted = [...data.posts].sort((a, b) => new Date(a.publishedAt) - new Date(b.publishedAt));
       labels = sorted.map(p => new Date(p.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-      datasets.views = sorted.map(p => p.views || 0);
+      // Use null (not 0) for unknown views so Chart.js draws a gap instead of
+      // implying the post got zero views
+      datasets.views = sorted.map(p => p.views ?? null);
       datasets.engagements = sorted.map(p => (p.likes || 0) + (p.comments || 0) + (p.shares || 0));
 
       perfChart.data.labels = labels;
@@ -1016,8 +1018,8 @@
         ? '<span class="status-pill failed"><i class="ti ti-alert-circle" style="font-size:11px"></i> Failed</span>'
         : '<span class="status-pill syncing"><i class="ti ti-refresh" style="font-size:11px"></i> Pending sync</span>';
 
-      const match = postpeerPostsByUrl[normalizeUrl(row.video_url)];
-      const views = match ? formatNumber(match.views || 0) : '—';
+   const match = postpeerPostsByUrl[normalizeUrl(row.video_url)];
+      const views = match ? (match.views != null ? formatNumber(match.views) : '—') : '—';
       const eng = match ? formatNumber((match.likes || 0) + (match.comments || 0) + (match.shares || 0)) : '—';
 
       return `
