@@ -241,6 +241,15 @@
     .panel-action:hover { text-decoration: underline; }
 
     /* ── Chart tabs (from mothersdas style) ── */
+    .platform-toggle { display: flex; gap: 4px; background: var(--bg-solid); border-radius: 10px; padding: 3px; }
+    .platform-toggle-btn {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11.5px; font-weight: 700; padding: 6px 12px;
+      border-radius: 8px; cursor: pointer; color: var(--muted);
+      background: none; border: none; font-family: inherit;
+      transition: background 0.15s, color 0.15s;
+    }
+    .platform-toggle-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(20,20,40,0.08); }
     .chart-tabs { display: flex; gap: 4px; padding: 0 18px 10px; }
     .chart-tab {
       font-size: 12px; font-weight: 600; padding: 5px 12px;
@@ -1140,64 +1149,16 @@
       document.getElementById('stat-views-period').textContent = 'Across all connected platforms';
       document.getElementById('stat-engagements-period').textContent = 'Across all connected platforms';
 
-      // Chart: aggregate views/engagements per day across all posts
-      const sorted = [...data.allPosts].sort((a, b) => new Date(a.publishedAt) - new Date(b.publishedAt));
-      const newLabels = sorted.map(p => new Date(p.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-      datasets.views = sorted.map(p => p.views || 0);
-      datasets.engagements = sorted.map(p => p.engagement || 0);
-      perfChart.data.labels = newLabels;
-      perfChart.data.datasets[0].data = datasets[activeTab];
-      perfChart.update();
-
       // Build url -> post lookup so the submitted-content table can show real views/engagements
       postpeerPostsByUrl = {};
       data.allPosts.forEach(p => {
         if (p.url) postpeerPostsByUrl[normalizeUrl(p.url)] = p;
       });
 
-      // Donut: aggregate views by platform across all mothers
-      const platformTotals = {};
-      data.mothers.forEach(m => {
-        Object.entries(m.platforms).forEach(([platform, views]) => {
-          platformTotals[platform] = (platformTotals[platform] || 0) + views;
-        });
-      });
-      const platformColors = { tiktok: '#010101', instagram: '#e1306c' };
-      const entries = Object.entries(platformTotals);
-      const legendContainer = document.getElementById('admin-platform-legend');
-
-      if (entries.length === 0) {
-        platformDonut.data.labels = ['No data yet'];
-        platformDonut.data.datasets[0].data = [1];
-        platformDonut.data.datasets[0].backgroundColor = ['#e5e7eb'];
-        platformDonut.update();
-        if (legendContainer) legendContainer.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:12px 0;">No content yet — submitted links will appear here once available.</div>';
-      } else {
-        platformDonut.data.labels = entries.map(([p]) => p.charAt(0).toUpperCase() + p.slice(1));
-        platformDonut.data.datasets[0].data = entries.map(([, v]) => v);
-        platformDonut.data.datasets[0].backgroundColor = entries.map(([p]) => platformColors[p] || '#999');
-        platformDonut.update();
-
-        if (legendContainer) {
-          const total = data.summary.totalViews || 1;
-          legendContainer.innerHTML = entries.map(([platform, views]) => {
-            const pct = Math.round((views / total) * 100);
-            const color = platformColors[platform] || '#999';
-            const name = platform.charAt(0).toUpperCase() + platform.slice(1);
-            return `
-              <div class="legend-item">
-                <div class="legend-left">
-                  <div class="legend-dot" style="background:${color}"></div>
-                  <span class="legend-name">${name}</span>
-                </div>
-                <div><span class="legend-val">${formatNumber(views)}</span><span class="legend-pct">(${pct}%)</span></div>
-              </div>
-            `;
-          }).join('');
-        }
-      }
-
-      document.querySelector('.donut-center-value').textContent = formatNumber(data.summary.totalViews);
+      // Store all posts and render the platform-aware chart + donut
+      allPostsData = data.allPosts || [];
+      renderPerfChart();
+      renderDonut();
 
       // Top Performing Mothers table
       const mothersTableBody = document.querySelector('.mothers-table tbody');
@@ -1232,14 +1193,11 @@
     return String(n);
   }
 
-  /* Performance Chart */
-  const labels = ['May 14','May 15','May 16','May 17','May 18','May 19','May 20'];
-  const datasets = {
-    views:       [5500, 9100, 7200, 14200, 10600, 18800, 13200],
-    engagements: [310,  520,  410,  680,   430,   590,   280],
-    watchtime:   [1200, 1800, 1500, 2200,  1600,  2400,  1100],
-  };
-  let activeTab = 'views';
+  /* Performance Chart — platform + metric aware */
+  let allPostsData = [];
+  let activePlatform = 'tiktok';
+  let activeMetric = 'views';
+
   const ctx = document.getElementById('perf-chart').getContext('2d');
   const grad = ctx.createLinearGradient(0, 0, 0, 200);
   grad.addColorStop(0, 'rgba(27,127,212,0.18)');
@@ -1272,14 +1230,117 @@
     }
   });
 
-  function switchTab(el, key) {
-    document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    activeTab = key;
-    perfChart.data.datasets[0].data = datasets[key];
+  function metricValue(post, key) {
+    if (key === 'views') return post.views ?? 0;
+    if (key === 'likes') return post.likes ?? 0;
+    if (key === 'comments') return post.comments ?? 0;
+    if (key === 'engagements') return post.engagement ?? 0;
+    return 0;
+  }
+
+  function renderPerfChart() {
+    const filtered = allPostsData.filter(p => p.platform === activePlatform);
+    const sorted = [...filtered].sort((a, b) => new Date(a.publishedAt) - new Date(b.publishedAt));
+    perfChart.data.labels = sorted.map(p => new Date(p.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+    perfChart.data.datasets[0].data = sorted.map(p => metricValue(p, activeMetric));
     perfChart.update();
   }
+
+  function renderDonut() {
+    const filtered = allPostsData.filter(p => p.platform === activePlatform);
+    const legendContainer = document.getElementById('admin-platform-legend');
+    const valueEl = document.getElementById('admin-donut-value');
+    const labelEl = document.getElementById('admin-donut-label');
+
+    const totals = filtered.reduce((acc, p) => {
+      acc.likes += p.likes || 0;
+      acc.comments += p.comments || 0;
+      acc.shares += p.shares || 0;
+      acc.views += p.views ?? 0;
+      return acc;
+    }, { likes: 0, comments: 0, shares: 0, views: 0 });
+
+    let segments;
+    if (activePlatform === 'tiktok') {
+      segments = [
+        { label: 'Likes', value: totals.likes, color: '#3b82f6' },
+        { label: 'Comments', value: totals.comments, color: '#22c55e' },
+        { label: 'Shares', value: totals.shares, color: '#f59e0b' },
+      ];
+      if (valueEl) valueEl.textContent = formatNumber(totals.views);
+      if (labelEl) labelEl.textContent = 'Total Views';
+    } else {
+      segments = [
+        { label: 'Likes', value: totals.likes, color: '#e1306c' },
+        { label: 'Comments', value: totals.comments, color: '#f59e0b' },
+      ];
+      if (valueEl) valueEl.textContent = formatNumber(totals.likes + totals.comments);
+      if (labelEl) labelEl.textContent = 'Total Engagement';
+    }
+
+    const nonZero = segments.filter(s => s.value > 0);
+    if (nonZero.length === 0) {
+      platformDonut.data.labels = ['No data yet'];
+      platformDonut.data.datasets[0].data = [1];
+      platformDonut.data.datasets[0].backgroundColor = ['#e5e7eb'];
+      platformDonut.update();
+      if (legendContainer) legendContainer.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:12px 0;">No data yet for ${activePlatform === 'tiktok' ? 'TikTok' : 'Instagram'}.</div>`;
+      return;
+    }
+
+    platformDonut.data.labels = nonZero.map(s => s.label);
+    platformDonut.data.datasets[0].data = nonZero.map(s => s.value);
+    platformDonut.data.datasets[0].backgroundColor = nonZero.map(s => s.color);
+    platformDonut.update();
+
+    const total = nonZero.reduce((sum, s) => sum + s.value, 0) || 1;
+    legendContainer.innerHTML = nonZero.map(s => {
+      const pct = Math.round((s.value / total) * 100);
+      return `
+        <div class="legend-item">
+          <div class="legend-left">
+            <div class="legend-dot" style="background:${s.color}"></div>
+            <span class="legend-name">${s.label}</span>
+          </div>
+          <div><span class="legend-val">${formatNumber(s.value)}</span><span class="legend-pct">(${pct}%)</span></div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function switchTab(el, key) {
+    document.querySelectorAll('#chart-tabs .chart-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    activeMetric = key;
+    renderPerfChart();
+  }
+
+  function switchPlatform(el, platform) {
+    document.querySelectorAll('.platform-toggle-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    activePlatform = platform;
+
+    const tabsContainer = document.getElementById('chart-tabs');
+    if (platform === 'tiktok') {
+      activeMetric = 'views';
+      tabsContainer.innerHTML = `
+        <button class="chart-tab active" onclick="switchTab(this,'views')">Views</button>
+        <button class="chart-tab" onclick="switchTab(this,'engagements')">Engagements</button>
+      `;
+    } else {
+      activeMetric = 'likes';
+      tabsContainer.innerHTML = `
+        <button class="chart-tab active" onclick="switchTab(this,'likes')">Likes</button>
+        <button class="chart-tab" onclick="switchTab(this,'comments')">Comments</button>
+        <button class="chart-tab" onclick="switchTab(this,'engagements')">Engagements</button>
+      `;
+    }
+    renderPerfChart();
+    renderDonut();
+  }
+
   window.switchTab = switchTab;
+  window.switchPlatform = switchPlatform;
 
   /* Platform donut */
   const platformDonut = new Chart(document.getElementById('donut-chart').getContext('2d'), {
