@@ -1376,7 +1376,7 @@
         : '<span class="status-pill syncing"><i class="ti ti-refresh" style="font-size:11px"></i> Pending sync</span>';
 
       const match = postpeerPostsByUrl[normalizeUrl(row.video_url)];
-      const views = match ? (match.views != null ? formatNumber(match.views) : '—') : '—';
+      const views = match ? formatNumber(match.views || 0) : '—';
       const eng = match ? formatNumber(match.engagement || 0) : '—';
       const clickable = ` style="cursor:pointer" onclick="window.open('${row.video_url}','_blank')"`;
 
