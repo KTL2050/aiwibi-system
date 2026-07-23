@@ -13,7 +13,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      /* ── Brand: Sovereign Gold ── */
+      /* ── Brand: Sovereign Gold ── */ 
       --brand: #1b7fd4;
       --brand-deep: #0f5fa8;
       --brand-soft: #7cc0f0;
@@ -354,6 +354,11 @@
     .content-table th:nth-child(2), .content-table td:nth-child(2) { width: 12%; }
     .content-table th:nth-child(3), .content-table td:nth-child(3) { width: 66%; }
     .content-table th {
+      font-size: 11px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.8px;
+      padding: 8px 18px; text-align: left;
+      border-bottom: 1px solid var(--border); background: #f7fbfe;
+    }
     .content-table td { padding: 11px 18px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     .content-table tr:last-child td { border-bottom: none; }
     .content-table tr:hover td { background: #f7fbfe; }
