@@ -13,7 +13,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      /* ── Brand: Sovereign Gold ── */ 
+      /* ── Brand: Sovereign Gold ── */
       --brand: #1b7fd4;
       --brand-deep: #0f5fa8;
       --brand-soft: #7cc0f0;
@@ -350,15 +350,7 @@
 
     /* ── Recent content table ── */
     .content-table { width: 100%; border-collapse: collapse; }
-    .content-table th:nth-child(1), .content-table td:nth-child(1) { width: 22%; }
-    .content-table th:nth-child(2), .content-table td:nth-child(2) { width: 12%; }
-    .content-table th:nth-child(3), .content-table td:nth-child(3) { width: 66%; }
-    .content-table th {
-      font-size: 11px; font-weight: 600; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 0.8px;
-      padding: 8px 18px; text-align: left;
-      border-bottom: 1px solid var(--border); background: #f7fbfe;
-    }
+   .content-table th {
     .content-table td { padding: 11px 18px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     .content-table tr:last-child td { border-bottom: none; }
     .content-table tr:hover td { background: #f7fbfe; }
@@ -927,13 +919,15 @@
         </div>
       </div>
 
-     <!-- Top Performing Mothers -->
-      <div class="panel" style="margin-bottom:16px;">
-        <div class="panel-header">
-          <div class="panel-title">Top Performing Mothers</div>
-          <a class="panel-action" href="#">View all</a>
-        </div>
-        <div class="mothers-table-wrap">
+    <!-- Top Performing Mothers + Content Status Overview -->
+      <div class="grid-2">
+        <!-- Top Performing Mothers -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Top Performing Mothers</div>
+            <a class="panel-action" href="#">View all</a>
+          </div>
+          <div class="mothers-table-wrap">
             <table class="mothers-table">
               <thead>
                 <tr>
@@ -997,8 +991,26 @@
           </div>
         </div>
 
-    </div>
+        <!-- Content Status Overview — large donut + legend below -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Content Status Overview</div>
+          </div>
+          <div class="status-body">
+            <div class="status-canvas-pos">
+              <canvas id="status-donut" width="220" height="220" style="width:220px;height:220px;"></canvas>
+              <div class="status-donut-center">
+                <div class="status-donut-value">346</div>
+                <div class="status-donut-label">Total Content</div>
+              </div>
+            </div>
+          </div>
+          <div class="status-legend" id="admin-status-legend">
+            <div style="text-align:center;color:var(--muted);font-size:12.5px;padding:12px 0;">Loading...</div>
+          </div>
+          <div style="height:14px"></div>
         </div>
+      </div>
 
       <!-- Recent Submitted Content -->
       <div class="panel">
@@ -1009,13 +1021,18 @@
         <table class="content-table">
           <thead>
             <tr>
+              <th>#</th>
               <th>Mother</th>
               <th>Platform</th>
               <th>Caption</th>
+              <th>Submitted</th>
+              <th>Status</th>
+              <th>Views</th>
+              <th>Engagements</th>
             </tr>
           </thead>
           <tbody id="admin-recent-content-tbody">
-            <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:24px;">Loading recent content...</td></tr>
+            <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">Loading recent content...</td></tr>
           </tbody>
         </table>
       </div>
@@ -1335,6 +1352,21 @@
     }
   });
 
+  /* Status donut */
+  const statusDonut = new Chart(document.getElementById('status-donut').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: ['No data'],
+      datasets: [{ data: [1], backgroundColor: ['#e5e7eb'], borderWidth: 0, hoverOffset: 0 }]
+    },
+    options: {
+      cutout: '72%',
+      plugins: { legend: { display: false }, tooltip: {
+        backgroundColor: '#07203a', bodyFont: { size: 12 }, padding: 10, cornerRadius: 8,
+      }},
+    }
+  });
+
   function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
@@ -1354,13 +1386,14 @@
     const el = document.querySelector('.stat-card:nth-child(2) .stat-value');
     const periodEl = document.getElementById('stat-content-period');
     if (!el) return;
-    if (error) {
+   if (error) {
       console.error('Failed to load submitted content:', error);
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load recent content.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load recent content.</td></tr>';
       return;
     }
     if (!rows || rows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:24px;">No content submitted yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">No content submitted yet.</td></tr>';
+      updateStatusOverview([]);
       return;
     }
     el.textContent = count ?? 0;
@@ -1395,23 +1428,85 @@
       .in('id', userIds);
     const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
 
-    tbody.innerHTML = rows.slice(0, 5).map((row) => {
+    tbody.innerHTML = rows.slice(0, 5).map((row, i) => {
       const profile = profileMap[row.user_id];
       const name = profile?.full_name || profile?.email || 'Unknown';
       const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
       const platformClass = row.platform === 'tiktok' ? 'tiktok' : 'instagram';
       const iconClass = row.platform === 'tiktok' ? 'brand-tiktok' : 'brand-instagram';
+      const dateStr = new Date(row.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
       const caption = row.caption ? escapeHtml(row.caption) : '<span style="color:var(--muted);font-style:italic;">No caption yet</span>';
+      const statusHtml = row.status === 'synced'
+        ? '<span class="status-pill synced"><i class="ti ti-circle-check" style="font-size:11px"></i> Synced</span>'
+        : row.status === 'failed'
+        ? '<span class="status-pill failed"><i class="ti ti-alert-circle" style="font-size:11px"></i> Failed</span>'
+        : '<span class="status-pill syncing"><i class="ti ti-refresh" style="font-size:11px"></i> Pending sync</span>';
+
+      const match = postpeerPostsByUrl[normalizeUrl(row.video_url)];
+      const views = match ? (match.views != null ? formatNumber(match.views) : '—') : '—';
+      const eng = match ? formatNumber(match.engagement || 0) : '—';
       const clickable = ` style="cursor:pointer" onclick="window.open('${row.video_url}','_blank')"`;
 
       return `
         <tr${clickable}>
+          <td style="color:var(--muted);font-weight:600;font-size:12px">${i + 1}</td>
           <td><div class="mother-mini"><div class="mother-mini-avatar" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe)">${initials}</div><div><div class="mother-mini-name">${escapeHtml(name)}</div></div></div></td>
           <td><div class="platform-tag ${platformClass}"><i class="ti ti-${iconClass}" style="color:#fff;font-size:13px"></i></div></td>
-          <td class="caption-cell" style="max-width:none;"><div class="caption-text" style="white-space:normal;">${caption}</div></td>
+          <td class="caption-cell"><div class="caption-text">${caption}</div></td>
+          <td><div class="caption-date">${dateStr}</div></td>
+          <td>${statusHtml}</td>
+          <td><div class="metric-pair"><span class="metric-main">${views}</span><span class="metric-sub">Views</span></div></td>
+          <td><div class="metric-pair"><span class="metric-main">${eng}</span><span class="metric-sub">Eng.</span></div></td>
         </tr>
+     `;
+    }).join('');
+
+    updateStatusOverview(rows);
+  }
+
+  function updateStatusOverview(rows) {
+    const legendEl = document.getElementById('admin-status-legend');
+    if (!legendEl) return;
+
+    if (rows.length === 0) {
+      legendEl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:12px 0;">No content yet.</div>';
+      document.querySelector('.status-donut-value').textContent = '0';
+      return;
+    }
+
+    const counts = { synced: 0, syncing: 0, failed: 0, pending: 0 };
+    rows.forEach(r => {
+      if (r.status === 'synced') counts.synced++;
+      else if (r.status === 'failed') counts.failed++;
+      else if (r.status === 'pending') counts.pending++;
+      else counts.syncing++;
+    });
+
+    const total = rows.length;
+    document.querySelector('.status-donut-value').textContent = total;
+
+    const items = [
+      { key: 'synced', label: 'Synced', color: '#22c55e' },
+      { key: 'syncing', label: 'Syncing', color: '#f59e0b' },
+      { key: 'failed', label: 'Failed', color: '#ef4444' },
+      { key: 'pending', label: 'Pending', color: '#d1d5db' },
+    ];
+
+    legendEl.innerHTML = items.map(item => {
+      const count = counts[item.key];
+      const pct = Math.round((count / total) * 100);
+      return `
+        <div class="status-legend-item">
+          <div class="status-lbl"><div class="status-dot" style="background:${item.color}"></div> ${item.label}</div>
+          <div><span class="status-count">${count}</span><span class="status-pct">(${pct}%)</span></div>
+        </div>
       `;
     }).join('');
+
+    statusDonut.data.labels = items.map(i => i.label);
+    statusDonut.data.datasets[0].data = items.map(i => counts[i.key]);
+    statusDonut.data.datasets[0].backgroundColor = items.map(i => i.color);
+    statusDonut.update();
   }
 
  loadUserProfile();
