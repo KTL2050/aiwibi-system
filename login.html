@@ -312,8 +312,8 @@
     .week-stat-label { font-size: 12px; color: rgba(255,255,255,0.75); }
 
     .visual-headline { color: #fff; position: relative; z-index: 2; }
-    .visual-headline-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; line-height: 1.25; }
-    .visual-headline-sub { font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; max-width: 320px; }
+    .visual-headline-title { font-size: 27px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; line-height: 1.2; }
+    .visual-headline-sub { font-size: 15px; font-weight: 500; color: rgba(255,255,255,0.85); line-height: 1.5; max-width: 340px; }
 
     @media (max-width: 960px) {
       .page { padding: 0; align-items: flex-start; }
@@ -445,7 +445,6 @@
         </div>
         <div class="success-title">You're in! &#x1F389;</div>
         <div class="success-sub">Successfully logged in to Aiwibi System.</div>
-        <button class="btn-outline" id="back-btn" type="button">Back to login</button>
       </div>
     </div>
 
@@ -504,7 +503,15 @@
       <i class="ti ti-x" aria-hidden="true"></i>
     </button>
 
-    <div class="floater floater-sync">
+    <div class="floater floater-sync" id="floater-sync-mother">
+      <div class="floater-dot"></div>
+      <div>
+        <div class="floater-title">Real Stories, Real Support</div>
+        <div class="floater-sub">Shared by mums like you</div>
+      </div>
+    </div>
+
+    <div class="floater floater-sync" id="floater-sync-admin" style="display:none;">
       <div class="floater-dot"></div>
       <div>
         <div class="floater-title">Content Synced</div>
@@ -512,7 +519,7 @@
       </div>
     </div>
 
-    <div class="floater floater-reward">
+    <div class="floater floater-reward" id="floater-reward-admin" style="display:none;">
       <div class="floater-emoji">🏆</div>
       <div>
         <div class="floater-title">Gold Badge Earned</div>
@@ -526,18 +533,13 @@
       <div class="avatar-chip" style="background:linear-gradient(135deg,#22c55e,#4ecdc4)">G</div>
     </div>
 
-    <div class="week-strip">
-      <div class="week-strip-title">This week's performance</div>
-      <div class="week-days">
-        <span>Mon</span><span>Tue</span><span class="active">Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-      </div>
-      <div class="week-stat">
-        <span class="week-stat-value">24.8K</span>
-        <span class="week-stat-label">Total views</span>
-      </div>
+
+    <div class="visual-headline" id="visual-headline-mother">
+      <div class="visual-headline-title">Welcome to Aiwibi Mothers Community</div>
+      <div class="visual-headline-sub">Where reality and comfort is met.</div>
     </div>
 
-    <div class="visual-headline">
+    <div class="visual-headline" id="visual-headline-admin" style="display:none;">
       <div class="visual-headline-title">Grow with every post</div>
       <div class="visual-headline-sub">Connect TikTok &amp; Instagram and let AIWIBI track your impact automatically.</div>
     </div>
@@ -608,8 +610,36 @@
     $('eye-icon').className = pwShown ? 'ti ti-eye-off' : 'ti ti-eye';
   });
 
+  /* ── Hero panel: show admin performance stats only on devices that have
+     previously logged in as admin; everyone else sees the mother-facing
+     welcome message. Role is unknowable before login, so this reflects
+     the LAST known role on this device, not the person about to log in. ── */
+  (function initHeroPanel() {
+    const lastRole = localStorage.getItem('aiwibi_last_role');
+
+    if (lastRole === 'admin') {
+      document.getElementById('visual-headline-admin').style.display = '';
+      document.getElementById('visual-headline-mother').style.display = 'none';
+
+      // Highlight today's real weekday instead of a hardcoded one
+      const dayEls = document.querySelectorAll('#week-days span');
+      const todayIndex = (new Date().getDay() + 6) % 7; // Mon=0 ... Sun=6
+      dayEls.forEach((el, i) => el.classList.toggle('active', i === todayIndex));
+
+      // Show the real total views last cached by the admin dashboard, if any
+      const cachedViews = localStorage.getItem('aiwibi_admin_total_views');
+      const valueEl = document.getElementById('week-stat-value');
+      if (cachedViews) {
+        valueEl.textContent = cachedViews;
+      } else {
+        valueEl.textContent = '—';
+      }
+    }
+  })();
+
   /* ── redirect target after successful login, based on role + setup state ── */
   async function redirectForRole(role, userId) {
+    localStorage.setItem('aiwibi_last_role', role);
     if (role === 'admin') {
       window.location.href = 'admindas.html';
       return;
