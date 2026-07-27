@@ -233,7 +233,7 @@
     /* ── Main two-column layout ── */
     .content-grid {
       display: grid;
-      grid-template-columns: 380px 1fr;
+      grid-template-columns: 380px minmax(0, 1fr);
       gap: 16px;
       align-items: stretch;
       min-height: calc(100vh - 60px - 44px);
@@ -309,6 +309,7 @@
       flex-direction: column;
       gap: 16px;
       min-height: 100%;
+      min-width: 0;
     }
 
     .right-col .panel:last-child {
@@ -325,10 +326,15 @@
     .links-panel-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 16px 18px 10px;
+      gap: 10px;
     }
-    .links-panel-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .links-panel-header > div:first-child { min-width: 0; flex: 1; }
+    .links-panel-title {
+      font-size: 14px; font-weight: 700; color: var(--text);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
     .links-panel-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
-    .view-all-link { font-size: 12px; font-weight: 600; color: var(--brand); text-decoration: none; }
+    .view-all-link { font-size: 12px; font-weight: 600; color: var(--brand); text-decoration: none; flex-shrink: 0; }
     .view-all-link:hover { text-decoration: underline; }
 
     /* Links list */
@@ -337,6 +343,7 @@
       display: flex; align-items: center; gap: 10px;
       padding: 9px 8px; border-radius: 10px;
       cursor: pointer; transition: background 0.14s;
+      min-width: 0;
     }
     .link-row:hover { background: var(--bg); }
     .link-thumb {
@@ -1211,7 +1218,7 @@
       const [statusLabel, statusIcon] = statusMap[post.status] || statusMap.syncing
       const captionText = post.caption ? escapeHtml(post.caption) : '<span style="color:var(--muted);font-style:italic;">No caption yet</span>'
       const thumbHtml = post.thumb
-        ? `<img src="${post.thumb}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" onerror="this.replaceWith(Object.assign(document.createElement('i'), {className:'ti ti-video', style:'font-size:16px;color:var(--brand-soft)'}))">`
+        ? `<img src="${post.thumb}" alt="thumb" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`
         : `<i class="ti ti-video" style="font-size:16px;color:var(--brand-soft)"></i>`
 
       row.innerHTML = `
@@ -1248,7 +1255,7 @@
 
     const thumbEl = document.querySelector('.preview-thumb-lg')
     thumbEl.innerHTML = post.thumb
-      ? `<img src="${post.thumb}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:10px;" onerror="this.style.display='none'">
+      ? `<img src="${post.thumb}" alt="preview" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:10px;">
          <div class="preview-thumb-bg" style="z-index:1"></div>
          <div class="preview-play" style="z-index:2"><i class="ti ti-player-play-filled"></i></div>`
       : `<div class="preview-thumb-bg" style="z-index:1"></div>
