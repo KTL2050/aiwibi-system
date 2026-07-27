@@ -449,6 +449,18 @@
     .metric-main { font-size: 13.5px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
     .metric-sub { font-size: 11px; color: var(--muted); }
 
+    .content-thumb {
+      width: 56px; height: 56px; border-radius: 10px;
+      object-fit: cover; background: var(--raise); border: 1px solid var(--border-soft);
+      display: block;
+    }
+    .content-thumb-placeholder {
+      width: 56px; height: 56px; border-radius: 10px;
+      background: var(--raise); border: 1px solid var(--border-soft);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--faint); font-size: 20px;
+    }
+
     /* ── Rewards panel ── */
     .rewards-body { padding: 0 20px 20px; }
     .points-hero {
@@ -697,13 +709,12 @@
             <thead>
               <tr>
                 <th>Platform</th>
+                <th>Preview</th>
                 <th>Caption</th>
-                <th>Views</th>
-                <th>Eng.</th>
               </tr>
             </thead>
             <tbody id="recent-content-tbody">
-              <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Loading your recent content...</td></tr>
+              <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:24px;">Loading your recent content...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1095,12 +1106,12 @@
 
     if (error) {
       console.error('Failed to load submitted content:', error);
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load your recent content.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load your recent content.</td></tr>';
       return;
     }
 
     if (!rows || rows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">You haven\'t submitted any content yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:24px;">You haven\'t submitted any content yet.</td></tr>';
       return;
     }
 
@@ -1109,16 +1120,15 @@
       const iconClass = row.platform === 'tiktok' ? 'brand-tiktok' : 'brand-instagram';
       const dateStr = new Date(row.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
       const caption = row.caption ? escapeHtml(row.caption) : '<span style="color:var(--faint);font-style:italic;">No caption yet</span>';
-      const match = postpeerPostsByUrl[normalizeUrl(row.video_url)];
-      const views = match ? formatNumber(match.views || 0) : '—';
-      const eng = match ? formatNumber((match.likes || 0) + (match.comments || 0) + (match.shares || 0)) : '—';
+      const thumb = row.thumbnail_url
+        ? `<img class="content-thumb" src="${row.thumbnail_url}" alt="" loading="lazy">`
+        : `<div class="content-thumb-placeholder"><i class="ti ti-${iconClass}"></i></div>`;
 
       return `
         <tr style="cursor:pointer" onclick="window.open('${row.video_url}', '_blank')" title="Open on ${row.platform}">
           <td><div class="platform-tag ${platformClass}"><i class="ti ti-${iconClass}" style="color:#fff;font-size:13px"></i></div></td>
+          <td>${thumb}</td>
           <td class="caption-cell"><div class="caption-text">${caption}</div><div class="caption-date">${dateStr}</div></td>
-          <td><div class="metric-pair"><span class="metric-main">${views}</span><span class="metric-sub">Views</span></div></td>
-          <td><div class="metric-pair"><span class="metric-main">${eng}</span><span class="metric-sub">Eng.</span></div></td>
         </tr>
       `;
     }).join('');
