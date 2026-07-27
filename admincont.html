@@ -1211,7 +1211,7 @@
       const [statusLabel, statusIcon] = statusMap[post.status] || statusMap.syncing
       const captionText = post.caption ? escapeHtml(post.caption) : '<span style="color:var(--muted);font-style:italic;">No caption yet</span>'
       const thumbHtml = post.thumb
-        ? `<img src="${post.thumb}" alt="thumb" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`
+        ? `<img src="${post.thumb}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" onerror="this.replaceWith(Object.assign(document.createElement('i'), {className:'ti ti-video', style:'font-size:16px;color:var(--brand-soft)'}))">`
         : `<i class="ti ti-video" style="font-size:16px;color:var(--brand-soft)"></i>`
 
       row.innerHTML = `
@@ -1248,7 +1248,7 @@
 
     const thumbEl = document.querySelector('.preview-thumb-lg')
     thumbEl.innerHTML = post.thumb
-      ? `<img src="${post.thumb}" alt="preview" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:10px;">
+      ? `<img src="${post.thumb}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:10px;" onerror="this.style.display='none'">
          <div class="preview-thumb-bg" style="z-index:1"></div>
          <div class="preview-play" style="z-index:2"><i class="ti ti-player-play-filled"></i></div>`
       : `<div class="preview-thumb-bg" style="z-index:1"></div>
