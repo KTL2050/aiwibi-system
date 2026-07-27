@@ -323,31 +323,6 @@
     .score-high { background: #dcfce7; color: #16a34a; }
     .score-mid  { background: #fef9c3; color: #a16207; }
 
-    /* ── Content Status Overview (large donut, side layout) ── */
-    .status-body {
-      display: flex; flex-direction: column; align-items: center;
-      padding: 12px 18px 0; position: relative;
-    }
-    .status-canvas-pos { position: relative; }
-    .status-donut-center {
-      position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center; pointer-events: none;
-    }
-    .status-donut-value { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
-    .status-donut-label { font-size: 10px; color: var(--muted); margin-top: 3px; }
-
-    .status-legend { width: 100%; padding: 0 18px; margin-top: 8px; }
-    .status-legend-item {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 7px 0; border-bottom: 1px solid var(--border);
-    }
-    .status-legend-item:last-child { border: none; }
-    .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-right: 8px; }
-    .status-lbl { display: flex; align-items: center; font-size: 12.5px; font-weight: 500; color: var(--text); }
-    .status-count { font-size: 12.5px; font-weight: 700; color: var(--text); }
-    .status-pct { font-size: 11px; color: var(--muted); margin-left: 4px; }
-
     /* ── Recent content table ── */
     .content-table { width: 100%; border-collapse: collapse; }
     .content-table th {
@@ -900,7 +875,7 @@
         </div>
       </div>
 
-      <!-- Top Performing Mothers + Content Status Overview -->
+      <!-- Top Performing Mothers + Content Submitted -->
       <div class="grid-2">
         <!-- Top Performing Mothers -->
         <div class="panel">
@@ -928,24 +903,15 @@
           </div>
         </div>
 
-        <!-- Content Status Overview — large donut + legend below -->
+        <!-- Content Submitted — simple total count -->
         <div class="panel">
           <div class="panel-header">
-            <div class="panel-title">Content Status Overview</div>
+            <div class="panel-title">Content Submitted</div>
           </div>
-          <div class="status-body">
-            <div class="status-canvas-pos">
-              <canvas id="status-donut" width="220" height="220" style="width:220px;height:220px;"></canvas>
-              <div class="status-donut-center">
-                <div class="status-donut-value">–</div>
-                <div class="status-donut-label">Total Content</div>
-              </div>
-            </div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 18px;">
+            <div id="admin-content-submitted-total" style="font-size:56px;font-weight:800;color:var(--text);line-height:1;letter-spacing:-0.03em;">–</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">Total Content Submitted</div>
           </div>
-          <div class="status-legend" id="admin-status-legend">
-            <div style="text-align:center;color:var(--muted);font-size:12.5px;padding:12px 0;">Loading...</div>
-          </div>
-          <div style="height:14px"></div>
         </div>
       </div>
 
@@ -1286,21 +1252,6 @@
     }
   });
 
-  /* Status donut */
-  const statusDonut = new Chart(document.getElementById('status-donut').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-      labels: ['No data'],
-      datasets: [{ data: [1], backgroundColor: ['#e5e7eb'], borderWidth: 0, hoverOffset: 0 }]
-    },
-    options: {
-      cutout: '72%',
-      plugins: { legend: { display: false }, tooltip: {
-        backgroundColor: '#07203a', bodyFont: { size: 12 }, padding: 10, cornerRadius: 8,
-      }},
-    }
-  });
-
   function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
@@ -1381,48 +1332,9 @@
   }
 
   function updateStatusOverview(rows) {
-    const legendEl = document.getElementById('admin-status-legend');
-    if (!legendEl) return;
-
-    if (rows.length === 0) {
-      legendEl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:12px 0;">No content yet.</div>';
-      document.querySelector('.status-donut-value').textContent = '0';
-      return;
-    }
-
-    const counts = { synced: 0, syncing: 0, failed: 0, pending: 0 };
-    rows.forEach(r => {
-      if (r.status === 'synced') counts.synced++;
-      else if (r.status === 'failed') counts.failed++;
-      else if (r.status === 'pending') counts.pending++;
-      else counts.syncing++;
-    });
-
-    const total = rows.length;
-    document.querySelector('.status-donut-value').textContent = total;
-
-    const items = [
-      { key: 'synced', label: 'Synced', color: '#22c55e' },
-      { key: 'syncing', label: 'Syncing', color: '#f59e0b' },
-      { key: 'failed', label: 'Failed', color: '#ef4444' },
-      { key: 'pending', label: 'Pending', color: '#d1d5db' },
-    ];
-
-    legendEl.innerHTML = items.map(item => {
-      const count = counts[item.key];
-      const pct = Math.round((count / total) * 100);
-      return `
-        <div class="status-legend-item">
-          <div class="status-lbl"><div class="status-dot" style="background:${item.color}"></div> ${item.label}</div>
-          <div><span class="status-count">${count}</span><span class="status-pct">(${pct}%)</span></div>
-        </div>
-      `;
-    }).join('');
-
-    statusDonut.data.labels = items.map(i => i.label);
-    statusDonut.data.datasets[0].data = items.map(i => counts[i.key]);
-    statusDonut.data.datasets[0].backgroundColor = items.map(i => i.color);
-    statusDonut.update();
+    const totalEl = document.getElementById('admin-content-submitted-total');
+    if (!totalEl) return;
+    totalEl.textContent = rows.length;
   }
 
  loadUserProfile();
