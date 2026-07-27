@@ -11,7 +11,7 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
+    :root { 
       /* ── Sidebar (UNCHANGED — Sky Nursery) ── */
       --brand: #3db8e8;
       --brand-deep: #1a8fc1;
@@ -368,6 +368,16 @@
     .chart-tab:hover { background: #ebedef; }
     .chart-tab.active { background: var(--ink); color: #fff; }
 
+    .platform-toggle { display: flex; gap: 4px; background: var(--raise); border-radius: 10px; padding: 3px; }
+    .platform-toggle-btn {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11.5px; font-weight: 700; padding: 6px 12px;
+      border-radius: 8px; cursor: pointer; color: var(--muted);
+      background: none; border: none; font-family: inherit;
+      transition: background 0.15s, color 0.15s;
+    }
+    .platform-toggle-btn.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(20,20,40,0.08); }
+
     .chart-wrap { padding: 0 20px 20px; position: relative; }
     canvas#perf-chart { width: 100% !important; height: 180px !important; }
 
@@ -533,8 +543,7 @@
       .content { padding: 16px 14px 40px; }
       .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
       .grid-2-equal { grid-template-columns: 1fr; }
-      .content-table th:nth-child(4),
-      .content-table td:nth-child(4) { display: none; }
+     .content-table td:nth-child(2) .caption-date { display: none; }
       .topbar { padding: 0 14px; }
     }
     @media (max-width: 480px) {
@@ -646,12 +655,11 @@
         <div class="panel">
           <div class="panel-header">
             <div class="panel-title">Performance Overview</div>
+            <div class="platform-toggle" id="mother-platform-toggle" style="display:none;"></div>
           </div>
-          <div class="chart-tabs">
+          <div class="chart-tabs" id="mother-chart-tabs">
             <button class="chart-tab active" onclick="switchTab(this,'views')">Views</button>
             <button class="chart-tab" onclick="switchTab(this,'engagements')">Engagements</button>
-            <button class="chart-tab" onclick="switchTab(this,'clicks')">Clicks</button>
-            <button class="chart-tab" onclick="switchTab(this,'watchtime')">Watch Time</button>
           </div>
           <div class="chart-wrap">
             <canvas id="perf-chart"></canvas>
@@ -667,10 +675,10 @@
             <canvas id="donut-chart" width="200" height="200" style="width:180px;height:180px;"></canvas>
             <div class="donut-center">
               <div class="donut-center-value" id="donut-center-value">0</div>
-              <div class="donut-center-label">Total Views</div>
+              <div class="donut-center-label" id="donut-center-label">Total Views</div>
             </div>
           </div>
-          <div class="platform-legend" style="padding:0 20px;">
+          <div class="platform-legend" id="mother-platform-legend" style="padding:0 20px;">
             <div style="text-align:center;color:var(--muted);font-size:12.5px;padding:20px 0;">No content yet — submit your first link to see your platform breakdown.</div>
           </div>
           <div style="height:14px"></div>
@@ -690,13 +698,12 @@
               <tr>
                 <th>Platform</th>
                 <th>Caption</th>
-                <th>Submitted</th>
-                <th>Status</th>
-                <th>Performance</th>
+                <th>Views</th>
+                <th>Eng.</th>
               </tr>
             </thead>
             <tbody id="recent-content-tbody">
-              <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Loading your recent content...</td></tr>
+              <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Loading your recent content...</td></tr>
             </tbody>
           </table>
         </div>
@@ -857,15 +864,10 @@
     overlay.classList.remove('open');
   });
 
-  /* ── Chart data (populated from real analytics) ── */
-  let labels = ['May 14','May 15','May 16','May 17','May 18','May 19','May 20'];
-  let datasets = {
-    views:       [0, 0, 0, 0, 0, 0, 0],
-    engagements: [0, 0, 0, 0, 0, 0, 0],
-    clicks:      [0, 0, 0, 0, 0, 0, 0],
-    watchtime:   [0, 0, 0, 0, 0, 0, 0],
-  };
-
+  /* ── Chart data (populated from real analytics, platform-aware) ── */
+  let allPostsData = [];
+  let connectedPlatforms = [];
+  let activePlatform = 'tiktok';
   let activeTab = 'views';
 
   /* Platform brand palette (used by donut + legend) */
@@ -878,6 +880,14 @@
         console.log('No session — showing mock data');
         return;
       }
+
+      // Which platforms has this mother actually connected?
+      const { data: accounts } = await supabase
+        .from('social_accounts')
+        .select('platform')
+        .eq('user_id', session.user.id);
+      connectedPlatforms = [...new Set((accounts || []).map(a => a.platform))]
+        .filter(p => p === 'tiktok' || p === 'instagram');
 
       const { data, error } = await supabase.functions.invoke('postpeer-get-analytics', {
         method: 'GET'
@@ -906,56 +916,12 @@
       if (totalViewsFoot) totalViewsFoot.innerHTML = '<span class="stat-period">Across all connected platforms</span>';
       if (totalEngFoot) totalEngFoot.innerHTML = '<span class="stat-period">Across all connected platforms</span>';
 
-      // Update donut center
-      const donutCenter = document.getElementById('donut-center-value');
-      if (donutCenter) donutCenter.textContent = formatNumber(data.summary.totalViews);
+      // Store posts for platform-aware chart + donut rendering
+      allPostsData = data.posts;
 
-      // Group posts by platform for donut
-      const platformTotals = {};
-      data.posts.forEach(p => {
-        platformTotals[p.platform] = (platformTotals[p.platform] || 0) + (p.views || 0);
-      });
-      console.log('Platform totals:', platformTotals);
-
-      // Rebuild line chart from real posts, sorted by date
-      const sorted = [...data.posts].sort((a, b) => new Date(a.publishedAt) - new Date(b.publishedAt));
-      labels = sorted.map(p => new Date(p.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-      datasets.views = sorted.map(p => p.views || 0);
-      datasets.engagements = sorted.map(p => (p.likes || 0) + (p.comments || 0) + (p.shares || 0));
-
-      perfChart.data.labels = labels;
-      perfChart.data.datasets[0].data = datasets[activeTab];
-      perfChart.update();
-
-      // Update donut chart with real platform split
-      const donutLabels = Object.keys(platformTotals).map(p => p.charAt(0).toUpperCase() + p.slice(1));
-      const donutValues = Object.values(platformTotals);
-      const donutBg = Object.keys(platformTotals).map(p => platformColors[p] || '#d5d7da');
-
-      donutChart.data.labels = donutLabels;
-      donutChart.data.datasets[0].data = donutValues;
-      donutChart.data.datasets[0].backgroundColor = donutBg;
-      donutChart.update();
-
-      // Update platform legend
-      const legendContainer = document.querySelector('.platform-legend');
-      if (legendContainer) {
-        const totalViews = data.summary.totalViews || 1;
-        legendContainer.innerHTML = Object.entries(platformTotals).map(([platform, views]) => {
-          const pct = Math.round((views / totalViews) * 100);
-          const color = platformColors[platform] || '#d5d7da';
-          const name = platform.charAt(0).toUpperCase() + platform.slice(1);
-          return `
-            <div class="legend-item">
-              <div class="legend-left">
-                <div class="legend-dot" style="background:${color}"></div>
-                <span class="legend-name">${name}</span>
-              </div>
-              <div><span class="legend-val">${formatNumber(views)}</span><span class="legend-pct">(${pct}%)</span></div>
-            </div>
-          `;
-        }).join('');
-      }
+      // Toggle only shows platforms the mother connected AND that have posts
+      const platformsWithData = connectedPlatforms.filter(p => allPostsData.some(post => post.platform === p));
+      buildPlatformToggle(platformsWithData.length ? platformsWithData : connectedPlatforms);
 
       // Build a lookup so the real submitted-content table can enrich rows with
       // view/engagement numbers when PostPeer data is available for that URL
@@ -968,6 +934,139 @@
       console.error('Failed to load analytics:', err);
     }
   }
+
+  function buildPlatformToggle(platforms) {
+    const toggleEl = document.getElementById('mother-platform-toggle');
+    if (!toggleEl) return;
+
+    if (!platforms || platforms.length === 0) {
+      toggleEl.style.display = 'none';
+      return;
+    }
+
+    const icons = { tiktok: 'ti-brand-tiktok', instagram: 'ti-brand-instagram' };
+    const labels = { tiktok: 'TikTok', instagram: 'Instagram' };
+
+    // Only one connected platform → single button, no other choice to switch to
+    toggleEl.style.display = 'flex';
+    toggleEl.innerHTML = platforms.map((p, i) => `
+      <button class="platform-toggle-btn${i === 0 ? ' active' : ''}" onclick="switchPlatform(this,'${p}')">
+        <i class="ti ${icons[p]}" style="font-size:13px"></i> ${labels[p]}
+      </button>
+    `).join('');
+
+    activePlatform = platforms[0];
+    updateChartTabsForPlatform(activePlatform);
+    renderPerfChart();
+    renderDonut();
+  }
+
+  function updateChartTabsForPlatform(platform) {
+    const tabsContainer = document.getElementById('mother-chart-tabs');
+    if (!tabsContainer) return;
+    if (platform === 'tiktok') {
+      activeTab = 'views';
+      tabsContainer.innerHTML = `
+        <button class="chart-tab active" onclick="switchTab(this,'views')">Views</button>
+        <button class="chart-tab" onclick="switchTab(this,'engagements')">Engagements</button>
+      `;
+    } else {
+      activeTab = 'likes';
+      tabsContainer.innerHTML = `
+        <button class="chart-tab active" onclick="switchTab(this,'likes')">Likes</button>
+        <button class="chart-tab" onclick="switchTab(this,'comments')">Comments</button>
+        <button class="chart-tab" onclick="switchTab(this,'engagements')">Engagements</button>
+      `;
+    }
+  }
+
+  function metricValue(post, key) {
+    if (key === 'views') return post.views ?? 0;
+    if (key === 'likes') return post.likes ?? 0;
+    if (key === 'comments') return post.comments ?? 0;
+    if (key === 'engagements') return (post.likes || 0) + (post.comments || 0) + (post.shares || 0);
+    return 0;
+  }
+
+  function renderPerfChart() {
+    const filtered = allPostsData.filter(p => p.platform === activePlatform);
+    const sorted = [...filtered].sort((a, b) => new Date(a.publishedAt) - new Date(b.publishedAt));
+    perfChart.data.labels = sorted.map(p => new Date(p.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+    perfChart.data.datasets[0].data = sorted.map(p => metricValue(p, activeTab));
+    perfChart.update();
+  }
+
+  function renderDonut() {
+    const filtered = allPostsData.filter(p => p.platform === activePlatform);
+    const legendContainer = document.getElementById('mother-platform-legend');
+    const valueEl = document.getElementById('donut-center-value');
+    const labelEl = document.getElementById('donut-center-label');
+
+    const totals = filtered.reduce((acc, p) => {
+      acc.likes += p.likes || 0;
+      acc.comments += p.comments || 0;
+      acc.shares += p.shares || 0;
+      acc.views += p.views ?? 0;
+      return acc;
+    }, { likes: 0, comments: 0, shares: 0, views: 0 });
+
+    let segments;
+    if (activePlatform === 'tiktok') {
+      segments = [
+        { label: 'Likes', value: totals.likes, color: '#3b82f6' },
+        { label: 'Comments', value: totals.comments, color: '#22c55e' },
+        { label: 'Shares', value: totals.shares, color: '#f59e0b' },
+      ];
+      if (valueEl) valueEl.textContent = formatNumber(totals.views);
+      if (labelEl) labelEl.textContent = 'Total Views';
+    } else {
+      segments = [
+        { label: 'Likes', value: totals.likes, color: '#e1306c' },
+        { label: 'Comments', value: totals.comments, color: '#f59e0b' },
+      ];
+      if (valueEl) valueEl.textContent = formatNumber(totals.likes + totals.comments);
+      if (labelEl) labelEl.textContent = 'Total Engagement';
+    }
+
+    const nonZero = segments.filter(s => s.value > 0);
+    if (nonZero.length === 0) {
+      donutChart.data.labels = ['No data yet'];
+      donutChart.data.datasets[0].data = [1];
+      donutChart.data.datasets[0].backgroundColor = ['#e5e7ea'];
+      donutChart.update();
+      if (legendContainer) legendContainer.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:20px 0;">No data yet for ${activePlatform === 'tiktok' ? 'TikTok' : 'Instagram'}.</div>`;
+      return;
+    }
+
+    donutChart.data.labels = nonZero.map(s => s.label);
+    donutChart.data.datasets[0].data = nonZero.map(s => s.value);
+    donutChart.data.datasets[0].backgroundColor = nonZero.map(s => s.color);
+    donutChart.update();
+
+    const total = nonZero.reduce((sum, s) => sum + s.value, 0) || 1;
+    legendContainer.innerHTML = nonZero.map(s => {
+      const pct = Math.round((s.value / total) * 100);
+      return `
+        <div class="legend-item">
+          <div class="legend-left">
+            <div class="legend-dot" style="background:${s.color}"></div>
+            <span class="legend-name">${s.label}</span>
+          </div>
+          <div><span class="legend-val">${formatNumber(s.value)}</span><span class="legend-pct">(${pct}%)</span></div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function switchPlatform(el, platform) {
+    document.querySelectorAll('#mother-platform-toggle .platform-toggle-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    activePlatform = platform;
+    updateChartTabsForPlatform(platform);
+    renderPerfChart();
+    renderDonut();
+  }
+  window.switchPlatform = switchPlatform;
 
   function normalizeUrl(u) {
     if (!u) return '';
@@ -996,12 +1095,12 @@
 
     if (error) {
       console.error('Failed to load submitted content:', error);
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load your recent content.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load your recent content.</td></tr>';
       return;
     }
 
     if (!rows || rows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">You haven\'t submitted any content yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">You haven\'t submitted any content yet.</td></tr>';
       return;
     }
 
@@ -1010,13 +1109,7 @@
       const iconClass = row.platform === 'tiktok' ? 'brand-tiktok' : 'brand-instagram';
       const dateStr = new Date(row.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
       const caption = row.caption ? escapeHtml(row.caption) : '<span style="color:var(--faint);font-style:italic;">No caption yet</span>';
-      const statusHtml = row.status === 'synced'
-        ? '<span class="status-pill synced"><i class="ti ti-circle-check" style="font-size:11px"></i> Synced</span>'
-        : row.status === 'failed'
-        ? '<span class="status-pill failed"><i class="ti ti-alert-circle" style="font-size:11px"></i> Failed</span>'
-        : '<span class="status-pill syncing"><i class="ti ti-refresh" style="font-size:11px"></i> Pending sync</span>';
-
-  const match = postpeerPostsByUrl[normalizeUrl(row.video_url)];
+      const match = postpeerPostsByUrl[normalizeUrl(row.video_url)];
       const views = match ? formatNumber(match.views || 0) : '—';
       const eng = match ? formatNumber((match.likes || 0) + (match.comments || 0) + (match.shares || 0)) : '—';
 
@@ -1024,7 +1117,6 @@
         <tr style="cursor:pointer" onclick="window.open('${row.video_url}', '_blank')" title="Open on ${row.platform}">
           <td><div class="platform-tag ${platformClass}"><i class="ti ti-${iconClass}" style="color:#fff;font-size:13px"></i></div></td>
           <td class="caption-cell"><div class="caption-text">${caption}</div><div class="caption-date">${dateStr}</div></td>
-          <td>${statusHtml}</td>
           <td><div class="metric-pair"><span class="metric-main">${views}</span><span class="metric-sub">Views</span></div></td>
           <td><div class="metric-pair"><span class="metric-main">${eng}</span><span class="metric-sub">Eng.</span></div></td>
         </tr>
@@ -1159,9 +1251,9 @@
   const perfChart = new Chart(ctx, {
     type: 'line',
     data: {
-      labels,
+      labels: [],
       datasets: [{
-        data: datasets.views,
+        data: [],
         borderColor: '#3f9fd4',
         backgroundColor: gradientInk,
         borderWidth: 2,
@@ -1181,9 +1273,8 @@
         callbacks: {
           label: ctx => {
             const v = ctx.parsed.y;
-            return activeTab === 'views' ? ` Views: ${v.toLocaleString()}` :
-                   activeTab === 'engagements' ? ` Eng: ${v.toLocaleString()}` :
-                   activeTab === 'clicks' ? ` Clicks: ${v}` : ` Watch: ${v}m`;
+            const labelMap = { views: 'Views', engagements: 'Eng', likes: 'Likes', comments: 'Comments' };
+            return ` ${labelMap[activeTab] || activeTab}: ${v.toLocaleString()}`;
           }
         },
         backgroundColor: '#101113', titleFont: { size: 11, family: 'Inter' }, bodyFont: { size: 12, family: 'Inter' },
@@ -1197,11 +1288,10 @@
   });
 
   function switchTab(el, key) {
-    document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#mother-chart-tabs .chart-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
     activeTab = key;
-    perfChart.data.datasets[0].data = datasets[key];
-    perfChart.update();
+    renderPerfChart();
   }
   window.switchTab = switchTab;
 
@@ -1221,15 +1311,8 @@
     }
   });
 
-  /* ── Hide chart tabs with no real data source yet ── */
-  document.querySelectorAll('.chart-tab').forEach(tab => {
-    const label = tab.textContent.trim();
-    if (label === 'Clicks' || label === 'Watch Time') {
-      tab.style.display = 'none';
-    }
-  });
-
- loadUserProfile();
+ renderCurrentDate();
+  loadUserProfile();
   loadRealAnalytics().then(loadRecentSubmittedContent);
   loadLinksSubmittedStat();
   loadRewardsSummary();
