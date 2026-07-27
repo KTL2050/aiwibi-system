@@ -7,13 +7,13 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       /* ── Brand: Sovereign Gold ── */
-      --brand: #1b7fd4;
+      --brand: #1b7fd4; 
       --brand-deep: #0f5fa8;
       --brand-soft: #7cc0f0;
       --brand-bg: #e3f2fd;
@@ -83,7 +83,7 @@
 
     html, body {
       height: 100%;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
       -webkit-font-smoothing: antialiased;
@@ -764,10 +764,24 @@
       --shadow-hover: 0 2px 4px rgba(16,17,19,0.05), 0 14px 34px rgba(16,17,19,0.09);
     }
     html, body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+      font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
       background: #f0f8ff !important;
       color: var(--ink) !important;
       font-feature-settings: "cv02","cv03","cv04";
+    }
+    .brand-serif,
+    .page-heading h1,
+    .topbar-title,
+    .panel-title,
+    .section-label,
+    .links-panel-title,
+    .preview-panel-title,
+    .stat-value,
+    .mother-name,
+    .user-name {
+      font-family: 'Fraunces', 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.01em !important;
     }
     /* ── Topbar: glass, sticky (mothersdas) ── */
     .topbar {
@@ -921,7 +935,7 @@
           <!-- Preview panel -->
           <div class="panel preview-panel" id="preview-panel">
             <div class="preview-panel-header">
-              <div class="preview-panel-title" id="preview-title">Preview: Morning routine with my little one 🌸</div>
+              <div class="preview-panel-title" id="preview-title">Loading preview...</div>
             </div>
             <div class="preview-body">
               <div class="preview-card">
@@ -936,17 +950,15 @@
                     <div class="preview-plat-icon tiktok" id="preview-plat-icon">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/></svg>
                     </div>
-                    <span class="preview-handle" id="preview-handle">@sarahmama · 2d ago</span>
+                    <span class="preview-handle" id="preview-handle">Loading...</span>
                   </div>
                   <div class="preview-caption" id="preview-caption">
-                    Morning routine with my little one 🌸<br>
-                    Aiwibi diapers keep him dry and comfortable all day long! 💙<br>
-                    <span class="hashtag">#Aiwibi #MomLife #BabyCare</span>
+                    Loading...
                   </div>
                   <div class="preview-stats">
-                    <span><i class="ti ti-player-play"></i> <span id="prev-views">12.4K</span></span>
-                    <span><i class="ti ti-heart"></i> <span id="prev-likes">1.2K</span></span>
-                    <span><i class="ti ti-message-circle"></i> <span id="prev-comments">85</span></span>
+                    <span><i class="ti ti-player-play"></i> <span id="prev-views">—</span></span>
+                    <span><i class="ti ti-heart"></i> <span id="prev-likes">—</span></span>
+                    <span><i class="ti ti-message-circle"></i> <span id="prev-comments">—</span></span>
                   </div>
                 </div>
               </div>
@@ -955,20 +967,20 @@
               <div class="preview-meta-item">
                 <div class="preview-meta-label">Link:</div>
                 <div class="preview-meta-val" style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                  <span id="preview-link" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;">https://www.tiktok.com/@sarahmama/video/7364...</span>
+                  <span id="preview-link" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;">Loading...</span>
                   <button class="copy-btn" onclick="copyLink()" title="Copy link"><i class="ti ti-copy"></i></button>
                 </div>
               </div>
               <div class="preview-meta-item">
                 <div class="preview-meta-label">Platform:</div>
-                <div class="preview-meta-val" id="preview-platform-label">TikTok
-                  <span id="preview-status-chip" class="status-pill synced" style="font-size:10px;padding:2px 7px;"><i class="ti ti-circle-check" style="font-size:10px"></i> Synced</span>
+                <div class="preview-meta-val" id="preview-platform-label">Loading...
+                  <span id="preview-status-chip" class="status-pill" style="font-size:10px;padding:2px 7px;display:none;"></span>
                 </div>
               </div>
               <div class="preview-meta-item">
                 <div class="preview-meta-label">Submitted:</div>
                 <div class="preview-meta-val" id="preview-submitted">
-                  May 20, 2024 · 10:30 AM
+                  Loading...
                   <button class="bookmark-btn"><i class="ti ti-bookmark"></i></button>
                 </div>
               </div>
