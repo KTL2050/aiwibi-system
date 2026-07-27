@@ -1121,7 +1121,7 @@
       const dateStr = new Date(row.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
       const caption = row.caption ? escapeHtml(row.caption) : '<span style="color:var(--faint);font-style:italic;">No caption yet</span>';
       const thumb = row.thumbnail_url
-        ? `<img class="content-thumb" src="${row.thumbnail_url}" alt="" loading="lazy">`
+        ? `<img class="content-thumb" src="${row.thumbnail_url}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=&quot;content-thumb-placeholder&quot;><i class=&quot;ti ti-${iconClass}&quot;></i></div>'">`
         : `<div class="content-thumb-placeholder"><i class="ti ti-${iconClass}"></i></div>`;
 
       return `
