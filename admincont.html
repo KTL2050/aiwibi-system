@@ -346,13 +346,13 @@
       min-width: 0;
     }
     .link-row:hover { background: var(--bg); }
-    .link-thumb {
-      width: 48px; height: 38px; border-radius: 8px;
-      overflow: hidden; flex-shrink: 0;
-      background: linear-gradient(135deg, #e8e4ff, #d4cdff);
-      display: flex; align-items: center; justify-content: center;
+    .video-link-cell {
+      font-size: 11.5px; color: var(--brand);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 260px; display: inline-block; vertical-align: middle;
+      text-decoration: none;
     }
-    .link-thumb i { font-size: 16px; color: var(--brand-soft); }
+    .video-link-cell:hover { text-decoration: underline; }
     .link-info { flex: 1; min-width: 0; }
     .link-caption {
       font-size: 12.5px; font-weight: 500; color: var(--text);
@@ -946,12 +946,6 @@
             </div>
             <div class="preview-body">
               <div class="preview-card">
-                <div class="preview-thumb-lg">
-                  <div class="preview-thumb-bg"></div>
-                  <div class="preview-play">
-                    <i class="ti ti-player-play-filled"></i>
-                  </div>
-                </div>
                 <div class="preview-details">
                   <div class="preview-plat-row">
                     <div class="preview-plat-icon tiktok" id="preview-plat-icon">
@@ -967,6 +961,7 @@
                     <span><i class="ti ti-heart"></i> <span id="prev-likes">—</span></span>
                     <span><i class="ti ti-message-circle"></i> <span id="prev-comments">—</span></span>
                   </div>
+                  <a id="preview-video-link" class="video-link-cell" href="#" target="_blank" rel="noopener" style="display:block;margin-top:8px;max-width:100%;"></a>
                 </div>
               </div>
             </div>
@@ -1214,24 +1209,18 @@
       row.style.background = isSelected ? 'var(--brand-bg)' : ''
       const platIcon = post.platform === 'tiktok' ? TIKTOK_SVG : INSTA_SVG
       const platClass = post.platform === 'tiktok' ? 'tiktok' : 'instagram'
-      const statusMap = { synced: ['Synced', 'ti-circle-check'], syncing: ['Syncing', 'ti-refresh'], failed: ['Failed', 'ti-circle-x'], pending: ['Pending sync', 'ti-clock'] }
-      const [statusLabel, statusIcon] = statusMap[post.status] || statusMap.syncing
       const captionText = post.caption ? escapeHtml(post.caption) : '<span style="color:var(--muted);font-style:italic;">No caption yet</span>'
-      const thumbHtml = post.thumb
-        ? `<img src="${post.thumb}" alt="thumb" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`
-        : `<i class="ti ti-video" style="font-size:16px;color:var(--brand-soft)"></i>`
+
+      const linkHtml = post.link
+        ? `<a class="video-link-cell" href="${post.link}" target="_blank" rel="noopener" title="${post.link}" onclick="event.stopPropagation()">${post.link}</a>`
+        : '<span style="color:var(--muted);">—</span>'
 
       row.innerHTML = `
         <div class="plat-icon ${platClass}">${platIcon}</div>
-        <div class="link-thumb" style="background:${post.thumb ? 'none' : ''};overflow:hidden;">${thumbHtml}</div>
-        <div class="link-info">
+        <div class="link-info" style="flex:1;min-width:0;">
           <div class="link-caption">${captionText}</div>
+          <div class="link-meta" style="margin-bottom:2px;">${linkHtml}</div>
           <div class="link-meta">${post.date} · ${post.time}</div>
-        </div>
-        <div class="link-status"><span class="status-pill ${post.status}"><i class="ti ${statusIcon}" style="font-size:10px"></i> ${statusLabel}</span></div>
-        <div class="link-actions">
-          <button class="action-btn" title="View"><i class="ti ti-eye"></i></button>
-          <button class="action-btn" title="More"><i class="ti ti-dots-vertical"></i></button>
         </div>
       `
       row.addEventListener('click', () => { selectedPostIdx = i; renderLinks(); renderPreview() })
@@ -1253,13 +1242,11 @@
 
     document.getElementById('preview-title').textContent = 'Preview: ' + (post.caption ? post.caption.split('#')[0].trim() : '(no caption)')
 
-    const thumbEl = document.querySelector('.preview-thumb-lg')
-    thumbEl.innerHTML = post.thumb
-      ? `<img src="${post.thumb}" alt="preview" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:10px;">
-         <div class="preview-thumb-bg" style="z-index:1"></div>
-         <div class="preview-play" style="z-index:2"><i class="ti ti-player-play-filled"></i></div>`
-      : `<div class="preview-thumb-bg" style="z-index:1"></div>
-         <div class="preview-play" style="z-index:2"><i class="ti ti-player-play-filled"></i></div>`
+    const previewLinkEl = document.getElementById('preview-video-link')
+    if (previewLinkEl) {
+      previewLinkEl.href = post.link
+      previewLinkEl.textContent = post.link
+    }
 
     document.getElementById('preview-handle').textContent = post.handle
 
@@ -1279,11 +1266,6 @@
     const shortLink = post.link.length > 40 ? post.link.slice(0, 40) + '...' : post.link
     document.getElementById('preview-link').textContent = shortLink
     document.getElementById('preview-platform-label').innerHTML = (post.platform === 'tiktok' ? 'TikTok' : 'Instagram') + '&nbsp;'
-
-    const statusMap = { synced: ['Synced', 'ti-circle-check'], syncing: ['Syncing', 'ti-refresh'], failed: ['Failed', 'ti-circle-x'], pending: ['Pending sync', 'ti-clock'] }
-    const [statusLabel, statusIcon] = statusMap[post.status] || statusMap.syncing
-    document.getElementById('preview-status-chip').className = 'status-pill ' + post.status
-    document.getElementById('preview-status-chip').innerHTML = `<i class="ti ${statusIcon}" style="font-size:10px"></i> ${statusLabel}`
 
     document.getElementById('preview-submitted').innerHTML = `${post.date} · ${post.time} <button class="bookmark-btn"><i class="ti ti-bookmark"></i></button>`
   }
