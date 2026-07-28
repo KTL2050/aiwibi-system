@@ -491,12 +491,12 @@
     .plat-icon-sm.tiktok { background: #010101; }
     .plat-icon-sm.instagram { background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af); }
 
-    .thumb-placeholder-sm {
-      width: 44px; height: 34px; border-radius: 8px;
-      background: linear-gradient(135deg, #26282d, #17181b);
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    .video-link-cell {
+      max-width: 220px; font-size: 12.5px; color: var(--baby);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      display: block; text-decoration: none;
     }
-    .thumb-placeholder-sm i { font-size: 13px; color: rgba(255,255,255,0.4); }
+    .video-link-cell:hover { text-decoration: underline; }
 
     .caption-cell { max-width: 200px; }
     .caption-text {
@@ -605,8 +605,8 @@
       .links-table-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
       .links-table { min-width: 420px; }
 
-      .links-table thead th:nth-child(4),
-      .links-table tbody td:nth-child(4) { display: none; }
+      .links-table thead th:nth-child(3),
+      .links-table tbody td:nth-child(3) { display: none; }
 
       .form-actions { flex-direction: column; gap: 8px; }
       .btn-draft, .btn-submit { width: 100%; justify-content: center; box-sizing: border-box; }
@@ -813,7 +813,6 @@
           <i class="ti ti-pencil"></i> Change link
         </a>
         <div style="display:flex;gap:10px;">
-          <button class="btn-draft">Save Draft</button>
           <button class="btn-submit">Submit Content <i class="ti ti-arrow-right"></i></button>
         </div>
       </div>
@@ -829,15 +828,13 @@
           <thead>
             <tr>
               <th>Platform</th>
-              <th>Video Preview</th>
+              <th>Video Link</th>
               <th>Caption</th>
               <th>Submitted</th>
-              <th>Status</th>
-              <th>Actions</th>
             </tr>
           </thead>
           <tbody id="links-tbody">
-            <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">Loading your submissions...</td></tr>
+            <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Loading your submissions...</td></tr>
           </tbody>
         </table>
       </div>
@@ -850,50 +847,58 @@
         <!-- What you'll earn -->
         <div class="rail-card earn-card">
           <div class="earn-eyebrow">You'll earn for this post</div>
-          <div class="earn-points">+50 <span>pts</span></div>
-          <div class="earn-note">Awarded once your video syncs successfully. Bonus points as it grows:</div>
+          <div class="earn-points">+100 <span>pts</span></div>
+          <div class="earn-note">Every video you submit earns a flat 100 points once it's counted — no view or engagement thresholds required.</div>
           <div class="earn-bonus">
             <div class="earn-bonus-row">
-              <span class="b-label"><i class="ti ti-eye" style="font-size:13px"></i> Reach 10K views</span>
-              <span class="b-val">+30 pts</span>
+              <span class="b-label"><i class="ti ti-medal" style="font-size:13px"></i> Bronze</span>
+              <span class="b-val">0 pts</span>
             </div>
             <div class="earn-bonus-row">
-              <span class="b-label"><i class="ti ti-heart" style="font-size:13px"></i> Reach 1K engagements</span>
-              <span class="b-val">+20 pts</span>
+              <span class="b-label"><i class="ti ti-medal" style="font-size:13px"></i> Silver</span>
+              <span class="b-val">500 pts</span>
             </div>
             <div class="earn-bonus-row">
-              <span class="b-label"><i class="ti ti-flame" style="font-size:13px"></i> Top post of the week</span>
-              <span class="b-val">+100 pts</span>
+              <span class="b-label"><i class="ti ti-medal" style="font-size:13px"></i> Gold</span>
+              <span class="b-val">750 pts</span>
+            </div>
+            <div class="earn-bonus-row">
+              <span class="b-label"><i class="ti ti-medal" style="font-size:13px"></i> Platinum</span>
+              <span class="b-val">1000 pts</span>
             </div>
           </div>
         </div>
 
-        <!-- Active campaign -->
-        <div class="rail-card">
+        <!-- Active campaign (dynamic) -->
+        <div class="rail-card" id="camp-mini-card" style="display:none;padding:0;overflow:hidden;">
+          <div id="camp-mini-banner" style="display:none;height:120px;background-size:cover;background-position:center;"></div>
+          <div style="padding:20px;">
           <div class="camp-mini-tag"><i class="ti ti-speakerphone" style="font-size:12px"></i> Active campaign</div>
-          <div class="camp-mini-name">Dry Nights, Happy Mornings</div>
-          <div class="camp-mini-desc">Share your night-time routine with Aiwibi overnight diapers. Posts tagged #AiwibiDryNights count toward campaign rewards.</div>
+          <div class="camp-mini-name" id="camp-mini-name"></div>
+          <div class="camp-mini-desc" id="camp-mini-desc"></div>
           <div class="camp-mini-meta">
-            <span><i class="ti ti-calendar" style="font-size:13px"></i> Ends May 31</span>
-            <span><i class="ti ti-users" style="font-size:13px"></i> 240 moms joined</span>
+            <span><i class="ti ti-calendar" style="font-size:13px"></i> <span id="camp-mini-end"></span></span>
+            <span><i class="ti ti-trophy" style="font-size:13px"></i> <span id="camp-mini-points"></span></span>
           </div>
-          <button class="camp-mini-btn">View campaign brief <i class="ti ti-arrow-right" style="font-size:13px"></i></button>
+          <button class="camp-mini-btn" onclick="window.location.href='mothercamp.html'">View campaign brief <i class="ti ti-arrow-right" style="font-size:13px"></i></button>
+          </div>
         </div>
+        <div class="rail-card" id="camp-mini-empty" style="text-align:center;color:var(--muted);font-size:12.5px;">No active campaign right now — check back soon!</div>
 
         <!-- Tips -->
         <div class="rail-card">
           <div class="rail-title"><i class="ti ti-bulb" style="font-size:16px;color:var(--sun)"></i> Tips for a great post</div>
           <div class="tip-item">
-            <div class="tip-icon blue"><i class="ti ti-clock"></i></div>
-            <div class="tip-text"><b>Post 7–9 PM.</b> That's when other moms are scrolling — your videos get the most reach.</div>
+            <div class="tip-icon blue"><i class="ti ti-lock-open"></i></div>
+            <div class="tip-text"><b>Make sure it's public.</b> Private or friends-only videos can't be verified, so they won't count toward your points.</div>
           </div>
           <div class="tip-item">
-            <div class="tip-icon rose"><i class="ti ti-hash"></i></div>
-            <div class="tip-text"><b>Always tag #Aiwibi.</b> Untagged posts can't be tracked, so they won't earn points.</div>
+            <div class="tip-icon rose"><i class="ti ti-link"></i></div>
+            <div class="tip-text"><b>One submission per video.</b> Each unique link only earns points once, so avoid re-submitting the same post.</div>
           </div>
           <div class="tip-item">
-            <div class="tip-icon mint"><i class="ti ti-video"></i></div>
-            <div class="tip-text"><b>Keep it real.</b> Everyday moments with your little one outperform polished ads every time.</div>
+            <div class="tip-icon mint"><i class="ti ti-brand-tiktok"></i></div>
+            <div class="tip-text"><b>TikTok or Instagram.</b> Make sure your video is posted directly on one of these two platforms.</div>
           </div>
         </div>
 
@@ -946,6 +951,53 @@
 
   loadUserProfile();
 
+  function campaignStatus(c) {
+    const now = new Date(); now.setHours(0, 0, 0, 0)
+    const s = new Date(c.start_date + 'T00:00:00')
+    const e = new Date(c.end_date + 'T00:00:00')
+    if (now < s || now > e) return null
+    return { daysLeft: Math.ceil((e - now) / 86400000) }
+  }
+
+  function fmtDate(dateStr) {
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+
+  async function loadActiveCampaignRail() {
+    const { data: campaigns, error } = await supabase
+      .from('campaigns')
+      .select('*')
+      .eq('is_draft', false)
+      .order('start_date', { ascending: true })
+
+    if (error || !campaigns || campaigns.length === 0) return
+
+    const active = campaigns
+      .map(c => ({ ...c, _status: campaignStatus(c) }))
+      .filter(c => c._status)
+      .sort((a, b) => a._status.daysLeft - b._status.daysLeft)[0]
+
+    if (!active) return
+
+    document.getElementById('camp-mini-card').style.display = ''
+    document.getElementById('camp-mini-empty').style.display = 'none'
+
+    const bannerEl = document.getElementById('camp-mini-banner')
+    if (active.banner_url) {
+      bannerEl.style.backgroundImage = `url('${active.banner_url}')`
+      bannerEl.style.display = ''
+    } else {
+      bannerEl.style.display = 'none'
+    }
+
+    document.getElementById('camp-mini-name').textContent = active.name
+    document.getElementById('camp-mini-desc').textContent = active.description || ''
+    document.getElementById('camp-mini-end').textContent = `Ends ${fmtDate(active.end_date)}`
+    document.getElementById('camp-mini-points').textContent = `${active.max_points} pts`
+  }
+
+  loadActiveCampaignRail();
+
   const TIKTOK_ICON_SVG = '<svg width="13" height="13" viewBox="0 0 24 24" class="tiktok-svg"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/></svg>'
   const INSTAGRAM_ICON_SVG = '<svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>'
 
@@ -976,12 +1028,12 @@
 
     if (error) {
       console.log('Failed to load submitted content:', error)
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load your submissions.</td></tr>'
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load your submissions.</td></tr>'
       return
     }
 
     if (!rows || rows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">You haven\'t submitted any links yet.</td></tr>'
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">You haven\'t submitted any links yet.</td></tr>'
       return
     }
 
@@ -996,26 +1048,18 @@
       const iconClass = row.platform === 'tiktok' ? 'tiktok' : 'instagram'
       const { datePart, timePart } = formatSubmittedAt(row.submitted_at)
       const captionText = row.caption ? escapeHtml(row.caption) : '<span style="color:var(--faint);font-style:italic;">No caption yet</span>'
-
-      const thumbHtml = row.thumbnail_url
-        ? `<div class="thumb-placeholder-sm" style="background-image:url('${row.thumbnail_url}');background-size:cover;background-position:center;"></div>`
-        : `<div class="thumb-placeholder-sm"><i class="ti ti-video"></i></div>`
+      const linkHtml = row.video_url
+        ? `<a class="video-link-cell" href="${row.video_url}" target="_blank" rel="noopener" title="${row.video_url}">${row.video_url}</a>`
+        : '<span style="color:var(--faint);">—</span>'
 
       return `
         <tr>
           <td><div class="plat-icon-sm ${iconClass}">${iconSvg}</div></td>
-          <td>${thumbHtml}</td>
+          <td>${linkHtml}</td>
           <td class="caption-cell">
             <div class="caption-text">${captionText}</div>
           </td>
           <td><div class="caption-date" style="white-space:nowrap;">${datePart}<br>${timePart}</div></td>
-          <td>${statusPillHtml(row.status)}</td>
-          <td>
-            <div class="action-row">
-              <button class="action-btn"><i class="ti ti-eye"></i></button>
-              <button class="action-btn"><i class="ti ti-dots-vertical"></i></button>
-            </div>
-          </td>
         </tr>
       `
     }).join('')
