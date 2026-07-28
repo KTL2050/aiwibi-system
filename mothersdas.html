@@ -449,17 +449,12 @@
     .metric-main { font-size: 13.5px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
     .metric-sub { font-size: 11px; color: var(--muted); }
 
-    .content-thumb {
-      width: 56px; height: 56px; border-radius: 10px;
-      object-fit: cover; background: var(--raise); border: 1px solid var(--border-soft);
-      display: block;
+    .video-link-cell {
+      max-width: 220px; font-size: 12.5px; color: var(--baby);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      display: block; text-decoration: none;
     }
-    .content-thumb-placeholder {
-      width: 56px; height: 56px; border-radius: 10px;
-      background: var(--raise); border: 1px solid var(--border-soft);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--faint); font-size: 20px;
-    }
+    .video-link-cell:hover { text-decoration: underline; }
 
     /* ── Rewards panel ── */
     .rewards-body { padding: 0 20px 20px; }
@@ -709,7 +704,7 @@
             <thead>
               <tr>
                 <th>Platform</th>
-                <th>Preview</th>
+                <th>Video Link</th>
                 <th>Caption</th>
               </tr>
             </thead>
@@ -1120,14 +1115,14 @@
       const iconClass = row.platform === 'tiktok' ? 'brand-tiktok' : 'brand-instagram';
       const dateStr = new Date(row.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
       const caption = row.caption ? escapeHtml(row.caption) : '<span style="color:var(--faint);font-style:italic;">No caption yet</span>';
-      const thumb = row.thumbnail_url
-        ? `<img class="content-thumb" src="${row.thumbnail_url}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=&quot;content-thumb-placeholder&quot;><i class=&quot;ti ti-${iconClass}&quot;></i></div>'">`
-        : `<div class="content-thumb-placeholder"><i class="ti ti-${iconClass}"></i></div>`;
+      const linkHtml = row.video_url
+        ? `<a class="video-link-cell" href="${row.video_url}" target="_blank" rel="noopener" title="${row.video_url}">${row.video_url}</a>`
+        : '<span style="color:var(--faint);">—</span>';
 
       return `
         <tr style="cursor:pointer" onclick="window.open('${row.video_url}', '_blank')" title="Open on ${row.platform}">
           <td><div class="platform-tag ${platformClass}"><i class="ti ti-${iconClass}" style="color:#fff;font-size:13px"></i></div></td>
-          <td>${thumb}</td>
+          <td>${linkHtml}</td>
           <td class="caption-cell"><div class="caption-text">${caption}</div><div class="caption-date">${dateStr}</div></td>
         </tr>
       `;
