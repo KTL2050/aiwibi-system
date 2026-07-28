@@ -180,6 +180,23 @@
     }
     .btn-outline:active { background: #f0eeff; }
 
+    /* ── Country select ── */
+    .country-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+    .btn-country {
+      width: 100%; height: 54px;
+      border: 1.5px solid #eae6ff; border-radius: 12px;
+      background: #faf9ff; cursor: pointer;
+      font-size: 14.5px; font-weight: 600; color: #1a1a2e;
+      display: flex; align-items: center; gap: 12px; padding: 0 16px;
+      transition: border-color 0.18s, background 0.18s, transform 0.1s;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-country:hover { border-color: #6c5ce7; background: #fff; }
+    .btn-country:active { transform: scale(0.98); }
+    .btn-country:disabled { opacity: 0.6; cursor: not-allowed; }
+    .country-flag { font-size: 22px; line-height: 1; }
+
     /* ── Spinner ── */
     .spinner {
       width: 18px; height: 18px;
@@ -448,6 +465,20 @@
       </div>
     </div>
 
+    <!-- ══ COUNTRY SELECT (mothers only, first login) ══ -->
+    <div class="screen" id="screen-country">
+      <div class="heading" style="margin-bottom:4px">Which country are you in?</div>
+      <div class="subheading" style="margin-bottom:20px">This helps us show you the right community and connect you with your local team.</div>
+      <div class="country-list">
+        <button class="btn-country" type="button" data-country="uganda">
+          <span class="country-flag">&#x1F1FA;&#x1F1EC;</span> Uganda
+        </button>
+        <button class="btn-country" type="button" data-country="kenya">
+          <span class="country-flag">&#x1F1F0;&#x1F1EA;</span> Kenya
+        </button>
+      </div>
+    </div>
+
     <!-- ══ FORGOT PASSWORD ══ -->
     <div class="screen" id="screen-forgot">
       <div class="back-link" id="forgot-back">
@@ -637,6 +668,38 @@
     }
   })();
 
+  /* ── holds the user id between "logged in" and "picked a country" ── */
+  let pendingUserId = null;
+
+  /* ── country picker: shown to mothers on their first login until they
+     set profiles.country. Admin/superadmin accounts skip this entirely
+     and are scoped/filterable by country on the dashboard instead. ── */
+  function needsCountry(role, profileData) {
+    return role === 'mother' && !profileData?.country;
+  }
+
+  document.querySelectorAll('.btn-country').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!pendingUserId) return;
+      document.querySelectorAll('.btn-country').forEach(b => b.disabled = true);
+
+      const { error } = await supabaseClient
+        .from('profiles')
+        .update({ country: btn.dataset.country })
+        .eq('id', pendingUserId);
+
+      if (error) {
+        document.querySelectorAll('.btn-country').forEach(b => b.disabled = false);
+        toast('Something went wrong. Please try again.');
+        return;
+      }
+
+      const userId = pendingUserId;
+      show('screen-success');
+      setTimeout(() => redirectForRole('mother', userId), 1200);
+    });
+  });
+
   /* ── redirect target after successful login, based on role + setup state ── */
   async function redirectForRole(role, userId) {
     localStorage.setItem('aiwibi_last_role', role);
@@ -684,11 +747,18 @@
 
     const { data: profileData } = await supabaseClient
       .from('profiles')
-      .select('role')
+      .select('role, country')
       .eq('id', data.user.id)
       .maybeSingle();
 
     const role = profileData?.role || 'mother';
+
+    if (needsCountry(role, profileData)) {
+      pendingUserId = data.user.id;
+      show('screen-country');
+      return;
+    }
+
     show('screen-success');
     setTimeout(() => redirectForRole(role, data.user.id), 1200);
   });
@@ -816,11 +886,18 @@
     if (session) {
       const { data: profileData } = await supabaseClient
         .from('profiles')
-        .select('role')
+        .select('role, country')
         .eq('id', session.user.id)
         .maybeSingle();
 
       const role = profileData?.role || 'mother';
+
+      if (needsCountry(role, profileData)) {
+        pendingUserId = session.user.id;
+        show('screen-country');
+        return;
+      }
+
       redirectForRole(role, session.user.id);
     }
   })();
