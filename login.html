@@ -657,16 +657,8 @@
       const todayIndex = (new Date().getDay() + 6) % 7; // Mon=0 ... Sun=6
       dayEls.forEach((el, i) => el.classList.toggle('active', i === todayIndex));
 
-      // Show the real total views last cached by the admin dashboard, if any
-      const cachedViews = localStorage.getItem('aiwibi_admin_total_views');
-      const valueEl = document.getElementById('week-stat-value');
-      if (cachedViews) {
-        valueEl.textContent = cachedViews;
-      } else {
-        valueEl.textContent = '—';
-      }
-    }
-  })();
+          }
+
 
   /* ── holds the user id between "logged in" and "picked a country" ── */
   let pendingUserId = null;
