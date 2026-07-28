@@ -451,7 +451,7 @@
         Continue with Apple
       </button>
 
-      <div class="signup-row">Don't have an account? <a href="#" id="signup-link">Sign up</a></div>
+      <div class="signup-row">Don't have an account? <a href="#" id="signup-link">Sign Up</a></div>
     </div>
 
     <!-- ══ SUCCESS ══ -->
@@ -656,9 +656,8 @@
       const dayEls = document.querySelectorAll('#week-days span');
       const todayIndex = (new Date().getDay() + 6) % 7; // Mon=0 ... Sun=6
       dayEls.forEach((el, i) => el.classList.toggle('active', i === todayIndex));
-
-          }
-
+    }
+  })();
 
   /* ── holds the user id between "logged in" and "picked a country" ── */
   let pendingUserId = null;
@@ -753,11 +752,6 @@
 
     show('screen-success');
     setTimeout(() => redirectForRole(role, data.user.id), 1200);
-  });
-
-  $('back-btn').addEventListener('click', () => {
-    $('email').value=''; $('password').value='';
-    show('screen-login');
   });
 
   /* ── forgot password ── */
