@@ -906,7 +906,7 @@
                   <th>Views</th>
                   <th>Engagements</th>
                   <th>Links</th>
-                  <th>Score</th>
+                  <th>Points</th>
                   <th></th>
                 </tr>
               </thead>
@@ -1148,22 +1148,25 @@
       renderPerfChart();
       renderDonut();
 
-      // Top Performing Mothers table
+      // Top Performing Mothers table — real submitted-link counts, real points
       const mothersTableBody = document.querySelector('.mothers-table tbody');
       if (mothersTableBody) {
         const medals = ['🏆','🥈','🥉'];
+        const linkCounts = await getSubmittedLinkCounts(data.mothers.map(m => m.userId));
+
         mothersTableBody.innerHTML = data.mothers.slice(0, 10).map((m, i) => {
           const initials = m.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-          const score = m.totalViews > 0 ? ((m.totalEngagements / m.totalViews) * 100).toFixed(1) : '0.0';
-          const scoreClass = score >= 5 ? 'score-high' : 'score-mid';
+          const linkCount = linkCounts.get(m.userId) ?? 0;
+          const points = linkCount * 100;
+          const pointsClass = points >= 500 ? 'score-high' : 'score-mid';
           return `
             <tr>
               <td><span class="rank-num">${i + 1}</span></td>
               <td><div class="mother-cell"><div class="mother-avatar" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe)">${initials}</div><div><div class="mother-name">${m.name}</div><div class="mother-handle">${m.email}</div></div></div></td>
               <td><span class="metric-val">${formatNumber(m.totalViews)}</span></td>
               <td><span class="metric-val">${formatNumber(m.totalEngagements)}</span></td>
-              <td><span class="metric-val">${m.totalPosts}</span></td>
-              <td><span class="score-pill ${scoreClass}">${score}</span></td>
+              <td><span class="metric-val">${linkCount}</span></td>
+              <td><span class="score-pill ${pointsClass}">${points} pts</span></td>
               <td>${medals[i] || ''}</td>
             </tr>
           `;
@@ -1354,6 +1357,22 @@
   function normalizeUrl(u) {
     if (!u) return '';
     return u.split('?')[0].replace(/\/$/, '').toLowerCase();
+  }
+
+  // Real submitted-link counts per mother, same dedup rule as mothersdas.html's
+  // getUniqueLinkCount — independent of whether PostPeer has synced the post yet.
+  async function getSubmittedLinkCounts(motherIds) {
+    let query = supabase.from('submitted_content').select('user_id, video_url');
+    if (motherIds) query = query.in('user_id', motherIds);
+    const { data, error } = await query;
+    if (error) { console.error('Failed to load submitted link counts:', error); return new Map(); }
+
+    const byUser = new Map();
+    for (const row of (data || [])) {
+      if (!byUser.has(row.user_id)) byUser.set(row.user_id, new Set());
+      byUser.get(row.user_id).add(normalizeUrl(row.video_url));
+    }
+    return new Map([...byUser.entries()].map(([id, set]) => [id, set.size]));
   }
 
   async function loadTotalContentStat() {
