@@ -544,17 +544,31 @@
       }
       .sidebar.open { transform: translateX(0); }
       .sidebar-overlay.open { display: block; }
-      .main { margin-left: 0; }
+      .main { margin-left: 0; width: 100%; overflow-x: hidden; }
       .hamburger { display: flex; }
       .date-chip { display: none; }
-      .content { padding: 16px 14px 40px; }
-      .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .content { padding: 16px 14px 40px; width: 100%; box-sizing: border-box; }
+      /* Stats become a horizontally-swipeable strip: 2 cards visible at a
+         time, swipe right to reveal the next 2, snapping into place. */
+      .stats-row {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        gap: 10px;
+        padding-bottom: 6px;
+      }
+      .stats-row .stat-card {
+        scroll-snap-align: start;
+        flex: 0 0 calc(50% - 5px);
+        min-width: calc(50% - 5px);
+      }
       .grid-2-equal { grid-template-columns: 1fr; }
      .content-table td:nth-child(2) .caption-date { display: none; }
       .topbar { padding: 0 14px; }
     }
     @media (max-width: 480px) {
-      .stats-row { grid-template-columns: 1fr 1fr; }
       .stat-value { font-size: 22px; }
     }
   </style>
