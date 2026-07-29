@@ -581,18 +581,96 @@
         <div class="settings-nav">
           <button class="settings-nav-item active" data-section="banners"><i class="ti ti-photo"></i> Campaign Banners</button>
           <button class="settings-nav-item" data-section="create"><i class="ti ti-circle-plus"></i> Create Campaign</button>
-          <button class="settings-nav-item" data-section="general"><i class="ti ti-adjustments"></i> General</button>
+          <button class="settings-nav-item" data-section="reports"><i class="ti ti-chart-bar"></i> Reports</button>
           <button class="settings-nav-item" data-section="campaigns"><i class="ti ti-speakerphone"></i> Campaign Defaults</button>
           <button class="settings-nav-item" data-section="points"><i class="ti ti-trophy"></i> Points &amp; Tiers</button>
           <button class="settings-nav-item" data-section="rewards"><i class="ti ti-gift"></i> Rewards Catalog</button>
-          <button class="settings-nav-item" data-section="notifications"><i class="ti ti-bell"></i> Notifications</button>
-          <button class="settings-nav-item" data-section="admins"><i class="ti ti-shield-lock"></i> Admins &amp; Roles</button>
-          <button class="settings-nav-item" data-section="security"><i class="ti ti-lock"></i> Security</button>
-          <button class="settings-nav-item" data-section="danger"><i class="ti ti-alert-triangle"></i> Danger Zone</button>
         </div>
 
         <!-- ── Settings body ── -->
         <div class="settings-body">
+
+          <!-- ════ REPORTS ════ -->
+          <div class="settings-section" id="section-reports">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Campaign Reports</div>
+                  <div class="panel-desc">Pick a campaign and date range to see how it performed.</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr 1fr auto; align-items:end;">
+                  <div class="form-group">
+                    <label class="form-label">From</label>
+                    <input class="form-input" type="date" id="rep-from">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">To</label>
+                    <input class="form-input" type="date" id="rep-to">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Campaign</label>
+                    <select class="form-select" id="rep-campaign">
+                      <option value="">Loading campaigns...</option>
+                    </select>
+                  </div>
+                  <div class="form-group"></div>
+                  <button class="btn btn-primary btn-sm" id="rep-run-btn" style="height:38px;">Search</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-body" style="padding-top:22px;">
+                <div class="banner-grid" id="rep-totals-grid" style="grid-template-columns: repeat(4, 1fr);">
+                  <div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:24px;">Choose a campaign and date range, then click Search.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Performance Breakdown</div>
+                  <div class="panel-desc">Views, engagement, comments and likes for the selected campaign and period.</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <table class="tier-table" id="rep-breakdown-table">
+                  <thead>
+                    <tr><th>Campaign</th><th>Views</th><th>Total Engagements</th><th>Comments</th><th>Likes</th></tr>
+                  </thead>
+                  <tbody id="rep-breakdown-body">
+                    <tr><td colspan="5" style="text-align:center;color:var(--muted);">No data yet.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Top 3 Performing Mothers</div>
+                  <div class="panel-desc">Ranked by views and engagement within the selected campaign.</div>
+                </div>
+              </div>
+              <div class="panel-body" id="rep-top-mothers">
+                <div style="text-align:center;color:var(--muted);padding:24px;">No data yet.</div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Best Performing Video</div>
+                </div>
+              </div>
+              <div class="panel-body" id="rep-best-video">
+                <div style="text-align:center;color:var(--muted);padding:24px;">No data yet.</div>
+              </div>
+            </div>
+          </div>
 
           <!-- ════ 1. CAMPAIGN BANNERS ════ -->
           <div class="settings-section visible" id="section-banners">
@@ -746,62 +824,6 @@
               </div>
               <div class="panel-body" id="cc-list">
                 <div style="text-align:center;color:var(--muted);padding:24px;">Loading campaigns...</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ════ 2. GENERAL ════ -->
-          <div class="settings-section" id="section-general">
-            <div class="panel">
-              <div class="panel-header">
-                <div>
-                  <div class="panel-title">Platform Details</div>
-                  <div class="panel-desc">Basic identity of the AIWIBI ambassador system shown across the app and in emails.</div>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="form-row">
-                  <div class="form-group">
-                    <label class="form-label">Platform Name</label>
-                    <input class="form-input" value="AIWIBI Ambassador System">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Support Email</label>
-                    <div class="input-with-icon">
-                      <i class="ti ti-mail"></i>
-                      <input class="form-input" value="support@aiwibiworlduganda.com">
-                    </div>
-                  </div>
-                </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label class="form-label">Timezone</label>
-                    <select class="form-select">
-                      <option>Africa/Kampala (EAT, UTC+3)</option>
-                      <option>Australia/Sydney (AEST, UTC+10)</option>
-                      <option>UTC</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Default Language</label>
-                    <select class="form-select">
-                      <option>English</option>
-                      <option>Luganda</option>
-                      <option>Swahili</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="form-row single" style="margin-bottom:0;">
-                  <div class="form-group">
-                    <label class="form-label">Official Campaign Hashtags</label>
-                    <input class="form-input" value="#AiwibiMomLife #BabyCare #Aiwibi">
-                    <div class="form-hint">Shown as suggested hashtags when mothers submit content.</div>
-                  </div>
-                </div>
-              </div>
-              <div class="save-bar">
-                <button class="btn btn-outline btn-sm">Reset</button>
-                <button class="btn btn-primary btn-sm save-btn">Save Changes</button>
               </div>
             </div>
           </div>
@@ -1001,226 +1023,6 @@
             </div>
           </div>
 
-          <!-- ════ 5. NOTIFICATIONS ════ -->
-          <div class="settings-section" id="section-notifications">
-            <div class="panel">
-              <div class="panel-header">
-                <div>
-                  <div class="panel-title">Admin Notifications</div>
-                  <div class="panel-desc">Choose which events send you an email or in-app alert.</div>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="toggle-row">
-                  <div>
-                    <div class="toggle-title">New content submission</div>
-                    <div class="toggle-desc">Alert when a mother submits a new video for review.</div>
-                  </div>
-                  <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
-                </div>
-                <div class="toggle-row">
-                  <div>
-                    <div class="toggle-title">New mother registration</div>
-                    <div class="toggle-desc">Alert when a new mother joins and awaits approval.</div>
-                  </div>
-                  <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
-                </div>
-                <div class="toggle-row">
-                  <div>
-                    <div class="toggle-title">Campaign start / end</div>
-                    <div class="toggle-desc">Summary alert when campaigns go live or close.</div>
-                  </div>
-                  <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
-                </div>
-                <div class="toggle-row">
-                  <div>
-                    <div class="toggle-title">Reward redemption requests</div>
-                    <div class="toggle-desc">Alert when a mother requests to redeem points.</div>
-                  </div>
-                  <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
-                </div>
-                <div class="toggle-row">
-                  <div>
-                    <div class="toggle-title">Weekly performance digest</div>
-                    <div class="toggle-desc">Email summary of views, engagement and top mothers every Monday.</div>
-                  </div>
-                  <label class="switch"><input type="checkbox"><span class="track"></span></label>
-                </div>
-              </div>
-              <div class="save-bar">
-                <button class="btn btn-primary btn-sm save-btn">Save Changes</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- ════ 6. ADMINS & ROLES ════ -->
-          <div class="settings-section" id="section-admins">
-            <div class="panel">
-              <div class="panel-header">
-                <div>
-                  <div class="panel-title">Team Members</div>
-                  <div class="panel-desc">People with access to this admin panel. Super Admins can change settings; Editors manage campaigns and content; Viewers are read-only.</div>
-                </div>
-                <button class="btn btn-dark btn-sm"><i class="ti ti-plus" style="font-size:14px"></i> Invite Admin</button>
-              </div>
-              <div class="panel-body">
-                <div class="admin-row">
-                  <div class="admin-row-avatar" style="background:var(--brand-gradient)">A</div>
-                  <div>
-                    <div class="admin-row-name">Admin (You)</div>
-                    <div class="admin-row-email">admin@aiwibiworlduganda.com</div>
-                  </div>
-                  <span class="role-pill super"><i class="ti ti-shield-check" style="font-size:12px"></i> Super Admin</span>
-                </div>
-                <div class="admin-row">
-                  <div class="admin-row-avatar" style="background:linear-gradient(135deg,#0f5fa8,#4aa3e8)">J</div>
-                  <div>
-                    <div class="admin-row-name">Joan K.</div>
-                    <div class="admin-row-email">joan@aiwibiworlduganda.com</div>
-                  </div>
-                  <span class="role-pill editor"><i class="ti ti-pencil" style="font-size:12px"></i> Editor</span>
-                </div>
-                <div class="admin-row">
-                  <div class="admin-row-avatar" style="background:linear-gradient(135deg,#123e6b,#1b7fd4)">D</div>
-                  <div>
-                    <div class="admin-row-name">David M.</div>
-                    <div class="admin-row-email">david@aiwibiworlduganda.com</div>
-                  </div>
-                  <span class="role-pill viewer"><i class="ti ti-eye" style="font-size:12px"></i> Viewer</span>
-                </div>
-              </div>
-            </div>
-            <div class="panel">
-              <div class="panel-header">
-                <div>
-                  <div class="panel-title">Mother Account Rules</div>
-                  <div class="panel-desc">Controls for how mothers join and stay active in the program.</div>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="toggle-row">
-                  <div>
-                    <div class="toggle-title">Require admin approval for new mothers</div>
-                    <div class="toggle-desc">New registrations stay pending until an admin approves them.</div>
-                  </div>
-                  <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
-                </div>
-                <div class="toggle-row">
-                  <div>
-                    <div class="toggle-title">Auto-deactivate inactive accounts</div>
-                    <div class="toggle-desc">Mothers with no submissions for 90 days are marked inactive.</div>
-                  </div>
-                  <label class="switch"><input type="checkbox"><span class="track"></span></label>
-                </div>
-              </div>
-              <div class="save-bar">
-                <button class="btn btn-primary btn-sm save-btn">Save Changes</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- ════ 7. SECURITY ════ -->
-          <div class="settings-section" id="section-security">
-            <div class="panel">
-              <div class="panel-header">
-                <div>
-                  <div class="panel-title">Change Password</div>
-                  <div class="panel-desc">Use at least 8 characters with a mix of letters, numbers and symbols.</div>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="form-row single">
-                  <div class="form-group">
-                    <label class="form-label">Current Password</label>
-                    <input class="form-input" type="password" placeholder="••••••••">
-                  </div>
-                </div>
-                <div class="form-row" style="margin-bottom:0;">
-                  <div class="form-group">
-                    <label class="form-label">New Password</label>
-                    <input class="form-input" type="password" placeholder="••••••••">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Confirm New Password</label>
-                    <input class="form-input" type="password" placeholder="••••••••">
-                  </div>
-                </div>
-              </div>
-              <div class="save-bar">
-                <button class="btn btn-primary btn-sm save-btn">Update Password</button>
-              </div>
-            </div>
-            <div class="panel">
-              <div class="panel-header">
-                <div>
-                  <div class="panel-title">Login &amp; Sessions</div>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="toggle-row">
-                  <div>
-                    <div class="toggle-title">Two-factor authentication (2FA)</div>
-                    <div class="toggle-desc">Require a one-time code from an authenticator app at login.</div>
-                  </div>
-                  <label class="switch"><input type="checkbox"><span class="track"></span></label>
-                </div>
-                <div class="toggle-row">
-                  <div>
-                    <div class="toggle-title">Alert on new device login</div>
-                    <div class="toggle-desc">Email you whenever your account is accessed from a new device.</div>
-                  </div>
-                  <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
-                </div>
-                <div class="toggle-row">
-                  <div>
-                    <div class="toggle-title">Auto-logout after inactivity</div>
-                    <div class="toggle-desc">End the session after 30 minutes without activity.</div>
-                  </div>
-                  <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
-                </div>
-              </div>
-              <div class="save-bar">
-                <button class="btn btn-outline btn-sm">Sign out all devices</button>
-                <button class="btn btn-primary btn-sm save-btn">Save Changes</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- ════ 8. DANGER ZONE ════ -->
-          <div class="settings-section" id="section-danger">
-            <div class="panel danger">
-              <div class="panel-header">
-                <div>
-                  <div class="panel-title">Danger Zone</div>
-                  <div class="panel-desc">These actions are permanent or affect all users. Proceed carefully.</div>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="toggle-row">
-                  <div>
-                    <div class="toggle-title">Export all platform data</div>
-                    <div class="toggle-desc">Download mothers, submissions, points and campaign data as CSV.</div>
-                  </div>
-                  <button class="btn btn-outline btn-sm"><i class="ti ti-download" style="font-size:14px"></i> Export CSV</button>
-                </div>
-                <div class="toggle-row">
-                  <div>
-                    <div class="toggle-title">Reset all campaign points</div>
-                    <div class="toggle-desc">Sets every mother's campaign points to zero. Tier history is kept.</div>
-                  </div>
-                  <button class="btn btn-danger-outline btn-sm">Reset Points</button>
-                </div>
-                <div class="toggle-row">
-                  <div>
-                    <div class="toggle-title">Deactivate platform</div>
-                    <div class="toggle-desc">Takes the mothers' portal offline. Admins can still log in.</div>
-                  </div>
-                  <button class="btn btn-danger-outline btn-sm">Deactivate</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div><!-- /settings-body -->
       </div><!-- /settings-grid -->
     </div><!-- /content -->
@@ -1396,6 +1198,7 @@
     renderCampaignSelect()
     renderCampaignList()
     renderBannerGrid()
+    populateReportCampaignSelect()
   }
 
   function renderCampaignSelect() {
@@ -1762,6 +1565,168 @@
   loadUserProfile()
   loadCampaigns()
   loadRewards()
+
+  /* ══ Reports ══ */
+  function populateReportCampaignSelect() {
+    const sel = document.getElementById('rep-campaign')
+    if (!sel) return
+    if (campaigns.length === 0) {
+      sel.innerHTML = '<option value="">No campaigns yet</option>'
+      return
+    }
+    sel.innerHTML = '<option value="">All campaigns</option>' +
+      campaigns.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')
+  }
+
+  async function runReport() {
+    const from = document.getElementById('rep-from').value
+    const to = document.getElementById('rep-to').value
+    const campaignId = document.getElementById('rep-campaign').value
+
+    // NOTE: adjust table/column names below to match your schema
+    // Expected columns on submitted_content: campaign_id, mother_id, views, likes, comments_count, platform, video_url, submitted_at
+    let query = supabase.from('submitted_content').select('*')
+    if (campaignId) query = query.eq('campaign_id', campaignId)
+    if (from) query = query.gte('submitted_at', from)
+    if (to) query = query.lte('submitted_at', to + 'T23:59:59')
+
+    const { data: rows, error } = await query
+    if (error) {
+      console.error('Report query failed:', error)
+      showToast('Could not load report data')
+      return
+    }
+
+    renderReportTotals(rows || [])
+    renderReportBreakdown(rows || [], campaignId)
+    await renderTopMothers(rows || [])
+    renderBestVideo(rows || [])
+  }
+
+  function renderReportTotals(rows) {
+    const totalViews = rows.reduce((s, r) => s + (r.views || 0), 0)
+    const totalLikes = rows.reduce((s, r) => s + (r.likes || 0), 0)
+    const totalComments = rows.reduce((s, r) => s + (r.comments_count || 0), 0)
+    const totalEngagement = totalLikes + totalComments
+
+    const grid = document.getElementById('rep-totals-grid')
+    const cards = [
+      ['Total Views', totalViews],
+      ['Total Engagements', totalEngagement],
+      ['Total Comments', totalComments],
+      ['Total Likes', totalLikes]
+    ]
+    grid.innerHTML = cards.map(([label, value]) => `
+      <div class="banner-card" style="padding:16px;">
+        <div class="banner-body" style="padding:0;">
+          <div class="form-label">${label}</div>
+          <div style="font-size:22px;font-weight:800;color:var(--ink);margin-top:6px;">${value.toLocaleString()}</div>
+        </div>
+      </div>
+    `).join('')
+  }
+
+  function renderReportBreakdown(rows, campaignId) {
+    const body = document.getElementById('rep-breakdown-body')
+    if (rows.length === 0) {
+      body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);">No submissions in this range.</td></tr>'
+      return
+    }
+    const byCampaign = {}
+    rows.forEach(r => {
+      const key = r.campaign_id
+      if (!byCampaign[key]) byCampaign[key] = { views: 0, likes: 0, comments: 0 }
+      byCampaign[key].views += r.views || 0
+      byCampaign[key].likes += r.likes || 0
+      byCampaign[key].comments += r.comments_count || 0
+    })
+    body.innerHTML = Object.entries(byCampaign).map(([cid, agg]) => {
+      const camp = campaigns.find(c => c.id === cid)
+      const name = camp ? camp.name : 'Unknown campaign'
+      return `<tr>
+        <td>${escapeHtml(name)}</td>
+        <td>${agg.views.toLocaleString()}</td>
+        <td>${(agg.likes + agg.comments).toLocaleString()}</td>
+        <td>${agg.comments.toLocaleString()}</td>
+        <td>${agg.likes.toLocaleString()}</td>
+      </tr>`
+    }).join('')
+  }
+
+  async function renderTopMothers(rows) {
+    const container = document.getElementById('rep-top-mothers')
+    if (rows.length === 0) {
+      container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:24px;">No submissions in this range.</div>'
+      return
+    }
+    const byMother = {}
+    rows.forEach(r => {
+      const key = r.mother_id
+      if (!key) return
+      if (!byMother[key]) byMother[key] = { views: 0, engagement: 0 }
+      byMother[key].views += r.views || 0
+      byMother[key].engagement += (r.likes || 0) + (r.comments_count || 0)
+    })
+    const ranked = Object.entries(byMother)
+      .map(([id, v]) => ({ id, ...v, score: v.views + v.engagement }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+
+    if (ranked.length === 0) {
+      container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:24px;">No mother data available.</div>'
+      return
+    }
+
+    const ids = ranked.map(r => r.id)
+    const { data: profiles } = await supabase.from('profiles').select('id, full_name, email').in('id', ids)
+    const profileMap = {}
+    ;(profiles || []).forEach(p => { profileMap[p.id] = p })
+
+    container.innerHTML = ranked.map((r, i) => {
+      const p = profileMap[r.id]
+      const name = p ? (p.full_name || p.email) : 'Unknown mother'
+      return `
+        <div class="admin-row">
+          <div class="admin-row-avatar" style="background:var(--brand-gradient)">${i + 1}</div>
+          <div>
+            <div class="admin-row-name">${escapeHtml(name)}</div>
+            <div class="admin-row-email">${r.views.toLocaleString()} views · ${r.engagement.toLocaleString()} engagements</div>
+          </div>
+        </div>
+      `
+    }).join('')
+  }
+
+  function renderBestVideo(rows) {
+    const container = document.getElementById('rep-best-video')
+    if (rows.length === 0) {
+      container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:24px;">No submissions in this range.</div>'
+      return
+    }
+    const best = rows.reduce((top, r) => {
+      const score = (r.views || 0) + (r.likes || 0) + (r.comments_count || 0)
+      const topScore = top ? (top.views || 0) + (top.likes || 0) + (top.comments_count || 0) : -1
+      return score > topScore ? r : top
+    }, null)
+
+    if (!best) {
+      container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:24px;">No data.</div>'
+      return
+    }
+
+    container.innerHTML = `
+      <div class="camp-row">
+        <div class="camp-row-thumb"><i class="ti ti-player-play"></i></div>
+        <div class="camp-row-info">
+          <div class="camp-row-name">${escapeHtml(best.platform || 'Video')}</div>
+          <div class="camp-row-desc">${best.video_url ? `<a href="${best.video_url}" target="_blank">${escapeHtml(best.video_url)}</a>` : '—'}</div>
+        </div>
+        <div class="camp-row-pts">${(best.views || 0).toLocaleString()}<span>Views</span></div>
+      </div>
+    `
+  }
+
+  document.getElementById('rep-run-btn')?.addEventListener('click', runReport)
 </script>
 </body>
 </html>
