@@ -202,6 +202,13 @@
       cursor: pointer; color: var(--muted); font-size: 17px; position: relative;
       transition: border-color 0.15s, color 0.15s;
     }
+    #topbar-logout-btn {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+      border: none; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: #fff; font-size: 16px;
+    }
+    #topbar-logout-btn:hover { background: linear-gradient(135deg, #f87171 0%, #dc2626 100%); }
     .icon-btn:hover { border-color: var(--brand); color: var(--brand); }
     .icon-btn .dot {
       position: absolute; top: 5px; right: 5px;
@@ -847,6 +854,7 @@
         <button class="btn-primary" onclick="window.location.href='adminsettings.html?section=create'">
           <i class="ti ti-plus"></i><span>Create Campaign</span>
         </button>
+        <div id="topbar-logout-btn" title="Log out"><i class="ti ti-logout"></i></div>
       </div>
     </div>
 
@@ -1008,6 +1016,11 @@
   const SUPABASE_URL = 'https://cqtebvfegeojjkrkzboq.supabase.co'
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdGVidmZlZ2Vvamprcmt6Ym9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODQ2NjksImV4cCI6MjA5ODU2MDY2OX0.OcCwAD-q6d1XeyHW6f1Gy9r_sBdRV3eWAOUsKLemKEA'
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  document.getElementById('topbar-logout-btn').addEventListener('click', async () => {
+    await supabase.auth.signOut()
+    window.location.href = 'login.html'
+  })
 
   document.getElementById('logout-link').addEventListener('click', async (e) => {
     e.preventDefault()
