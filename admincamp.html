@@ -428,7 +428,22 @@
       .main { margin-left: 0; width: 100%; overflow-x: hidden; }
       .hamburger { display: flex; }
       .content { padding: 16px 10px 40px; width: 100%; box-sizing: border-box; }
-      .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+      /* Stats become a horizontally-swipeable strip: 2 cards visible at a
+         time, swipe right to reveal the next 2, snapping into place. */
+      .stats-row {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px;
+        padding-bottom: 6px;
+      }
+      .stats-row .stat-card {
+        scroll-snap-align: start;
+        flex: 0 0 calc(50% - 4px);
+        min-width: calc(50% - 4px);
+      }
       .stat-card { padding: 12px; }
       .stat-value { font-size: 19px; }
       .stat-icon { width: 36px; height: 36px; font-size: 16px; }
@@ -437,9 +452,6 @@
       .btn-primary span { display: none; }
       .btn-primary { padding: 11px 14px; }
       .camp-desc { display: none; }
-    }
-    @media (max-width: 480px) {
-      .stats-row { grid-template-columns: 1fr 1fr; }
     }
   
     /* ══ Midnight Sovereign Admin Theme ══ */
