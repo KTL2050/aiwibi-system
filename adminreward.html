@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } 
 
     :root {
       /* ── Brand: Sovereign Gold ── */
@@ -350,7 +350,22 @@
       .main { margin-left: 0; width: 100%; overflow-x: hidden; }
       .hamburger { display: flex; }
       .content { padding: 16px 10px 40px; width: 100%; box-sizing: border-box; }
-      .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+      /* Stats become a horizontally-swipeable strip: 2 cards visible at a
+         time, swipe right to reveal the next 2, snapping into place. */
+      .stats-row {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px;
+        padding-bottom: 6px;
+      }
+      .stats-row .stat-card {
+        scroll-snap-align: start;
+        flex: 0 0 calc(50% - 4px);
+        min-width: calc(50% - 4px);
+      }
       .stat-card { padding: 12px; }
       .stat-value { font-size: 18px; }
       .topbar-sub { display: none; }
