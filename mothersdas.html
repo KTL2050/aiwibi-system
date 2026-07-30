@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } 
 
     :root { 
       /* ── Sidebar (UNCHANGED — Sky Nursery) ── */ 
@@ -1228,12 +1228,22 @@
     return new Set(data.map(r => normalizeUrl(r.video_url))).size;
   }
 
+  async function getRedeemedPoints(userId) {
+    const { data, error } = await supabase
+      .from('reward_redemptions')
+      .select('points_cost')
+      .eq('user_id', userId);
+    if (error) { console.error('Failed to load redemptions:', error); return 0; }
+    return (data || []).reduce((sum, r) => sum + r.points_cost, 0);
+  }
+
   async function loadRewardsSummary() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
     const linkCount = await getUniqueLinkCount(session.user.id);
-    const points = linkCount * 100;
+    const redeemed = await getRedeemedPoints(session.user.id);
+    const points = (linkCount * 100) - redeemed;
 
     const pointsValueEl = document.getElementById('rewards-points-value');
     const pointsFootEl = document.getElementById('rewards-points-foot');
