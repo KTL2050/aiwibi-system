@@ -1113,6 +1113,7 @@
   }
 
   function reloadAllData() {
+    loadTotalMothersStat();
     loadTotalContentStat();
     loadAdminAnalytics().then(loadAllSubmittedContent);
   }
@@ -1188,8 +1189,8 @@
         return;
       }
 
-      // Stat cards
-      document.querySelector('.stat-card:nth-child(1) .stat-value').textContent = data.summary.totalMothers;
+      // Stat cards — mothers count is fetched separately (see loadTotalMothersStat),
+      // not taken from data.summary.totalMothers, since that can under-count.
       document.querySelector('.stat-card:nth-child(3) .stat-value').textContent = formatNumber(data.summary.totalViews);
       document.querySelector('.stat-card:nth-child(4) .stat-value').textContent = formatNumber(data.summary.totalEngagements);
       document.getElementById('stat-mothers-period').textContent = 'All time';
@@ -1433,6 +1434,20 @@
     }
     return new Map([...byUser.entries()].map(([id, set]) => [id, set.size]));
   }
+  
+
+  
+  async function loadTotalMothersStat() {
+    const el = document.querySelector('.stat-card:nth-child(1) .stat-value');
+    if (!el) return;
+
+    let query = supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'mother');
+    if (activeCountryFilter !== 'all') query = query.eq('country', activeCountryFilter);
+
+    const { count, error } = await query;
+    if (error) { console.error('Failed to load mothers count:', error); return; }
+    el.textContent = count ?? 0;
+  }
 
   async function loadTotalContentStat() {
     const el = document.querySelector('.stat-card:nth-child(2) .stat-value');
@@ -1538,8 +1553,9 @@
   }
 
  renderCurrentDate();
-  (async () => {
+ (async () => {
     await loadUserProfile();     // must resolve first: sets activeCountryFilter
+    await loadTotalMothersStat();
     await loadTotalContentStat();
     await loadAdminAnalytics();
     await loadAllSubmittedContent();
