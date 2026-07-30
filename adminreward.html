@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } 
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }  
 
     :root {
       /* ── Brand: Sovereign Gold ── */
@@ -787,14 +787,14 @@
         <div class="stat-card stat-card--1">
           <div class="stat-icon-badge"><i class="ti ti-gift"></i></div>
           <div class="stat-label">Rewards Redeemed</div>
-          <div class="stat-value">—</div>
-          <span class="stat-period">Redemption tracking not set up yet</span>
+          <div class="stat-value" id="stat-redeemed-count">–</div>
+          <span class="stat-period" id="stat-redeemed-period">Loading...</span>
         </div>
         <div class="stat-card stat-card--4">
           <div class="stat-icon-badge"><i class="ti ti-clock"></i></div>
           <div class="stat-label">Pending Rewards</div>
-          <div class="stat-value">—</div>
-          <span class="stat-period">Redemption tracking not set up yet</span>
+          <div class="stat-value" id="stat-pending-count">–</div>
+          <span class="stat-period" id="stat-pending-period">Loading...</span>
         </div>
         <div class="stat-card stat-card--3">
           <div class="stat-icon-badge"><i class="ti ti-box"></i></div>
@@ -808,33 +808,13 @@
       <div class="grid-3">
         <div class="panel">
           <div class="panel-header">
-            <div class="panel-title">Reward Tiers</div>
-            <button class="btn-manage">Manage Tiers</button>
+            <div class="panel-title">Redemption History</div>
           </div>
           <div class="table-wrap">
             <table class="data-table">
-              <thead><tr><th>Tier</th><th>Points Range</th><th>Mothers</th><th>Benefits</th><th>Status</th></tr></thead>
-              <tbody>
-                <tr>
-                  <td><div class="tier-name-cell"><span class="tier-dot" style="background:#c2761e"></span>Bronze</div></td>
-                  <td>0 – 499 pts</td><td id="tier-count-bronze">–</td><td>2 benefits</td>
-                  <td><span class="status-pill active">Active</span></td>
-                </tr>
-                <tr>
-                  <td><div class="tier-name-cell"><span class="tier-dot" style="background:#94a3b8"></span>Silver</div></td>
-                  <td>500 – 749 pts</td><td id="tier-count-silver">–</td><td>3 benefits</td>
-                  <td><span class="status-pill active">Active</span></td>
-                </tr>
-                <tr>
-                  <td><div class="tier-name-cell"><span class="tier-dot" style="background:#f59e0b"></span>Gold</div></td>
-                  <td>750 – 999 pts</td><td id="tier-count-gold">–</td><td>4 benefits</td>
-                  <td><span class="status-pill active">Active</span></td>
-                </tr>
-                <tr>
-                  <td><div class="tier-name-cell"><span class="tier-dot" style="background:#7c3aed"></span>Platinum</div></td>
-                  <td>1,000+ pts</td><td id="tier-count-platinum">–</td><td>5 benefits</td>
-                  <td><span class="status-pill active">Active</span></td>
-                </tr>
+              <thead><tr><th>Mother</th><th>Reward</th><th>Date Redeemed</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="redemption-history-tbody">
+                <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Loading redemptions...</td></tr>
               </tbody>
             </table>
           </div>
@@ -1109,15 +1089,25 @@
       .select('user_id, video_url');
     if (contentErr) { console.error(contentErr); return; }
 
+    const { data: redemptions, error: redeemErr } = await supabase
+      .from('reward_redemptions')
+      .select('user_id, points_cost');
+    if (redeemErr) console.error(redeemErr);
+
     const linksByUser = {};
     content.forEach(c => {
       if (!linksByUser[c.user_id]) linksByUser[c.user_id] = new Set();
       linksByUser[c.user_id].add(normalizeUrl(c.video_url));
     });
 
+    const redeemedByUser = {};
+    (redemptions || []).forEach(r => {
+      redeemedByUser[r.user_id] = (redeemedByUser[r.user_id] || 0) + r.points_cost;
+    });
+
     const mothers = profiles.map(p => ({
       ...p,
-      points: (linksByUser[p.id] ? linksByUser[p.id].size : 0) * 100
+      points: (linksByUser[p.id] ? linksByUser[p.id].size : 0) * 100 - (redeemedByUser[p.id] || 0)
     })).sort((a, b) => b.points - a.points);
 
    const totalPoints = mothers.reduce((sum, m) => sum + m.points, 0);
@@ -1133,18 +1123,6 @@
       window.pointsDonut.data.datasets[0].data = [totalPoints || 1];
       window.pointsDonut.update();
     }
-
-    const tierCounts = { bronze: 0, silver: 0, gold: 0, platinum: 0 };
-    mothers.forEach(m => {
-      if (m.points >= 1000) tierCounts.platinum++;
-      else if (m.points >= 750) tierCounts.gold++;
-      else if (m.points >= 500) tierCounts.silver++;
-      else tierCounts.bronze++;
-    });
-    document.getElementById('tier-count-bronze').textContent = tierCounts.bronze;
-    document.getElementById('tier-count-silver').textContent = tierCounts.silver;
-    document.getElementById('tier-count-gold').textContent = tierCounts.gold;
-    document.getElementById('tier-count-platinum').textContent = tierCounts.platinum;
 
     const listEl = document.getElementById('leaderboard-list');
     const top5 = mothers.slice(0, 5);
@@ -1170,6 +1148,101 @@
     }).join('');
   }
 
+  async function loadRedeemedStats() {
+    const { data: redemptions, error } = await supabase
+      .from('reward_redemptions')
+      .select('status');
+    const redeemedEl = document.getElementById('stat-redeemed-count');
+    const redeemedPeriodEl = document.getElementById('stat-redeemed-period');
+    const pendingEl = document.getElementById('stat-pending-count');
+    const pendingPeriodEl = document.getElementById('stat-pending-period');
+
+    if (error) {
+      console.error(error);
+      if (redeemedEl) redeemedEl.textContent = '0';
+      if (pendingEl) pendingEl.textContent = '0';
+      return;
+    }
+
+    const total = (redemptions || []).length;
+    const pending = (redemptions || []).filter(r => r.status !== 'Delivered').length;
+
+    if (redeemedEl) redeemedEl.textContent = total;
+    if (redeemedPeriodEl) redeemedPeriodEl.textContent = 'All time';
+    if (pendingEl) pendingEl.textContent = pending;
+    if (pendingPeriodEl) pendingPeriodEl.textContent = 'Awaiting delivery';
+  }
+
+  async function loadRedemptionHistory() {
+    const tbody = document.getElementById('redemption-history-tbody');
+
+    const { data: redemptions, error } = await supabase
+      .from('reward_redemptions')
+      .select('*')
+      .order('redeemed_at', { ascending: false });
+
+    if (error) {
+      console.error('Failed to load redemption history:', error);
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load redemptions.</td></tr>';
+      return;
+    }
+
+    if (!redemptions || redemptions.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">No redemptions yet.</td></tr>';
+      return;
+    }
+
+    const userIds = [...new Set(redemptions.map(r => r.user_id))];
+    const { data: profiles, error: profErr } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', userIds);
+    if (profErr) console.error(profErr);
+
+    const profileById = {};
+    (profiles || []).forEach(p => { profileById[p.id] = p; });
+
+    tbody.innerHTML = redemptions.map(r => {
+      const mother = profileById[r.user_id];
+      const motherName = mother ? (mother.full_name || mother.email) : 'Unknown';
+      const date = new Date(r.redeemed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const delivered = r.status === 'Delivered';
+      const statusPill = delivered
+        ? '<span class="status-pill active">Delivered</span>'
+        : '<span class="status-pill processing">Processing</span>';
+      const actionHtml = delivered
+        ? '<span style="color:var(--muted);font-size:11.5px;">—</span>'
+        : `<button class="btn-manage mark-delivered-btn" data-id="${r.id}">Mark Delivered</button>`;
+
+      return `
+        <tr data-id="${r.id}">
+          <td>${escapeHtml(motherName)}</td>
+          <td>${escapeHtml(r.reward_title)}</td>
+          <td>${date}</td>
+          <td class="status-cell">${statusPill}</td>
+          <td>${actionHtml}</td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.querySelectorAll('.mark-delivered-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const { error: updateError } = await supabase
+          .from('reward_redemptions')
+          .update({ status: 'Delivered' })
+          .eq('id', id);
+        if (updateError) {
+          console.error(updateError);
+          alert('Failed to update status.');
+          return;
+        }
+        loadRedemptionHistory();
+        loadRedeemedStats();
+      });
+    });
+  }
+
   function renderCurrentDate() {
     const el = document.getElementById('current-date-label');
     if (!el) return;
@@ -1182,6 +1255,8 @@
   loadAllRewards();
   loadTotalRewardsStat();
   loadPointsOverview();
+  loadRedeemedStats();
+  loadRedemptionHistory();
   applyPlatformLogo();
 </script>
 </body>
