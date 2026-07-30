@@ -1071,47 +1071,54 @@
     const noCampMsg = document.getElementById('no-campaign-msg')
     if (!selectEl) return
 
-    const { data: campaigns, error } = await supabase
-      .from('campaigns')
-      .select('*')
-      .eq('is_draft', false)
-      .order('start_date', { ascending: true })
+    // Safety net: if the request hangs/throws, don't leave the dropdown stuck on "Loading campaigns..."
+    try {
+      const { data: campaigns, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('is_draft', false)
+        .order('start_date', { ascending: true })
 
-    if (error) console.error('Failed to load campaigns:', error)
+      if (error) throw error
 
-    // Only Active and Upcoming belong in the picker — Completed ones are done, hide them.
-    const withStatus = (campaigns || [])
-      .map(c => ({ ...c, _status: campaignStatus(c) }))
-      .filter(c => c._status.cls === 'active' || c._status.cls === 'upcoming')
+      // Only Active and Upcoming belong in the picker — Completed ones are done, hide them.
+      const withStatus = (campaigns || [])
+        .map(c => ({ ...c, _status: campaignStatus(c) }))
+        .filter(c => c._status.cls === 'active' || c._status.cls === 'upcoming')
 
-    if (withStatus.length === 0) {
-      selectEl.innerHTML = '<option value="">No active or upcoming campaigns</option>'
+      if (withStatus.length === 0) {
+        selectEl.innerHTML = '<option value="">No active or upcoming campaigns</option>'
+        if (noCampMsg) noCampMsg.style.display = 'flex'
+        return
+      }
+
+      // Active campaigns first (soonest-ending first), then Upcoming (soonest-starting first)
+      withStatus.sort((a, b) => {
+        if (a._status.cls !== b._status.cls) return a._status.cls === 'active' ? -1 : 1
+        return a._status.cls === 'active'
+          ? a._status.daysLeft - b._status.daysLeft
+          : a._status.daysUntil - b._status.daysUntil
+      })
+
+      const defaultCampaign = withStatus.find(c => c._status.cls === 'active') || null
+
+      selectEl.innerHTML = withStatus.map(c => {
+        const label = c._status.cls === 'active'
+          ? `🟢 ${c.name} (ends ${fmtDate(c.end_date)})`
+          : `🕒 ${c.name} (starts ${fmtDate(c.start_date)})`
+        return `<option value="${c.id}">${escapeHtml(label)}</option>`
+      }).join('')
+
+      if (defaultCampaign) {
+        selectEl.value = defaultCampaign.id
+        if (noCampMsg) noCampMsg.style.display = 'none'
+      } else if (noCampMsg) {
+        noCampMsg.style.display = 'flex'
+      }
+    } catch (err) {
+      console.error('Failed to load campaigns:', err)
+      selectEl.innerHTML = '<option value="">Couldn\'t load campaigns — refresh to retry</option>'
       if (noCampMsg) noCampMsg.style.display = 'flex'
-      return
-    }
-
-    // Active campaigns first (soonest-ending first), then Upcoming (soonest-starting first)
-    withStatus.sort((a, b) => {
-      if (a._status.cls !== b._status.cls) return a._status.cls === 'active' ? -1 : 1
-      return a._status.cls === 'active'
-        ? a._status.daysLeft - b._status.daysLeft
-        : a._status.daysUntil - b._status.daysUntil
-    })
-
-    const defaultCampaign = withStatus.find(c => c._status.cls === 'active') || null
-
-    selectEl.innerHTML = withStatus.map(c => {
-      const label = c._status.cls === 'active'
-        ? `🟢 ${c.name} (ends ${fmtDate(c.end_date)})`
-        : `🕒 ${c.name} (starts ${fmtDate(c.start_date)})`
-      return `<option value="${c.id}">${escapeHtml(label)}</option>`
-    }).join('')
-
-    if (defaultCampaign) {
-      selectEl.value = defaultCampaign.id
-      if (noCampMsg) noCampMsg.style.display = 'none'
-    } else if (noCampMsg) {
-      noCampMsg.style.display = 'flex'
     }
   }
 
