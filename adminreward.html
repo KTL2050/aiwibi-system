@@ -804,36 +804,18 @@
         </div>
         </div>
 
-      <!-- Reward Tiers + Points Distribution -->
-      <div class="grid-3">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">Redemption History</div>
-          </div>
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead><tr><th>Mother</th><th>Reward</th><th>Date Redeemed</th><th>Status</th><th>Action</th></tr></thead>
-              <tbody id="redemption-history-tbody">
-                <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Loading redemptions...</td></tr>
-              </tbody>
-            </table>
-          </div>
+      <!-- Redemption History -->
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header">
+          <div class="panel-title">Redemption History</div>
         </div>
-
-        <div class="panel">
-          <div class="panel-header"><div class="panel-title">Points Distribution Overview</div></div>
-          <div class="dist-body">
-            <div class="donut-canvas-pos">
-              <canvas id="points-donut" width="120" height="120" style="width:110px;height:110px;"></canvas>
-              <div class="donut-center">
-                <div class="donut-center-value" id="points-donut-center-value">–</div>
-                <div class="donut-center-label">Total Points</div>
-              </div>
-            </div>
-            <div class="dist-legend">
-              <div class="dist-item"><span class="dist-dot" style="background:#3b82f6"></span><span class="dist-label">Video Submissions</span><span class="dist-val" id="dist-video-pct">–</span></div>
-            </div>
-          </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Mother</th><th>Reward</th><th>Date Redeemed</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="redemption-history-tbody">
+              <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Loading redemptions...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -907,18 +889,6 @@
     overlay.classList.remove('open');
   });
 
-  const pointsDonut = new Chart(document.getElementById('points-donut').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Video Submissions'],
-      datasets: [{ data: [1], backgroundColor: ['#3b82f6'], borderWidth: 0, hoverOffset: 6 }]
-    },
-    options: {
-      cutout: '72%', animation: false, resizeDelay: 100,
-      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1a1a2e', bodyFont: { size: 12 }, padding: 10, cornerRadius: 8 } }
-    }
-  });
-  window.pointsDonut = pointsDonut;
 </script>
 
 <script type="module">
@@ -1114,15 +1084,6 @@
 
     document.getElementById('stat-total-points').innerHTML = `${totalPoints.toLocaleString()} <span>pts</span>`;
     document.getElementById('stat-total-points-period').textContent = 'Across all mothers';
-
-    const donutCenterEl = document.getElementById('points-donut-center-value');
-    if (donutCenterEl) donutCenterEl.textContent = totalPoints.toLocaleString();
-    const distVideoEl = document.getElementById('dist-video-pct');
-    if (distVideoEl) distVideoEl.textContent = totalPoints > 0 ? '100%' : '0%';
-    if (window.pointsDonut) {
-      window.pointsDonut.data.datasets[0].data = [totalPoints || 1];
-      window.pointsDonut.update();
-    }
 
     const listEl = document.getElementById('leaderboard-list');
     const top5 = mothers.slice(0, 5);
