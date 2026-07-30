@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+ 
     :root { 
       /* ── Sidebar (UNCHANGED — Sky Nursery) ── */
       --brand: #3db8e8;
@@ -408,6 +408,30 @@
       display: flex; align-items: center; gap: 6px;
       margin-top: 10px; font-size: 12.5px; color: var(--sage); font-weight: 600;
     }
+
+    /* ── Campaign select (step 3) ── */
+    .campaign-select-wrap { position: relative; margin-top: 4px; }
+    .campaign-select-wrap i.campaign-select-icon {
+      position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+      font-size: 16.5px; color: var(--muted); pointer-events: none;
+    }
+    .campaign-select-wrap::after {
+      content: '';
+      position: absolute; right: 18px; top: 50%;
+      width: 7px; height: 7px;
+      border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+      transform: translateY(-70%) rotate(45deg);
+      pointer-events: none;
+    }
+    .campaign-select {
+      width: 100%; padding: 14px 44px 14px 44px;
+      border: 1.5px solid var(--border); border-radius: 16px;
+      font-size: 13.5px; color: var(--ink); background: var(--surface);
+      font-family: inherit; appearance: none; -webkit-appearance: none;
+      outline: none; cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .campaign-select:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(16,17,19,0.06); }
 
     /* ── Video Preview card ── */
     .video-preview-card {
@@ -815,39 +839,16 @@
         <i class="ti ti-loader-2"></i> Fetching preview...
       </div>
 
-      <!-- 3. Video Preview -->
-      <div class="section-label">3. Video Preview</div>
-      <div class="video-preview-card">
-        <div class="preview-inner">
-          <div class="preview-thumb">
-            <div class="thumb-placeholder">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="rgba(255,255,255,0.15)"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/></svg>
-            </div>
-            <div class="play-btn">
-              <i class="ti ti-player-play-filled" style="font-size:15px;color:#101113;margin-left:2px;"></i>
-            </div>
-          </div>
-          <div class="preview-details">
-            <div class="preview-plat-row">
-              <div class="preview-plat-icon">
-                <svg width="13" height="13" viewBox="0 0 24 24" class="tiktok-svg"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/></svg>
-              </div>
-              <span class="preview-plat-name">TikTok</span>
-              <span class="preview-dot">·</span>
-              <span class="preview-handle">@sarahmama · 2d ago</span>
-            </div>
-            <div class="preview-caption">
-              Morning routine with my little one 🌸<br>
-              Aiwibi diapers keep him dry and comfortable all day long! 💙<br>
-              <span class="hashtag">#Aiwibi #MomLife #BabyCare</span>
-            </div>
-            <div class="preview-stats">
-              <span><i class="ti ti-player-play"></i> 12.4K</span>
-              <span><i class="ti ti-heart"></i> 1.2K</span>
-              <span><i class="ti ti-message-circle"></i> 85</span>
-            </div>
-          </div>
-        </div>
+      <!-- 3. Choose Campaign -->
+      <div class="section-label">3. Choose Campaign</div>
+      <div class="campaign-select-wrap">
+        <i class="ti ti-speakerphone campaign-select-icon"></i>
+        <select class="campaign-select" id="campaign-select">
+          <option value="">Loading campaigns...</option>
+        </select>
+      </div>
+      <div class="detect-success" id="no-campaign-msg" style="display:none;color:var(--muted);">
+        <i class="ti ti-info-circle"></i> No active campaign right now — your link will still be submitted without one.
       </div>
 
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:14px;">
@@ -1064,6 +1065,45 @@
 
   loadActiveCampaignRail();
 
+  async function loadCampaignOptions() {
+    const selectEl = document.getElementById('campaign-select')
+    const noCampMsg = document.getElementById('no-campaign-msg')
+    if (!selectEl) return
+
+    const { data: campaigns, error } = await supabase
+      .from('campaigns')
+      .select('*')
+      .eq('is_draft', false)
+      .order('start_date', { ascending: true })
+
+    if (error || !campaigns || campaigns.length === 0) {
+      selectEl.innerHTML = '<option value="">No campaigns available</option>'
+      if (noCampMsg) noCampMsg.style.display = 'flex'
+      return
+    }
+
+    const withStatus = campaigns.map(c => ({ ...c, _status: campaignStatus(c) }))
+    // "Current" = the active campaign ending soonest — same rule your mini rail already uses
+    const activeCampaigns = withStatus
+      .filter(c => c._status)
+      .sort((a, b) => a._status.daysLeft - b._status.daysLeft)
+    const defaultCampaign = activeCampaigns[0] || null
+
+    selectEl.innerHTML = withStatus.map(c => {
+      const label = c._status ? `${c.name} (ends ${fmtDate(c.end_date)})` : c.name
+      return `<option value="${c.id}">${escapeHtml(label)}</option>`
+    }).join('')
+
+    if (defaultCampaign) {
+      selectEl.value = defaultCampaign.id
+      if (noCampMsg) noCampMsg.style.display = 'none'
+    } else if (noCampMsg) {
+      noCampMsg.style.display = 'flex'
+    }
+  }
+
+  loadCampaignOptions();
+
   const TIKTOK_ICON_SVG = '<svg width="13" height="13" viewBox="0 0 24 24" class="tiktok-svg"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/></svg>'
   const INSTAGRAM_ICON_SVG = '<svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>'
 
@@ -1248,13 +1288,17 @@ const res = await fetch(`${SUPABASE_URL}/functions/v1/oembed-preview`, {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { window.location.href = 'login.html'; return }
 
+    const campaignSelectEl = document.getElementById('campaign-select')
+    const campaignId = campaignSelectEl && campaignSelectEl.value ? campaignSelectEl.value : null
+
     const { error } = await supabase.from('submitted_content').insert({
       user_id: session.user.id,
       platform: detected,
       video_url: url,
       status: 'pending',
       caption: currentPreviewCaption,
-      thumbnail_url: currentPreviewThumbnail
+      thumbnail_url: currentPreviewThumbnail,
+      campaign_id: campaignId
     })
 
     if (error) {
