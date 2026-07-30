@@ -833,9 +833,9 @@
           </div>
           <div class="table-wrap">
             <table class="data-table">
-              <thead><tr><th>Reward</th><th>Category</th><th>Points Cost</th><th>Redeemed</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Reward</th><th>Points Cost</th><th>Status</th><th>Actions</th></tr></thead>
               <tbody id="all-rewards-tbody">
-                <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">Loading rewards...</td></tr>
+                <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Loading rewards...</td></tr>
               </tbody>
             </table>
           </div>
@@ -963,7 +963,7 @@
 
     if (error) {
       console.error('Failed to load rewards:', error);
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load rewards.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load rewards.</td></tr>';
       return;
     }
 
@@ -975,7 +975,7 @@
     const tbody = document.getElementById('all-rewards-tbody');
 
     if (!rewards || rewards.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">No rewards match.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">No rewards match.</td></tr>';
       return;
     }
 
@@ -990,10 +990,7 @@
       return `
         <tr data-id="${r.id}">
           <td><div class="reward-item-cell"><div class="reward-thumb">${thumb}</div><span class="reward-name-text">${escapeHtml(r.title)}</span></div></td>
-          <td style="color:var(--muted)">—</td>
           <td>${r.points_cost} pts</td>
-          <td style="color:var(--muted)">—</td>
-          <td style="color:var(--muted)">—</td>
           <td>${statusPill}</td>
           <td>
             <div class="row-actions">
