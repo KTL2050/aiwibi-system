@@ -1022,8 +1022,9 @@
     const now = new Date(); now.setHours(0, 0, 0, 0)
     const s = new Date(c.start_date + 'T00:00:00')
     const e = new Date(c.end_date + 'T00:00:00')
-    if (now < s || now > e) return null
-    return { daysLeft: Math.ceil((e - now) / 86400000) }
+    if (now < s) return { cls: 'upcoming', label: 'Upcoming', daysUntil: Math.ceil((s - now) / 86400000) }
+    if (now > e) return { cls: 'completed', label: 'Completed' }
+    return { cls: 'active', label: 'Active', daysLeft: Math.ceil((e - now) / 86400000) }
   }
 
   function fmtDate(dateStr) {
@@ -1041,7 +1042,7 @@
 
     const active = campaigns
       .map(c => ({ ...c, _status: campaignStatus(c) }))
-      .filter(c => c._status)
+      .filter(c => c._status.cls === 'active')
       .sort((a, b) => a._status.daysLeft - b._status.daysLeft)[0]
 
     if (!active) return
@@ -1076,21 +1077,33 @@
       .eq('is_draft', false)
       .order('start_date', { ascending: true })
 
-    if (error || !campaigns || campaigns.length === 0) {
-      selectEl.innerHTML = '<option value="">No campaigns available</option>'
+    if (error) console.error('Failed to load campaigns:', error)
+
+    // Only Active and Upcoming belong in the picker — Completed ones are done, hide them.
+    const withStatus = (campaigns || [])
+      .map(c => ({ ...c, _status: campaignStatus(c) }))
+      .filter(c => c._status.cls === 'active' || c._status.cls === 'upcoming')
+
+    if (withStatus.length === 0) {
+      selectEl.innerHTML = '<option value="">No active or upcoming campaigns</option>'
       if (noCampMsg) noCampMsg.style.display = 'flex'
       return
     }
 
-    const withStatus = campaigns.map(c => ({ ...c, _status: campaignStatus(c) }))
-    // "Current" = the active campaign ending soonest — same rule your mini rail already uses
-    const activeCampaigns = withStatus
-      .filter(c => c._status)
-      .sort((a, b) => a._status.daysLeft - b._status.daysLeft)
-    const defaultCampaign = activeCampaigns[0] || null
+    // Active campaigns first (soonest-ending first), then Upcoming (soonest-starting first)
+    withStatus.sort((a, b) => {
+      if (a._status.cls !== b._status.cls) return a._status.cls === 'active' ? -1 : 1
+      return a._status.cls === 'active'
+        ? a._status.daysLeft - b._status.daysLeft
+        : a._status.daysUntil - b._status.daysUntil
+    })
+
+    const defaultCampaign = withStatus.find(c => c._status.cls === 'active') || null
 
     selectEl.innerHTML = withStatus.map(c => {
-      const label = c._status ? `${c.name} (ends ${fmtDate(c.end_date)})` : c.name
+      const label = c._status.cls === 'active'
+        ? `🟢 ${c.name} (ends ${fmtDate(c.end_date)})`
+        : `🕒 ${c.name} (starts ${fmtDate(c.start_date)})`
       return `<option value="${c.id}">${escapeHtml(label)}</option>`
     }).join('')
 
