@@ -7,45 +7,44 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style> 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }  
 
     :root {
       /* ── Aiwibi Australia brand ── */ 
-      --aiwibi: #1b7fd4;
-      --aiwibi-deep: #0f5fa8;
-      --aiwibi-soft: #7cc0f0;
-      --aiwibi-bg: #e3f2fd;
-      --brand-gradient: linear-gradient(135deg, #1567b8 0%, #4aa3e8 50%, #1b7fd4 100%);
+      --aiwibi: #844FC1;
+      --aiwibi-deep: #6c3fa0;
+      --aiwibi-soft: #b48ee0;
+      --aiwibi-bg: #f3ecfb;
+      --brand-gradient: linear-gradient(135deg, #6c3fa0 0%, #b48ee0 50%, #844FC1 100%);
 
       /* ── Sidebar: deep Aiwibi navy ── */
-      --sidebar-gradient: linear-gradient(180deg,
-        #07203a 0%, #0a2847 25%, #0d3054 55%, #0f3760 80%, #123e6b 100%);
-      --sidebar-active: #1b7fd4;
-      --sidebar-active-bg: linear-gradient(90deg, rgba(27,127,212,0.22) 0%, rgba(27,127,212,0.05) 100%);
+      --sidebar-gradient: linear-gradient(180deg, #0a1c38 0%, #0f2a4f 45%, #163d6e 100%);
+      --sidebar-active: #3B86D1;
+      --sidebar-active-bg: linear-gradient(90deg, rgba(59,134,209,0.22) 0%, rgba(59,134,209,0.05) 100%);
 
       /* ── Monochrome Premium text ── */
-      --ink: #101113;
+      --ink: #2b2b3a;
       --ink-soft: #3a3d42;
-      --muted: #8a8f98;
+      --muted: #6C7293;
       --faint: #b6bac1;
 
       /* ── Surfaces ── */
       --surface: #ffffff;
-      --bg-solid: #f0f8ff;
-      --raise: #f2f9fe;
+      --bg-solid: #F8F9FA;
+      --raise: #f8f5fc;
 
-      --border: #d9eaf6;
-      --border-soft: #e6f2fb;
+      --border: #eef0f4;
+      --border-soft: #f3f5f8;
 
       /* ── Status ── */
-      --green: #10b981;  --green-bg: #ecfdf5;
-      --red: #e11d48;    --red-bg: #fff1f2;
+      --green: #21BF06;  --green-bg: #e9fbe6;
+      --red: #e4566e;    --red-bg: #fdeaee;
       --amber: #d97706;  --amber-bg: #fffbeb;
 
-      --radius: 20px;
-      --radius-sm: 12px;
+      --radius: 6px;
+      --radius-sm: 6px;
       --pill: 999px;
 
       --shadow-card: 0 1px 2px rgba(16,17,19,0.04), 0 8px 24px rgba(16,17,19,0.05);
@@ -56,7 +55,7 @@
 
     html, body {
       height: 100%;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+      font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--bg-solid);
       color: var(--ink);
       -webkit-font-smoothing: antialiased;
@@ -94,7 +93,7 @@
     .sidebar-section { padding: 10px 10px 4px; }
     .sidebar-section-label {
       font-size: 9px; font-weight: 700; letter-spacing: 1.8px;
-      color: rgba(124,192,240,0.45); text-transform: uppercase;
+      color: rgba(59,134,209,0.65); text-transform: uppercase;
       padding: 0 8px; margin-bottom: 4px;
     }
     .nav-item {
@@ -105,14 +104,14 @@
       margin-bottom: 2px; text-decoration: none;
     }
     .nav-item i { font-size: 17px; flex-shrink: 0; }
-    .nav-item:hover { background: rgba(27,127,212,0.14); color: #bfe0f8; }
+    .nav-item:hover { background: rgba(132,79,193,0.14); color: #d9c6ee; }
     .nav-item.active {
       background: var(--sidebar-active-bg);
       color: var(--aiwibi-soft);
       border-left: 3px solid var(--aiwibi);
     }
     .nav-item .badge {
-      margin-left: auto; background: #ef4444;
+      margin-left: auto; background: #e4566e;
       color: #fff; font-size: 10px; font-weight: 700;
       border-radius: var(--pill); padding: 1px 6px; min-width: 18px; text-align: center;
     }
@@ -247,7 +246,7 @@
     .form-textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
     .form-input:focus, .form-select:focus, .form-textarea:focus {
       outline: none; border-color: var(--aiwibi);
-      box-shadow: 0 0 0 3px rgba(27,127,212,0.12);
+      box-shadow: 0 0 0 3px rgba(132,79,193,0.12);
     }
     .form-input::placeholder { color: var(--faint); }
     .input-with-icon { position: relative; }
@@ -270,7 +269,7 @@
     .switch input { opacity: 0; width: 0; height: 0; }
     .switch .track {
       position: absolute; inset: 0; border-radius: var(--pill);
-      background: #d3dde6; transition: background 0.2s;
+      background: #e4dcf2; transition: background 0.2s;
     }
     .switch .track::after {
       content: ''; position: absolute; top: 3px; left: 3px;
@@ -332,8 +331,8 @@
     }
     .banner-preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .banner-preview.g1 { background: var(--brand-gradient); }
-    .banner-preview.g2 { background: linear-gradient(140deg, #0f5fa8 0%, #1b7fd4 55%, #7cc0f0 100%); }
-    .banner-preview.g3 { background: linear-gradient(140deg, #123e6b 0%, #1567b8 55%, #4aa3e8 100%); }
+    .banner-preview.g2 { background: linear-gradient(140deg, #6c3fa0 0%, #844FC1 55%, #b48ee0 100%); }
+    .banner-preview.g3 { background: linear-gradient(140deg, #123e6b 0%, #6c3fa0 55%, #b48ee0 100%); }
     .banner-preview-name {
       position: relative; z-index: 2; color: #fff;
       font-size: 12.5px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em;
@@ -452,7 +451,7 @@
     .reward-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
     .reward-img {
       position: relative; height: 120px; overflow: hidden;
-      background: linear-gradient(140deg, var(--aiwibi-bg) 0%, #f2f9fe 100%);
+      background: linear-gradient(140deg, var(--aiwibi-bg) 0%, #f8f5fc 100%);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
     }
@@ -475,7 +474,7 @@
     /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #b7d5ec; border-radius: 6px; }
+    ::-webkit-scrollbar-thumb { background: #c9b3e6; border-radius: 6px; }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { transition: none !important; animation: none !important; }
@@ -518,7 +517,7 @@
         font-size: 10px; font-weight: 600; flex: 1; height: 100%;
       }
       .bottom-nav-item i { font-size: 19px; }
-      .bottom-nav-item.active { color: #1b7fd4; }
+      .bottom-nav-item.active { color: #844FC1; }
       .content { padding-bottom: 78px !important; }
     }
   </style>
@@ -538,7 +537,7 @@
 
     <div class="sidebar-section">
       <div class="sidebar-section-label">Main</div>
-      <a href="admindas.html" class="nav-item"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+      <a href="admindash.html" class="nav-item"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
       <a href="admincont.html" class="nav-item"><i class="ti ti-file-text"></i> Content</a>
       <a href="admincamp.html" class="nav-item"><i class="ti ti-speakerphone"></i> Campaigns</a>
       <a href="adminreward.html" class="nav-item"><i class="ti ti-gift"></i> Rewards</a>
@@ -952,7 +951,7 @@
                       <td>Cash reward + hamper</td>
                     </tr>
                     <tr>
-                      <td><span class="tier-dot" style="background:#1b7fd4"></span>Platinum</td>
+                      <td><span class="tier-dot" style="background:#844FC1"></span>Platinum</td>
                       <td><input class="form-input" type="number" value="1000"></td>
                       <td>Brand trip + premium rewards</td>
                     </tr>
@@ -1031,7 +1030,7 @@
 
 <!-- ══ Bottom Mobile Nav ══ -->
 <nav class="bottom-nav">
-  <a class="bottom-nav-item" href="admindas.html">
+  <a class="bottom-nav-item" href="admindash.html">
     <i class="ti ti-layout-dashboard"></i> Home
   </a>
   <a class="bottom-nav-item" href="admincont.html">
