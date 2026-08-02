@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Aiwibi — Rewards Management</title>
+  <title>Aiwibi — Campaign Reports</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -105,12 +106,6 @@
       background: rgba(59,134,209,0.22); color: #fff; font-weight: 700;
       border-left: 3px solid var(--blue); border-radius: 0 10px 10px 0;
     }
-    .nav-item .badge {
-      margin-left: auto; background: var(--red);
-      color: #fff; font-size: 10px; font-weight: 700;
-      border-radius: 20px; padding: 1px 6px; min-width: 18px; text-align: center;
-    }
-
     .sidebar-bottom { margin-top: auto; padding: 12px 10px; border-top: 1px solid var(--sidebar-border); }
     .user-pill { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid var(--sidebar-border); cursor: pointer; }
     .user-avatar {
@@ -139,41 +134,22 @@
 
     /* ── Main ── */
     .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; min-width: 0; }
-
     .topbar {
       background: var(--surface); border-bottom: 1px solid var(--border);
       padding: 0 24px; height: 64px;
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      position: sticky; top: 0; z-index: 50;
     }
     .topbar-left { display: flex; align-items: center; gap: 12px; }
     .topbar-title { font-size: 15.5px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
     .topbar-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
     .topbar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-    .date-chip {
-      display: flex; align-items: center; gap: 6px;
-      background: var(--brand-bg); border-radius: var(--pill);
-      padding: 6px 14px; font-size: 12px; color: var(--brand-dark); font-weight: 600;
-    }
-    .icon-btn {
-      width: 36px; height: 36px; border-radius: 50%;
-      border: 1.5px solid var(--border); background: var(--surface);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: var(--muted); font-size: 17px; position: relative;
-    }
     #topbar-logout-btn {
       width: 36px; height: 36px; border-radius: 50%;
       background: linear-gradient(135deg, #f18ba0 0%, var(--red) 100%);
       border: none; display: flex; align-items: center; justify-content: center;
       cursor: pointer; color: #fff; font-size: 16px;
     }
-    .icon-btn:hover { border-color: var(--brand); color: var(--brand); }
-    .btn-add-reward {
-      display: flex; align-items: center; gap: 7px;
-      background: var(--brand); color: #fff; border: none;
-      font-size: 12.5px; font-weight: 700; font-family: inherit;
-      padding: 9px 16px; border-radius: var(--pill); cursor: pointer; white-space: nowrap;
-    }
-    .btn-add-reward:hover { background: var(--brand-dark); }
 
     /* ── Teal breadcrumb bar ── */
     .crumb-bar {
@@ -188,170 +164,134 @@
 
     .content { padding: 20px 24px 48px; flex: 1; }
 
-    /* ── Stats row (compact) ── */
-    .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 18px; }
-    .stat-card {
-      background: var(--surface); border-radius: var(--radius);
-      padding: 13px 15px; border: 1px solid var(--border);
-      box-shadow: var(--shadow); min-width: 0; overflow: hidden;
-      transition: transform .15s ease, box-shadow .15s ease;
+    /* ── Filter bar ── */
+    .filter-bar {
+      display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 16px 18px; margin-bottom: 16px;
     }
-    .stat-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-hover); }
-    .stat-icon-badge {
-      width: 32px; height: 32px; border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px; color: #fff; margin-bottom: 8px;
+    .filter-field { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+    .filter-field label { font-size: 11px; font-weight: 600; color: var(--muted); }
+    .filter-field select, .filter-field input {
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 12px; font-size: 13px; font-family: inherit; color: var(--text);
+      background: var(--surface); cursor: pointer; min-width: 150px;
     }
-    .stat-label { font-size: 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
-    .stat-value { font-size: 19px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; line-height: 1; margin-bottom: 4px; }
-    .stat-value span { font-size: 11px; font-weight: 600; color: var(--muted); }
-    .stat-period { font-size: 10px; color: var(--muted); }
+    .filter-field.grow { flex: 1; min-width: 220px; }
+    .filter-field.grow select { width: 100%; }
+    .filter-search-btn {
+      border: none; border-radius: 8px; background: var(--brand); color: #fff;
+      font-size: 13px; font-weight: 700; padding: 9px 18px; cursor: pointer;
+      display: flex; align-items: center; gap: 6px; height: 36px; white-space: nowrap;
+    }
+    .filter-search-btn:hover { background: var(--brand-dark); }
+    .filter-meta { font-size: 11.5px; color: var(--muted); margin-left: auto; align-self: center; white-space: nowrap; }
 
-    .stat-card--5 .stat-icon-badge { background: var(--brand); }
-    .stat-card--1 .stat-icon-badge { background: var(--blue); }
-    .stat-card--3 .stat-icon-badge { background: var(--green); }
-    .stat-card--4 .stat-icon-badge { background: var(--orange); }
-
-    /* ── Grid layouts ── */
-    .grid-2 { display: grid; grid-template-columns: 1.7fr 1fr; gap: 16px; margin-bottom: 16px; }
-
-    /* ── Panel ── */
-    .panel { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
-    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; gap: 10px; flex-wrap: wrap; }
-    .panel-title { font-size: 13.5px; font-weight: 700; color: var(--text); }
-    .panel-title::before {
+    /* ── Totals ── */
+    .totals-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; }
+    .totals-title { font-size: 14.5px; font-weight: 700; color: var(--text); }
+    .totals-title::before {
       content: ''; display: inline-block; width: 4px; height: 14px;
       background: var(--brand); border-radius: 2px; margin-right: 8px; vertical-align: middle;
     }
-    .panel-action { font-size: 12px; font-weight: 600; color: var(--brand); cursor: pointer; text-decoration: none; }
-    .panel-action:hover { text-decoration: underline; }
-    .btn-manage {
-      font-size: 11px; font-weight: 700; color: var(--brand);
-      background: var(--brand-bg); border: none; font-family: inherit;
-      padding: 6px 12px; border-radius: var(--pill); cursor: pointer;
-    }
-    .btn-manage:hover { background: #e5d7f5; }
 
-    /* ── Tables ── */
+    .add-to-report { position: relative; }
+    .add-to-report-btn {
+      border: none; border-radius: var(--pill); background: var(--brand); color: #fff;
+      font-size: 12px; font-weight: 700; padding: 8px 15px; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .add-to-report-btn:hover { background: var(--brand-dark); }
+    .add-to-report-panel {
+      display: none; position: absolute; right: 0; top: calc(100% + 8px); z-index: 40;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      box-shadow: var(--shadow-hover); padding: 8px 6px; min-width: 190px;
+    }
+    .add-to-report-panel.open { display: block; }
+    .add-to-report-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 8px; font-size: 12.5px; color: var(--text); cursor: pointer; }
+    .add-to-report-item:hover { background: var(--brand-bg); }
+    .add-to-report-item input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--brand); cursor: pointer; }
+
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 16px; }
+    .stat-card {
+      border-radius: var(--radius); padding: 14px 16px; border: 1px solid var(--border); box-shadow: var(--shadow);
+      background: var(--surface); transition: box-shadow 0.2s ease;
+    }
+    .stat-card:hover { box-shadow: var(--shadow-hover); }
+    .stat-label { font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 7px; }
+    .stat-value { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; color: var(--text); font-variant-numeric: tabular-nums; margin-bottom: 9px; }
+    .stat-breakdown { display: flex; flex-direction: column; gap: 6px; padding-top: 9px; border-top: 1px solid var(--border); }
+    .stat-breakdown-row { display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; }
+    .stat-breakdown-name { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stat-breakdown-val { color: var(--text); font-weight: 700; flex-shrink: 0; margin-left: 8px; }
+    .stat-breakdown-empty { font-size: 11.5px; color: var(--muted); }
+
+    /* ── Panels ── */
+    .panel { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 16px; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; gap: 10px; flex-wrap: wrap; }
+    .panel-title { font-size: 13.5px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .panel-title::before {
+      content: ''; display: inline-block; width: 4px; height: 14px;
+      background: var(--brand); border-radius: 2px; vertical-align: middle;
+    }
+
+    /* ── Table ── */
     .table-wrap { overflow-x: auto; }
     .data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 560px; }
-    .data-table th {
-      padding: 9px 16px; text-align: left; font-size: 10px; font-weight: 700;
-      color: var(--brand-dark); text-transform: uppercase; letter-spacing: 0.06em;
-      background: var(--brand-bg); border-bottom: 1px solid var(--border); white-space: nowrap;
-    }
-    .data-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; white-space: nowrap; }
+    .data-table th { padding: 9px 16px; text-align: left; font-size: 10px; font-weight: 700; color: var(--brand-dark); text-transform: uppercase; letter-spacing: 0.06em; background: var(--bg); border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .data-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     .data-table tr:last-child td { border-bottom: none; }
-    .data-table tr:hover td { background: var(--brand-bg); }
+    .data-table tr:hover td { background: var(--bg); }
+    .rank-cell { display: flex; align-items: center; gap: 8px; }
+    .rank-medal { font-size: 15px; }
+    .mother-cell { display: flex; align-items: center; gap: 9px; }
+    .mother-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--brand), var(--brand-light)); color: #fff; font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .mother-name { font-weight: 700; color: var(--text); }
+    .mother-email { font-size: 10.5px; color: var(--muted); }
 
-    .status-pill { display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 700; border-radius: var(--pill); padding: 3px 9px; }
-    .status-pill.active { background: var(--green-bg); color: #16a34a; }
-    .status-pill.processing { background: var(--amber-bg); color: var(--amber); }
+    .empty-note { text-align: center; color: var(--muted); font-size: 12.5px; padding: 26px; }
 
-    .rewards-toolbar { display: flex; gap: 10px; padding: 0 16px 14px; flex-wrap: wrap; }
-    .search-input-wrap {
-      flex: 1; min-width: 180px; display: flex; align-items: center; gap: 8px;
-      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
-      padding: 8px 12px; font-size: 12.5px; color: var(--muted);
-    }
-    .search-input-wrap i { font-size: 14px; }
-    .search-input-wrap input { border: none; background: none; outline: none; font-family: inherit; font-size: 12.5px; color: var(--text); width: 100%; }
-    .filter-select {
-      display: flex; align-items: center; gap: 6px;
-      background: var(--bg); border: 1px solid var(--border);
-      border-radius: 10px; padding: 8px 12px;
-      font-size: 12.5px; color: var(--text); cursor: pointer; font-family: inherit; font-weight: 500; white-space: nowrap;
-    }
+    .top-video-link { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: var(--brand-dark); background: var(--brand-bg); border: 1px solid var(--border); border-radius: var(--pill); padding: 5px 10px; text-decoration: none; white-space: nowrap; }
+    .top-video-link:hover { background: var(--brand-light); color: #fff; }
+    .top-video-none { font-size: 12px; color: var(--muted); }
 
-    .reward-item-cell { display: flex; align-items: center; gap: 10px; }
-    .reward-thumb {
-      width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
-      background: var(--brand-bg);
-      display: flex; align-items: center; justify-content: center; color: var(--brand); font-size: 14px;
+    @media (max-width: 1100px) {
+      .stats-row { grid-template-columns: repeat(2,1fr) !important; }
     }
-    .reward-name-text { font-size: 12.5px; font-weight: 600; color: var(--text); }
-    .row-actions { display: flex; align-items: center; gap: 4px; }
-    .row-action-btn {
-      width: 26px; height: 26px; border-radius: 7px; border: none; background: var(--bg);
-      display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted); font-size: 13px;
-    }
-    .row-action-btn:hover { background: var(--brand-bg); color: var(--brand); }
-    .row-action-btn.danger:hover { background: var(--red-bg); color: var(--red); }
-
-    /* ── Top Mothers by Points ── */
-    .leaderboard-list { padding: 4px 16px 14px; display: flex; flex-direction: column; gap: 4px; }
-    .lb-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
-    .lb-row:last-child { border-bottom: none; }
-    .lb-rank { width: 22px; font-size: 12.5px; font-weight: 800; color: var(--muted); text-align: center; flex-shrink: 0; }
-    .lb-rank.gold { color: #f59e0b; font-size: 16px; }
-    .lb-rank.silver { color: #94a3b8; font-size: 16px; }
-    .lb-rank.bronze { color: #c2761e; font-size: 16px; }
-    .lb-avatar {
-      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
-      background: linear-gradient(135deg, var(--brand-light), var(--brand));
-      display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 700;
-    }
-    .lb-info { flex: 1; min-width: 0; }
-    .lb-name { font-size: 12.5px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .lb-handle { font-size: 10.5px; color: var(--muted); }
-    .lb-pts { font-size: 12.5px; font-weight: 800; color: var(--text); flex-shrink: 0; }
-
-    /* ── Mobile ── */
-    @media (max-width: 1150px) { .stats-row { grid-template-columns: repeat(2,1fr); } }
-    @media (max-width: 1100px) { .grid-2 { grid-template-columns: 1fr; } }
     @media (max-width: 900px) {
       .sidebar { transform: translateX(-100%); }
       .sidebar.open { transform: translateX(0); }
       .sidebar-overlay.open { display: block; }
-      .main { margin-left: 0; width: 100%; overflow-x: hidden; }
+      .main { margin-left: 0; width: 100%; }
       .hamburger { display: flex; }
-      .content { padding: 16px 10px 78px; width: 100%; box-sizing: border-box; }
-      .stats-row {
-        display: flex; flex-wrap: nowrap; overflow-x: auto;
-        scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
-        gap: 8px; padding-bottom: 6px;
-      }
-      .stats-row .stat-card { scroll-snap-align: start; flex: 0 0 calc(50% - 4px); min-width: calc(50% - 4px); }
-      .stat-card { padding: 12px; }
-      .stat-value { font-size: 18px; }
+      .content { padding: 16px 10px 40px; }
       .topbar-sub { display: none; }
-      .btn-add-reward span { display: none; }
-      .crumb-bar { padding: 8px 12px; }
     }
 
-    /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--brand-light); border-radius: 6px; }
 
-    /* ── Bottom Mobile Nav ── */
     .bottom-nav { display: none; }
     @media (max-width: 900px) {
       .bottom-nav {
         display: flex; align-items: center; justify-content: space-around;
-        position: fixed; left: 0; right: 0; bottom: 0;
-        height: 60px; background: #fff;
-        border-top: 1px solid var(--border);
-        box-shadow: 0 -2px 16px rgba(16,17,19,0.08);
-        z-index: 150;
+        position: fixed; left: 0; right: 0; bottom: 0; height: 60px; background: #fff;
+        border-top: 1px solid var(--border); box-shadow: 0 -2px 16px rgba(16,17,19,0.08); z-index: 150;
         padding-bottom: env(safe-area-inset-bottom);
       }
-      .bottom-nav-item {
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        gap: 3px; text-decoration: none; color: var(--muted);
-        font-size: 10px; font-weight: 600; flex: 1; height: 100%;
-      }
+      .bottom-nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; color: var(--muted); font-size: 10px; font-weight: 600; flex: 1; height: 100%; }
       .bottom-nav-item i { font-size: 19px; }
       .bottom-nav-item.active { color: var(--brand); }
+      .content { padding-bottom: 78px !important; }
     }
-</style>
+  </style>
 </head>
 <body>
 <div class="layout">
 
   <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
-  <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div class="sidebar-logo-badge">
@@ -364,8 +304,8 @@
       <a href="admindash.html" class="nav-item"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
       <a href="admincont.html" class="nav-item"><i class="ti ti-file-text"></i> Content</a>
       <a href="admincamp.html" class="nav-item"><i class="ti ti-speakerphone"></i> Campaigns</a>
-      <a href="adminreward.html" class="nav-item active"><i class="ti ti-gift"></i> Rewards</a>
-      <a href="adminreport.html" class="nav-item"><i class="ti ti-chart-bar"></i> Reports</a>
+      <a href="adminreward.html" class="nav-item"><i class="ti ti-gift"></i> Rewards</a>
+      <a href="adminreport.html" class="nav-item active"><i class="ti ti-chart-bar"></i> Reports</a>
       <a href="adminsettings.html" class="nav-item"><i class="ti ti-settings"></i> Settings</a>
     </div>
 
@@ -382,19 +322,16 @@
     </div>
   </aside>
 
-  <!-- Main -->
   <div class="main">
     <div class="topbar">
       <div class="topbar-left">
         <button class="hamburger" id="hamburger"><i class="ti ti-menu-2"></i></button>
         <div>
-          <div class="topbar-title">Rewards Management <span>🎁</span></div>
-          <div class="topbar-sub">Create, manage and track rewards, points and tiers.</div>
+          <div class="topbar-title">Campaign Reports <span>📊</span></div>
+          <div class="topbar-sub">Performance by platform, top mothers and top videos.</div>
         </div>
       </div>
       <div class="topbar-right">
-        <div class="date-chip"><i class="ti ti-calendar" style="font-size:13px"></i> <span id="current-date-label">Loading...</span></div>
-        <button class="btn-add-reward" onclick="window.location.href='adminsettings.html?section=rewards'"><i class="ti ti-plus" style="font-size:15px"></i> <span>Add New Reward</span></button>
         <div id="topbar-logout-btn" title="Log out"><i class="ti ti-logout"></i></div>
       </div>
     </div>
@@ -402,87 +339,69 @@
     <!-- Teal breadcrumb bar -->
     <div class="crumb-bar">
       <div class="crumb-left">
-        <i class="ti ti-gift"></i>
-        <span>Rewards</span>
-        <span class="crumb-path">Home &nbsp;›&nbsp; Rewards Management</span>
+        <i class="ti ti-chart-bar"></i>
+        <span>Reports</span>
+        <span class="crumb-path">Home &nbsp;›&nbsp; Campaign Reports</span>
       </div>
     </div>
 
     <div class="content">
 
-      <!-- Stats -->
-      <div class="stats-row">
-        <div class="stat-card stat-card--5">
-          <div class="stat-icon-badge"><i class="ti ti-coin"></i></div>
-          <div class="stat-label">Total Points Distributed</div>
-          <div class="stat-value" id="stat-total-points">– <span>pts</span></div>
-          <span class="stat-period" id="stat-total-points-period">Loading...</span>
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <div class="filter-field">
+          <label>From</label>
+          <input type="text" id="filter-from" readonly>
         </div>
-        <div class="stat-card stat-card--1">
-          <div class="stat-icon-badge"><i class="ti ti-gift"></i></div>
-          <div class="stat-label">Rewards Redeemed</div>
-          <div class="stat-value" id="stat-redeemed-count">–</div>
-          <span class="stat-period" id="stat-redeemed-period">Loading...</span>
+        <div class="filter-field">
+          <label>To</label>
+          <input type="text" id="filter-to" readonly>
         </div>
-        <div class="stat-card stat-card--4">
-          <div class="stat-icon-badge"><i class="ti ti-clock"></i></div>
-          <div class="stat-label">Pending Rewards</div>
-          <div class="stat-value" id="stat-pending-count">–</div>
-          <span class="stat-period" id="stat-pending-period">Loading...</span>
+        <div class="filter-field grow">
+          <label>Campaign</label>
+          <select id="campaign-select">
+            <option value="">Loading campaigns...</option>
+          </select>
         </div>
-        <div class="stat-card stat-card--3">
-          <div class="stat-icon-badge"><i class="ti ti-box"></i></div>
-          <div class="stat-label">Total Rewards</div>
-          <div class="stat-value" id="stat-total-rewards">–</div>
-          <span class="stat-period" id="stat-total-rewards-period">Loading...</span>
+        <div class="filter-field">
+          <label>Platform</label>
+          <select id="platform-select">
+            <option value="tiktok">TikTok</option>
+            <option value="instagram">Instagram</option>
+          </select>
         </div>
+        <button class="filter-search-btn" id="filter-search-btn"><i class="ti ti-search"></i> Search</button>
       </div>
 
-      <!-- Redemption History -->
-      <div class="panel" style="margin-bottom:16px;">
+      <!-- Totals -->
+      <div class="totals-header">
+        <div class="totals-title">Totals</div>
+        <div class="add-to-report">
+          <button class="add-to-report-btn" id="add-to-report-btn"><i class="ti ti-plus"></i> Add to report</button>
+          <div class="add-to-report-panel" id="add-to-report-panel">
+            <label class="add-to-report-item"><input type="checkbox" data-metric="videos" checked> Total Videos</label>
+            <label class="add-to-report-item"><input type="checkbox" data-metric="views" checked> Total Views</label>
+            <label class="add-to-report-item"><input type="checkbox" data-metric="eng" checked> Total Engagements</label>
+            <label class="add-to-report-item"><input type="checkbox" data-metric="likes"> Total Likes</label>
+            <label class="add-to-report-item"><input type="checkbox" data-metric="comments"> Total Comments</label>
+            <label class="add-to-report-item"><input type="checkbox" data-metric="shares"> Total Shares</label>
+          </div>
+        </div>
+      </div>
+      <div class="stats-row" id="stats-row"></div>
+
+      <!-- Top 5 mothers -->
+      <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">Redemption History</div>
+          <div class="panel-title">Top 5 Performing Mothers</div>
         </div>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>Mother</th><th>Reward</th><th>Date Redeemed</th><th>Status</th><th>Action</th></tr></thead>
-            <tbody id="redemption-history-tbody">
-              <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Loading redemptions...</td></tr>
+            <thead><tr><th>Rank</th><th>Mother</th><th>Views</th><th>Top Video</th></tr></thead>
+            <tbody id="top-mothers-tbody">
+              <tr><td colspan="4" class="empty-note">Loading...</td></tr>
             </tbody>
           </table>
-        </div>
-      </div>
-
-      <!-- All Rewards + Top Mothers by Points -->
-      <div class="grid-2">
-        <div class="panel">
-          <div class="panel-header"><div class="panel-title">All Rewards</div></div>
-          <div class="rewards-toolbar">
-            <div class="search-input-wrap"><i class="ti ti-search"></i><input type="text" id="rewards-search-input" placeholder="Search rewards..."></div>
-            <select class="filter-select" id="rewards-status-filter" style="appearance:none;-webkit-appearance:none;">
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead><tr><th>Reward</th><th>Points Cost</th><th>Status</th><th>Actions</th></tr></thead>
-              <tbody id="all-rewards-tbody">
-                <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Loading rewards...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">Top Mothers by Points</div>
-          </div>
-          <div class="leaderboard-list" id="leaderboard-list">
-            <div style="text-align:center;color:var(--muted);font-size:12.5px;padding:12px 0;">Loading leaderboard...</div>
-          </div>
-          <div style="padding:0 16px 16px;"><a class="panel-action" href="#">View All Leaderboard</a></div>
         </div>
       </div>
 
@@ -490,23 +409,12 @@
   </div><!-- /main -->
 </div><!-- /layout -->
 
-<!-- ══ Bottom Mobile Nav ══ -->
 <nav class="bottom-nav">
-  <a class="bottom-nav-item" href="admindash.html">
-    <i class="ti ti-layout-dashboard"></i> Home
-  </a>
-  <a class="bottom-nav-item" href="admincont.html">
-    <i class="ti ti-file-text"></i> Content
-  </a>
-  <a class="bottom-nav-item" href="admincamp.html">
-    <i class="ti ti-speakerphone"></i> Campaigns
-  </a>
-  <a class="bottom-nav-item active" href="adminreward.html">
-    <i class="ti ti-gift"></i> Rewards
-  </a>
-  <a class="bottom-nav-item" href="adminsettings.html">
-    <i class="ti ti-settings"></i> Settings
-  </a>
+  <a class="bottom-nav-item" href="admindash.html"><i class="ti ti-layout-dashboard"></i> Home</a>
+  <a class="bottom-nav-item" href="admincont.html"><i class="ti ti-file-text"></i> Content</a>
+  <a class="bottom-nav-item" href="admincamp.html"><i class="ti ti-speakerphone"></i> Campaigns</a>
+  <a class="bottom-nav-item active" href="adminreport.html"><i class="ti ti-chart-bar"></i> Reports</a>
+  <a class="bottom-nav-item" href="adminsettings.html"><i class="ti ti-settings"></i> Settings</a>
 </nav>
 
 <script>
@@ -529,323 +437,285 @@
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdGVidmZlZ2Vvamprcmt6Ym9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODQ2NjksImV4cCI6MjA5ODU2MDY2OX0.OcCwAD-q6d1XeyHW6f1Gy9r_sBdRV3eWAOUsKLemKEA'
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-  document.getElementById('topbar-logout-btn').addEventListener('click', async () => {
-    await supabase.auth.signOut()
-    window.location.href = 'login.html'
-  })
-
   document.getElementById('logout-link').addEventListener('click', async (e) => {
-    e.preventDefault()
-    await supabase.auth.signOut()
-    window.location.href = 'login.html'
-  })
+    e.preventDefault();
+    await supabase.auth.signOut();
+    window.location.href = 'login.html';
+  });
+  document.getElementById('topbar-logout-btn').addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    window.location.href = 'login.html';
+  });
 
   async function applyPlatformLogo() {
-    const { data, error } = await supabase.from('platform_settings').select('logo_url').eq('id', 1).single()
-    if (error || !data?.logo_url) return
-    document.querySelectorAll('.sidebar-logo-img').forEach(img => {
-      img.src = data.logo_url
-    })
-  }
-
-  async function loadUserProfile() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('full_name, email, role')
-      .eq('id', session.user.id)
-      .single();
-
-    if (error || !profile) {
-      console.error('Profile load error:', error);
-      return;
-    }
-
-    const name = profile.full_name || profile.email || session.user.email;
-    const initial = name.charAt(0).toUpperCase();
-    const roleLabel = profile.role === 'admin' ? 'Super Administrator'
-      : profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
-      : 'Administrator';
-
-    const avatarEl = document.querySelector('.user-avatar');
-    const nameEl = document.querySelector('.user-name');
-    const roleEl = document.querySelector('.user-role');
-    if (avatarEl) avatarEl.textContent = initial;
-    if (nameEl) nameEl.textContent = name;
-    if (roleEl) roleEl.textContent = roleLabel;
+    const { data } = await supabase.from('platform_settings').select('logo_url').eq('id', 1).single();
+    if (data?.logo_url) document.getElementById('sidebar-logo-img').src = data.logo_url;
   }
 
   function escapeHtml(str) {
     const div = document.createElement('div');
-    div.textContent = str;
+    div.textContent = str || '';
     return div.innerHTML;
   }
 
-  let allRewardsData = [];
+  function formatNumber(n) {
+    n = n || 0;
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+    return String(n);
+  }
 
-  async function loadAllRewards() {
-    const tbody = document.getElementById('all-rewards-tbody');
-    const { data: rewards, error } = await supabase
-      .from('rewards')
-      .select('*')
-      .order('created_at', { ascending: false });
+  function engagementOf(row) {
+    return (row.likes || 0) + (row.comments || 0) + (row.shares || 0);
+  }
+
+  let allCampaigns = [];
+  let allContent = [];   // full unfiltered content for the selected campaign
+  let profileById = {};
+
+  /* ── Chart.js instances (created once, updated on redraw) ── */
+  function makeDonut(canvasId) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    return new Chart(ctx, {
+      type: 'doughnut',
+      data: { labels: ['No data'], datasets: [{ data: [1], backgroundColor: ['#e5e7ea'], borderWidth: 0, hoverOffset: 4 }] },
+      options: {
+        cutout: '72%', animation: false, resizeDelay: 100,
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#2b2b3a', bodyFont: { size: 12 }, padding: 10, cornerRadius: 8 } }
+      }
+    });
+  }
+
+  async function loadCampaigns() {
+    const select = document.getElementById('campaign-select');
+
+    // Wire up the platform dropdown immediately — it must not depend on the
+    // campaign fetch succeeding, otherwise switching TikTok/Instagram does
+    // nothing whenever campaigns fail to load or are still loading.
+    document.getElementById('platform-select').addEventListener('change', renderForCurrentPlatform);
+    select.addEventListener('change', () => loadReport(select.value));
+
+    const { data, error } = await supabase
+      .from('campaigns')
+      .select('id, name, start_date, end_date, is_draft')
+      .order('start_date', { ascending: false });
 
     if (error) {
-      console.error('Failed to load rewards:', error);
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load rewards.</td></tr>';
+      // Surface the real Supabase error (permission denied, bad column, no
+      // session, etc.) instead of a generic message — check the console
+      // for this, it tells you exactly why the query failed.
+      console.error('Failed to load campaigns:', error);
+      select.innerHTML = `<option value="">Couldn't load campaigns (${escapeHtml(error.message || 'unknown error')})</option>`;
+      renderForCurrentPlatform();
       return;
     }
 
-    allRewardsData = rewards || [];
-    renderRewardsTable(allRewardsData);
-  }
+    allCampaigns = data || [];
 
-  function renderRewardsTable(rewards) {
-    const tbody = document.getElementById('all-rewards-tbody');
-
-    if (!rewards || rewards.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">No rewards match.</td></tr>';
+    if (allCampaigns.length === 0) {
+      select.innerHTML = '<option value="">No campaigns yet</option>';
+      renderForCurrentPlatform();
       return;
     }
 
-    tbody.innerHTML = rewards.map(r => {
-      const thumb = r.image_url
-        ? `<img src="${r.image_url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`
-        : `<i class="ti ti-gift"></i>`;
-      const statusPill = r.is_active
-        ? '<span class="status-pill active">Active</span>'
-        : '<span class="status-pill" style="background:var(--bg);color:var(--muted);">Inactive</span>';
+    select.innerHTML = allCampaigns.map(c =>
+      `<option value="${c.id}">${escapeHtml(c.name)}${c.is_draft ? ' (Draft)' : ''}</option>`
+    ).join('');
 
-      return `
-        <tr data-id="${r.id}">
-          <td><div class="reward-item-cell"><div class="reward-thumb">${thumb}</div><span class="reward-name-text">${escapeHtml(r.title)}</span></div></td>
-          <td>${r.points_cost} pts</td>
-          <td>${statusPill}</td>
-          <td>
-            <div class="row-actions">
-              <button class="row-action-btn" onclick="window.location.href='adminsettings.html?section=rewards'"><i class="ti ti-pencil"></i></button>
-              <button class="row-action-btn danger delete-reward-btn"><i class="ti ti-trash"></i></button>
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join('');
-
-    tbody.querySelectorAll('.delete-reward-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const row = btn.closest('tr');
-        const id = row.dataset.id;
-        const name = row.querySelector('.reward-name-text').textContent;
-        if (!confirm(`Remove "${name}" from the rewards catalog?`)) return;
-        const { error: delError } = await supabase.from('rewards').delete().eq('id', id);
-        if (delError) { console.error(delError); alert('Failed to remove reward.'); return; }
-        loadAllRewards();
-      });
-    });
+    loadReport(select.value);
   }
 
-  function applyRewardsFilters() {
-    const searchTerm = (document.getElementById('rewards-search-input')?.value || '').trim().toLowerCase();
-    const statusVal = document.getElementById('rewards-status-filter')?.value || 'all';
+  async function loadReport(campaignId) {
+    if (!campaignId) return;
 
-    let filtered = allRewardsData;
-    if (statusVal === 'active') filtered = filtered.filter(r => r.is_active);
-    if (statusVal === 'inactive') filtered = filtered.filter(r => !r.is_active);
-    if (searchTerm) filtered = filtered.filter(r => (r.title || '').toLowerCase().includes(searchTerm));
+    const campaign = allCampaigns.find(c => c.id === campaignId);
+    const fromEl = document.getElementById('filter-from');
+    const toEl = document.getElementById('filter-to');
+    if (campaign) {
+      const start = campaign.start_date ? new Date(campaign.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+      const end = campaign.end_date ? new Date(campaign.end_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+      if (fromEl) fromEl.value = start;
+      if (toEl) toEl.value = end;
+    }
 
-    renderRewardsTable(filtered);
-  }
-
-  document.getElementById('rewards-search-input')?.addEventListener('input', applyRewardsFilters);
-  document.getElementById('rewards-status-filter')?.addEventListener('change', applyRewardsFilters);
-
-  function normalizeUrl(u) {
-    if (!u) return '';
-    return u.split('?')[0].replace(/\/$/, '').toLowerCase();
-  }
-
-  async function loadTotalRewardsStat() {
-    const { count, error } = await supabase.from('rewards').select('*', { count: 'exact', head: true });
-    const el = document.getElementById('stat-total-rewards');
-    const periodEl = document.getElementById('stat-total-rewards-period');
-    if (error) { console.error(error); if (el) el.textContent = '0'; return; }
-    if (el) el.textContent = count ?? 0;
-    if (periodEl) periodEl.textContent = 'Live in catalog';
-  }
-
-  async function loadPointsOverview() {
-    const { data: profiles, error: profErr } = await supabase
-      .from('profiles')
-      .select('id, full_name, email')
-      .eq('role', 'mother');
-    if (profErr) { console.error(profErr); return; }
-
-    const { data: content, error: contentErr } = await supabase
+    const { data: rows, error } = await supabase
       .from('submitted_content')
-      .select('user_id, video_url');
-    if (contentErr) { console.error(contentErr); return; }
+      .select('id, user_id, platform, video_url, caption, views, likes, comments, shares')
+      .eq('campaign_id', campaignId);
 
-    const { data: redemptions, error: redeemErr } = await supabase
-      .from('reward_redemptions')
-      .select('user_id, points_cost');
-    if (redeemErr) console.error(redeemErr);
+    if (error) {
+      console.error('Failed to load campaign content:', error);
+      allContent = [];
+    } else {
+      allContent = rows || [];
+    }
 
-    const linksByUser = {};
-    content.forEach(c => {
-      if (!linksByUser[c.user_id]) linksByUser[c.user_id] = new Set();
-      linksByUser[c.user_id].add(normalizeUrl(c.video_url));
+    const userIds = [...new Set(allContent.map(r => r.user_id))];
+    profileById = {};
+    if (userIds.length) {
+      const { data: profiles, error: profErr } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', userIds);
+      if (profErr) console.error(profErr);
+      (profiles || []).forEach(p => { profileById[p.id] = p; });
+    }
+
+    renderForCurrentPlatform();
+  }
+
+  function renderForCurrentPlatform() {
+    const platform = document.getElementById('platform-select').value; // 'tiktok' | 'instagram'
+    /* header stats — filtered to the selected platform */
+    const headerRows = allContent.filter(r => r.platform === platform);
+    const totalViews = headerRows.reduce((s, r) => s + (r.views || 0), 0);
+    const totalComments = headerRows.reduce((s, r) => s + (r.comments || 0), 0);
+    const totalLikes = headerRows.reduce((s, r) => s + (r.likes || 0), 0);
+    const totalEngagements = headerRows.reduce((s, r) => s + engagementOf(r), 0);
+
+    const totalShares = headerRows.reduce((s, r) => s + (r.shares || 0), 0);
+    renderTotals(headerRows, {
+      videos: headerRows.length, views: totalViews, eng: totalEngagements,
+      likes: totalLikes, comments: totalComments, shares: totalShares
     });
 
-    const redeemedByUser = {};
-    (redemptions || []).forEach(r => {
-      redeemedByUser[r.user_id] = (redeemedByUser[r.user_id] || 0) + r.points_cost;
-    });
+    renderTopMothers(headerRows);
+  }
 
-    const mothers = profiles.map(p => ({
-      ...p,
-      points: (linksByUser[p.id] ? linksByUser[p.id].size : 0) * 100 - (redeemedByUser[p.id] || 0)
-    })).sort((a, b) => b.points - a.points);
+  const METRIC_DEFS = {
+    videos:   { label: 'Total Videos',       icon: 'ti-movie' },
+    views:    { label: 'Total Views',        icon: 'ti-eye' },
+    eng:      { label: 'Total Engagements',  icon: 'ti-flame' },
+    likes:    { label: 'Total Likes',        icon: 'ti-heart' },
+    comments: { label: 'Total Comments',     icon: 'ti-message-circle' },
+    shares:   { label: 'Total Shares',       icon: 'ti-share' }
+  };
 
-   const totalPoints = mothers.reduce((sum, m) => sum + m.points, 0);
+  function checkedMetrics() {
+    return [...document.querySelectorAll('#add-to-report-panel input[type="checkbox"]:checked')]
+      .map(cb => cb.dataset.metric);
+  }
 
-    document.getElementById('stat-total-points').innerHTML = `${totalPoints.toLocaleString()} <span>pts</span>`;
-    document.getElementById('stat-total-points-period').textContent = 'Across all mothers';
+  function metricValueForRow(row, metric) {
+    if (metric === 'videos') return 1;
+    if (metric === 'views') return row.views || 0;
+    if (metric === 'eng') return engagementOf(row);
+    if (metric === 'likes') return row.likes || 0;
+    if (metric === 'comments') return row.comments || 0;
+    if (metric === 'shares') return row.shares || 0;
+    return 0;
+  }
 
-    const listEl = document.getElementById('leaderboard-list');
-    const top5 = mothers.slice(0, 5);
-    if (top5.length === 0) {
-      listEl.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:12px 0;">No mothers yet.</div>';
+  function renderTotals(rows, totals) {
+    const container = document.getElementById('stats-row');
+    const metrics = checkedMetrics();
+
+    if (metrics.length === 0) {
+      container.innerHTML = '<div class="empty-note">No metrics selected — use "Add to report" above.</div>';
       return;
     }
-    const medalClasses = ['gold', 'silver', 'bronze'];
-    listEl.innerHTML = top5.map((m, i) => {
-      const name = m.full_name || m.email || 'Unknown';
-      const initial = name.charAt(0).toUpperCase();
-      const rankHtml = i < 3
-        ? `<div class="lb-rank ${medalClasses[i]}"><i class="ti ti-medal"></i></div>`
-        : `<div class="lb-rank">${i + 1}</div>`;
+
+    container.innerHTML = metrics.map(metric => {
+      const def = METRIC_DEFS[metric];
+      if (!def) return '';
+
+      // Per-mother breakdown, top 3, for this metric
+      const byMother = {};
+      rows.forEach(r => {
+        byMother[r.user_id] = (byMother[r.user_id] || 0) + metricValueForRow(r, metric);
+      });
+      const ranked = Object.entries(byMother)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+
+      const breakdownHtml = ranked.length
+        ? ranked.map(([userId, val]) => {
+            const mother = profileById[userId];
+            const name = mother ? (mother.full_name || mother.email) : 'Unknown';
+            return `<div class="stat-breakdown-row"><span class="stat-breakdown-name">${escapeHtml(name)}</span><span class="stat-breakdown-val">${formatNumber(val)}</span></div>`;
+          }).join('')
+        : '<div class="stat-breakdown-empty">No data</div>';
+
       return `
-        <div class="lb-row">
-          ${rankHtml}
-          <div class="lb-avatar">${initial}</div>
-          <div class="lb-info"><div class="lb-name">${escapeHtml(name)}</div><div class="lb-handle">${escapeHtml(m.email || '')}</div></div>
-          <div class="lb-pts">${m.points.toLocaleString()}</div>
+        <div class="stat-card">
+          <div class="stat-label">${def.label}</div>
+          <div class="stat-value">${formatNumber(totals[metric] || 0)}</div>
+          <div class="stat-breakdown">${breakdownHtml}</div>
         </div>
       `;
     }).join('');
   }
 
-  async function loadRedeemedStats() {
-    const { data: redemptions, error } = await supabase
-      .from('reward_redemptions')
-      .select('status');
-    const redeemedEl = document.getElementById('stat-redeemed-count');
-    const redeemedPeriodEl = document.getElementById('stat-redeemed-period');
-    const pendingEl = document.getElementById('stat-pending-count');
-    const pendingPeriodEl = document.getElementById('stat-pending-period');
+  function renderTopMothers(rows) {
+    const tbody = document.getElementById('top-mothers-tbody');
 
-    if (error) {
-      console.error(error);
-      if (redeemedEl) redeemedEl.textContent = '0';
-      if (pendingEl) pendingEl.textContent = '0';
+    const byMother = {};
+    rows.forEach(r => {
+      if (!byMother[r.user_id]) byMother[r.user_id] = { views: 0, engagements: 0, videos: [] };
+      byMother[r.user_id].views += (r.views || 0);
+      byMother[r.user_id].engagements += engagementOf(r);
+      byMother[r.user_id].videos.push(r);
+    });
+
+    const ranked = Object.entries(byMother)
+      .map(([userId, stats]) => ({ userId, ...stats }))
+      .sort((a, b) => (b.views + b.engagements) - (a.views + a.engagements))
+      .slice(0, 5);
+
+    if (ranked.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-note">No submissions for this selection yet.</td></tr>';
       return;
     }
 
-    const total = (redemptions || []).length;
-    const pending = (redemptions || []).filter(r => r.status !== 'Delivered').length;
+    const medals = ['🥇', '🥈', '🥉'];
+    tbody.innerHTML = ranked.map((m, i) => {
+      const mother = profileById[m.userId];
+      const name = mother ? (mother.full_name || mother.email) : 'Unknown';
+      const email = mother ? (mother.email || '') : '';
+      const initial = name.charAt(0).toUpperCase();
+      const rankHtml = i < 3 ? `<span class="rank-medal">${medals[i]}</span>` : `<span>${i + 1}</span>`;
 
-    if (redeemedEl) redeemedEl.textContent = total;
-    if (redeemedPeriodEl) redeemedPeriodEl.textContent = 'All time';
-    if (pendingEl) pendingEl.textContent = pending;
-    if (pendingPeriodEl) pendingPeriodEl.textContent = 'Awaiting delivery';
-  }
-
-  async function loadRedemptionHistory() {
-    const tbody = document.getElementById('redemption-history-tbody');
-
-    const { data: redemptions, error } = await supabase
-      .from('reward_redemptions')
-      .select('*')
-      .order('redeemed_at', { ascending: false });
-
-    if (error) {
-      console.error('Failed to load redemption history:', error);
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load redemptions.</td></tr>';
-      return;
-    }
-
-    if (!redemptions || redemptions.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">No redemptions yet.</td></tr>';
-      return;
-    }
-
-    const userIds = [...new Set(redemptions.map(r => r.user_id))];
-    const { data: profiles, error: profErr } = await supabase
-      .from('profiles')
-      .select('id, full_name, email')
-      .in('id', userIds);
-    if (profErr) console.error(profErr);
-
-    const profileById = {};
-    (profiles || []).forEach(p => { profileById[p.id] = p; });
-
-    tbody.innerHTML = redemptions.map(r => {
-      const mother = profileById[r.user_id];
-      const motherName = mother ? (mother.full_name || mother.email) : 'Unknown';
-      const date = new Date(r.redeemed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      const delivered = r.status === 'Delivered';
-      const statusPill = delivered
-        ? '<span class="status-pill active">Delivered</span>'
-        : '<span class="status-pill processing">Processing</span>';
-      const actionHtml = delivered
-        ? '<span style="color:var(--muted);font-size:11.5px;">—</span>'
-        : `<button class="btn-manage mark-delivered-btn" data-id="${r.id}">Mark Delivered</button>`;
+      // The single video (by views) that drove this mother's ranking
+      const topVideo = [...m.videos].sort((a, b) => (b.views || 0) - (a.views || 0))[0];
+      const topVideoCell = topVideo && topVideo.video_url
+        ? `<a class="top-video-link" href="${topVideo.video_url}" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> ${formatNumber(topVideo.views || 0)} views</a>`
+        : `<span class="top-video-none">No link</span>`;
 
       return `
-        <tr data-id="${r.id}">
-          <td>${escapeHtml(motherName)}</td>
-          <td>${escapeHtml(r.reward_title)}</td>
-          <td>${date}</td>
-          <td class="status-cell">${statusPill}</td>
-          <td>${actionHtml}</td>
+        <tr>
+          <td><div class="rank-cell">${rankHtml}</div></td>
+          <td>
+            <div class="mother-cell">
+              <div class="mother-avatar">${initial}</div>
+              <div><div class="mother-name">${escapeHtml(name)}</div><div class="mother-email">${escapeHtml(email)}</div></div>
+            </div>
+          </td>
+          <td>${formatNumber(m.views)}</td>
+          <td>${topVideoCell}</td>
         </tr>
       `;
     }).join('');
-
-    tbody.querySelectorAll('.mark-delivered-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const id = btn.dataset.id;
-        const { error: updateError } = await supabase
-          .from('reward_redemptions')
-          .update({ status: 'Delivered' })
-          .eq('id', id);
-        if (updateError) {
-          console.error(updateError);
-          alert('Failed to update status.');
-          return;
-        }
-        loadRedemptionHistory();
-        loadRedeemedStats();
-      });
-    });
   }
 
-  function renderCurrentDate() {
-    const el = document.getElementById('current-date-label');
-    if (!el) return;
-    const today = new Date();
-    el.textContent = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  }
-  renderCurrentDate();
+  /* "Add to report" checkbox dropdown */
+  const addToReportBtn = document.getElementById('add-to-report-btn');
+  const addToReportPanel = document.getElementById('add-to-report-panel');
+  addToReportBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    addToReportPanel.classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (!addToReportPanel.contains(e.target) && e.target !== addToReportBtn) {
+      addToReportPanel.classList.remove('open');
+    }
+  });
+  addToReportPanel.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', renderForCurrentPlatform);
+  });
 
-  loadUserProfile();
-  loadAllRewards();
-  loadTotalRewardsStat();
-  loadPointsOverview();
-  loadRedeemedStats();
-  loadRedemptionHistory();
+  document.getElementById('filter-search-btn').addEventListener('click', renderForCurrentPlatform);
+
+  loadCampaigns();
   applyPlatformLogo();
 </script>
 </body>
