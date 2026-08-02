@@ -5,12 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
   <title>Aiwibi System — Connect Accounts</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
       height: 100%;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #ede9ff;
       -webkit-font-smoothing: antialiased;
     }
@@ -18,7 +21,7 @@
     .page {
       min-height: 100vh;
       min-height: 100dvh;
-      display: flex;
+      display: flex; 
       align-items: center;
       justify-content: center;
       padding: 20px 16px;
@@ -266,23 +269,24 @@
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      padding: 16px 14px 14px;
-      border: 1.5px solid #eae6ff;
-      border-radius: 16px;
-      background: #faf9ff;
+      padding: 14px 14px 13px;
+      border: 1px solid #eef0f4;
+      border-radius: 6px;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(44,44,58,0.07);
       cursor: pointer;
-      transition: border-color 0.18s, background 0.18s, transform 0.1s;
+      transition: border-color 0.18s, box-shadow 0.18s, transform 0.1s;
       -webkit-tap-highlight-color: transparent;
       position: relative;
     }
-    .connect-card:active { transform: scale(0.98); background: #f3f0ff; }
-    .connect-card.connected { border-color: #22c55e; background: #f0fdf4; }
+    .connect-card:active { transform: scale(0.98); box-shadow: 0 4px 10px rgba(44,44,58,0.10); }
+    .connect-card.connected { border-color: #22c55e; background: #f6fdf8; }
 
     .platform-logo {
-      width: 42px; height: 42px; border-radius: 12px;
+      width: 32px; height: 32px; border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
     .platform-logo.tiktok-logo { background: #000; }
     .platform-logo.ig-logo {
@@ -508,7 +512,6 @@
 
       <!-- Text -->
       <div class="heading">Let's connect your accounts</div>
-      <div class="subheading">Link TikTok and Instagram and we'll keep track of your posts for you — no manual updates needed.</div>
 
       <!-- Connect cards -->
       <div class="connect-grid">
