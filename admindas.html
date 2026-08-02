@@ -7,84 +7,55 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } 
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      /* ── Brand: Sovereign Gold ── */ 
-      --brand: #1b7fd4;
-      --brand-deep: #0f5fa8; 
-      --brand-soft: #7cc0f0; 
-      --brand-bg: #e3f2fd;
-      --brand-gradient: linear-gradient(135deg, #1567b8 0%, #4aa3e8 50%, #1b7fd4 100%);
+      /* ── PolluxUI-style palette ── */
+      --brand: #844FC1;
+      --brand-dark: #6c3fa0;
+      --brand-light: #b48ee0;
+      --brand-bg: #f3ecfb;
 
-      /* ── Accent: Emerald Command ── */
-      --accent: #10b981;
-      --accent-soft: #6ee7b7;
-      --accent-bg: #ecfdf5;
-      --accent-gradient: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      --teal: #14c1bd;
+      --teal-dark: #0d9d99;
 
-      /* ── Deep ruby for admin badge / alerts ── */
-      --ruby: #e11d48;
-      --ruby-soft: #fb7185;
-      --ruby-bg: #fff1f2;
+      --gray: #6C7293;
+      --green: #21BF06;
+      --green-bg: #e9fbe6;
+      --blue: #3B86D1;
+      --blue-bg: #eaf3fc;
+      --orange: #f5942c;
+      --orange-bg: #fef1e2;
 
-      /* ── Indigo highlight ── */
-      --indigo: #6366f1;
-      --indigo-soft: #a5b4fc;
-      --indigo-bg: #eef2ff;
-
-      /* ── Surfaces ── */
+      --bg: #F8F9FA;
       --surface: #ffffff;
-      --surface-2: #f7fbfe;
-      --bg-solid: #f0f8ff;
+      --text: #2b2b3a;
+      --muted: #6C7293;
+      --border: #eef0f4;
 
-      /* ── Sidebar: Midnight Obsidian ── */
-      --sidebar-gradient: linear-gradient(180deg,
-        #07203a 0%,
-        #0a2847 25%,
-        #0d3054 55%,
-        #0f3760 80%,
-        #123e6b 100%
-      );
-      --sidebar-active: #1b7fd4;
-      --sidebar-active-bg: linear-gradient(90deg, rgba(27,127,212,0.22) 0%, rgba(27,127,212,0.05) 100%);
-      --sidebar-hover: rgba(27,127,212,0.09);
-
-      /* ── Text ── */
-      --text: #101113;
-      --text-soft: #3a3d42;
-      --muted: #8a8f98;
-
-      /* ── Border ── */
-      --border: #d9eaf6;
-      --border-soft: #e6f2fb;
-
-      /* ── Status ── */
-      --green: #10b981;
-      --green-bg: #ecfdf5;
-      --red: #e11d48;
-      --red-bg: #fff1f2;
+      --red: #e4566e;
+      --red-bg: #fdeaee;
       --amber: #d97706;
       --amber-bg: #fffbeb;
-      --blue: #3b82f6;
-      --blue-bg: #eff6ff;
 
-      /* ── Social ── */
-      --tiktok: #010101;
-      --instagram: #e1306c;
+      --sidebar-grad: linear-gradient(180deg, #0a1c38 0%, #0f2a4f 45%, #163d6e 100%);
+      --sidebar-text: rgba(255,255,255,0.65);
+      --sidebar-text-hover: rgba(255,255,255,0.92);
+      --sidebar-border: rgba(255,255,255,0.08);
 
-      /* ── Misc ── */
-      --radius: 20px;
+      --radius: 6px;
       --pill: 999px;
-      --sidebar-w: 220px;
+      --sidebar-w: 230px;
+      --shadow: 0 1px 3px rgba(44,44,58,0.07);
+      --shadow-hover: 0 4px 10px rgba(44,44,58,0.10);
     }
 
     html, body {
       height: 100%;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
       -webkit-font-smoothing: antialiased;
@@ -92,75 +63,74 @@
 
     .layout { display: flex; min-height: 100vh; overflow-x: hidden; width: 100%; }
 
-    /* ── Sidebar ── */
+    /* ── Sidebar (light, PolluxUI style) ── */
     .sidebar {
       width: var(--sidebar-w);
-      background: var(--sidebar-bg);
+      background: var(--sidebar-grad);
+      border-right: 1px solid rgba(0,0,0,0.15);
       display: flex; flex-direction: column;
       position: fixed; top: 0; left: 0; bottom: 0;
       z-index: 100; overflow-y: auto;
     }
     .sidebar-logo {
-      height: 60px;
+      height: 64px;
       padding: 10px 18px;
       display: flex; align-items: center;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
+      border-bottom: 1px solid var(--sidebar-border);
     }
     .sidebar-logo-badge {
-      background: #ffffff;
+      background: var(--brand-bg);
       border-radius: 10px;
       padding: 7px 14px;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.18);
     }
-    .sidebar-logo-img {
-      max-width: 140px; max-height: 28px; width: auto; height: auto; display: block;
-    }
+    .sidebar-logo-img { max-width: 140px; max-height: 28px; width: auto; height: auto; display: block; }
 
-    .sidebar-section { padding: 10px 10px 4px; }
+    .sidebar-section { padding: 14px 10px 4px; }
     .sidebar-section-label {
-      font-size: 9px; font-weight: 700; letter-spacing: 1.8px;
-      color: rgba(255,255,255,0.28); text-transform: uppercase;
-      padding: 0 8px; margin-bottom: 4px;
+      font-size: 10px; font-weight: 700; letter-spacing: 1.4px;
+      color: var(--blue); opacity: .85; text-transform: uppercase;
+      padding: 0 10px; margin-bottom: 6px;
     }
     .nav-item {
       display: flex; align-items: center; gap: 10px;
-      padding: 9px 12px; border-radius: 10px;
-      font-size: 13.5px; font-weight: 500; color: rgba(255,255,255,0.55);
+      padding: 10px 14px; border-radius: 10px;
+      font-size: 13.5px; font-weight: 500; color: var(--sidebar-text);
       cursor: pointer; transition: background 0.15s, color 0.15s;
-      margin-bottom: 2px; text-decoration: none;
+      margin: 0 6px 3px; text-decoration: none;
     }
     .nav-item i { font-size: 17px; flex-shrink: 0; }
-    .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
-    .nav-item.active { background: var(--brand); color: #fff; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: var(--sidebar-text-hover); }
+    .nav-item.active {
+      background: rgba(59,134,209,0.22); color: #fff; font-weight: 700;
+      border-left: 3px solid var(--blue); border-radius: 0 10px 10px 0;
+    }
     .nav-item .badge {
-      margin-left: auto; background: #ef4444;
+      margin-left: auto; background: var(--red);
       color: #fff; font-size: 10px; font-weight: 700;
       border-radius: 20px; padding: 1px 6px; min-width: 18px; text-align: center;
     }
-    .sidebar-bottom {
-      margin-top: auto; padding: 12px 10px;
-      border-top: 1px solid rgba(255,255,255,0.07);
-    }
+    .sidebar-bottom { margin-top: auto; padding: 12px 10px; border-top: 1px solid var(--sidebar-border); }
     .user-pill {
       display: flex; align-items: center; gap: 10px;
       padding: 10px 12px; border-radius: 12px;
-      background: rgba(255,255,255,0.06); cursor: pointer;
+      background: rgba(255,255,255,0.06); border: 1px solid var(--sidebar-border); cursor: pointer;
     }
     .user-avatar {
       width: 34px; height: 34px; border-radius: 50%;
-      background: linear-gradient(135deg, #ef4444, #f97316);
+      background: linear-gradient(135deg, var(--blue), var(--brand-light));
       display: flex; align-items: center; justify-content: center;
       font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
     }
     .user-info { flex: 1; min-width: 0; }
     .user-name { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .user-role { font-size: 11px; color: var(--brand-soft); }
+    .user-role { font-size: 11px; color: var(--blue); }
     .admin-badge {
-      background: linear-gradient(135deg, #ef4444, #f97316);
-      color: #fff; font-size: 9px; font-weight: 700;
+      background: var(--blue); color: #fff; font-size: 9px; font-weight: 700;
       border-radius: 6px; padding: 2px 6px; white-space: nowrap;
     }
+    #logout-link { color: var(--red) !important; margin-top: 6px; }
+    #logout-link:hover { background: rgba(228,86,110,0.12) !important; }
 
     /* ── Main ── */
     .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; min-width: 0; overflow-x: hidden; }
@@ -168,87 +138,119 @@
     /* ── Topbar ── */
     .topbar {
       background: var(--surface); border-bottom: 1px solid var(--border);
-      padding: 0 24px; height: 60px;
+      padding: 0 24px; height: 64px;
       display: flex; align-items: center; justify-content: space-between;
       position: sticky; top: 0; z-index: 50;
     }
     .topbar-left { display: flex; flex-direction: column; }
-    .topbar-greeting { font-size: 15px; font-weight: 700; color: var(--text); }
+    .topbar-greeting { font-size: 15.5px; font-weight: 700; color: var(--text); }
     .topbar-sub { font-size: 12px; color: var(--muted); }
     .topbar-right { display: flex; align-items: center; gap: 12px; }
     .date-chip {
       display: flex; align-items: center; gap: 6px;
-      background: var(--brand-bg); border-radius: 8px;
-      padding: 6px 12px; font-size: 12px; color: var(--brand); font-weight: 500;
+      background: var(--brand-bg); border-radius: var(--pill);
+      padding: 6px 14px; font-size: 12px; color: var(--brand-dark); font-weight: 600;
     }
     .icon-btn {
-      width: 36px; height: 36px; border-radius: 10px;
+      width: 36px; height: 36px; border-radius: 50%;
       border: 1.5px solid var(--border); background: var(--surface);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; color: var(--muted); font-size: 17px; position: relative;
       transition: border-color 0.15s, color 0.15s;
     }
-    #topbar-logout-btn {
-      width: 36px; height: 36px; border-radius: 10px;
-      background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
-      border: none; display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: #fff; font-size: 16px;
-    }
-    #topbar-logout-btn:hover { background: linear-gradient(135deg, #f87171 0%, #dc2626 100%); }
     .icon-btn:hover { border-color: var(--brand); color: var(--brand); }
     .icon-btn .dot {
       position: absolute; top: 5px; right: 5px;
       width: 7px; height: 7px; border-radius: 50%;
-      background: #ef4444; border: 1.5px solid #fff;
+      background: var(--red); border: 1.5px solid #fff;
+    }
+    #topbar-logout-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, #f18ba0 0%, var(--red) 100%);
+      border: none; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: #fff; font-size: 16px;
     }
 
-    /* ── Content ── */
-    .content { padding: 20px 24px 40px; flex: 1; }
+    /* ── Teal breadcrumb bar (PolluxUI second nav) ── */
+    .crumb-bar {
+      background: linear-gradient(90deg, var(--teal) 0%, var(--teal-dark) 100%);
+      color: #fff; padding: 10px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px;
+    }
+    .crumb-left { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; }
+    .crumb-left i { font-size: 17px; }
+    .crumb-path { font-size: 12px; font-weight: 400; opacity: .85; }
+    .crumb-search {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.18); border-radius: var(--pill);
+      padding: 7px 14px;
+    }
+    .crumb-search i { font-size: 14px; opacity: .9; }
+    .crumb-search input {
+      background: transparent; border: none; outline: none; color: #fff;
+      font-family: inherit; font-size: 12.5px; width: 170px;
+    }
+    .crumb-search input::placeholder { color: rgba(255,255,255,0.75); }
 
-    /* ── Stats row ── */
+    /* ── Content ── */
+    .content { padding: 22px 24px 40px; flex: 1; }
+
+    /* ── Stats row: small 2x2 grid, sits beside the chart (image 1 layout) ── */
     .stats-row {
-      display: grid; grid-template-columns: repeat(4,1fr);
-      gap: 14px; margin-bottom: 20px;
+      display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr;
+      gap: 12px; margin-bottom: 0; height: 100%;
     }
     .stat-card {
       background: var(--surface); border-radius: var(--radius);
-      padding: 16px 18px; border: 1px solid var(--border);
-      min-width: 0; overflow: hidden;
+      padding: 13px 15px; border: 1px solid var(--border);
+      box-shadow: var(--shadow); min-width: 0; overflow: hidden;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .stat-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-hover); }
+    .stat-icon-badge {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: #fff; margin-bottom: 8px;
     }
     .stat-label {
-      font-size: 11.5px; color: var(--muted); font-weight: 500;
-      margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+      font-size: 10px; color: var(--muted); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;
     }
-    .stat-label i { font-size: 14px; }
-    .stat-value { font-size: 26px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; line-height: 1; margin-bottom: 8px; }
-    /* ── Pill-style delta (from mothersdas) ── */
+    .stat-value { font-size: 19px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; line-height: 1; margin-bottom: 4px; }
     .stat-delta {
       display: inline-flex; align-items: center; gap: 3px;
-      font-size: 11px; font-weight: 600; border-radius: 6px; padding: 2px 7px;
+      font-size: 10px; font-weight: 700; border-radius: 5px; padding: 1px 6px;
     }
-    .stat-delta.up { color: #16a34a; background: #dcfce7; }
-    .stat-delta.down { color: #dc2626; background: #fee2e2; }
-    .stat-period { font-size: 11px; color: var(--muted); margin-left: 4px; }
+    .stat-delta.up { color: #16a34a; background: var(--green-bg); }
+    .stat-delta.down { color: #dc2626; background: var(--red-bg); }
+    .stat-period { font-size: 10px; color: var(--muted); margin-left: 4px; }
 
-    /* ── Grid layouts (from mothersdas) ── */
+    .stat-card--5 .stat-icon-badge { background: var(--brand); }
+    .stat-card--1 .stat-icon-badge { background: var(--blue); }
+    .stat-card--3 .stat-icon-badge { background: var(--green); }
+    .stat-card--2 .stat-icon-badge { background: var(--orange); }
+    .stat-card--4 .stat-icon-badge { background: var(--teal); }
+    .stat-card--6 .stat-icon-badge { background: var(--brand-dark); }
+
+    /* ── Grid layouts ── */
+    .row-top { display: grid; grid-template-columns: minmax(300px, 440px) 1fr; gap: 16px; margin-bottom: 16px; align-items: stretch; }
     .grid-2 { display: grid; grid-template-columns: 1fr 380px; gap: 16px; margin-bottom: 16px; }
     .grid-2-equal { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
 
     /* ── Panel ── */
-    .panel {
-      background: var(--surface); border-radius: var(--radius);
-      border: 1px solid var(--border); overflow: hidden;
+    .panel { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; }
+    .panel-title { font-size: 13.5px; font-weight: 700; color: var(--text); }
+    .panel-title::before {
+      content: ''; display: inline-block; width: 4px; height: 14px;
+      background: var(--brand); border-radius: 2px; margin-right: 8px; vertical-align: middle;
     }
-    .panel-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 16px 18px 12px;
-    }
-    .panel-title { font-size: 14px; font-weight: 700; color: var(--text); }
     .panel-action { font-size: 12px; font-weight: 600; color: var(--brand); cursor: pointer; text-decoration: none; }
     .panel-action:hover { text-decoration: underline; }
 
-    /* ── Chart tabs (from mothersdas style) ── */
-    .platform-toggle { display: flex; gap: 4px; background: var(--bg-solid); border-radius: 10px; padding: 3px; }
+    /* ── Chart tabs / platform toggle ── */
+    .platform-toggle { display: flex; gap: 4px; background: var(--bg); border-radius: 10px; padding: 3px; }
     .platform-toggle-btn {
       display: flex; align-items: center; gap: 5px;
       font-size: 11.5px; font-weight: 700; padding: 6px 12px;
@@ -256,40 +258,28 @@
       background: none; border: none; font-family: inherit;
       transition: background 0.15s, color 0.15s;
     }
-    .platform-toggle-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(20,20,40,0.08); }
-    .chart-tabs { display: flex; gap: 4px; padding: 0 18px 10px; }
+    .platform-toggle-btn.active { background: var(--brand); color: #fff; }
+    .chart-tabs { display: flex; gap: 6px; padding: 0 18px 10px; }
     .chart-tab {
-      font-size: 12px; font-weight: 600; padding: 5px 12px;
-      border-radius: 8px; cursor: pointer; color: var(--muted);
-      background: none; border: none; font-family: inherit;
+      font-size: 12px; font-weight: 600; padding: 5px 14px;
+      border-radius: var(--pill); cursor: pointer; color: var(--muted);
+      background: var(--bg); border: none; font-family: inherit;
       transition: background 0.15s, color 0.15s;
     }
-    .chart-tab.active { background: var(--brand-bg); color: var(--brand); }
+    .chart-tab.active { background: var(--brand); color: #fff; }
 
-    /* ── Performance chart (taller, like mothersdas) ── */
     .chart-wrap { padding: 0 18px 16px; position: relative; }
     canvas#perf-chart { width: 100% !important; height: 200px !important; }
 
-    /* ── Platform Breakdown donut — large like mothersdas ── */
-    .donut-outer {
-      display: flex; flex-direction: column; align-items: center;
-      padding: 12px 18px 6px; position: relative;
-    }
+    /* ── Donut ── */
+    .donut-outer { display: flex; flex-direction: column; align-items: center; padding: 12px 18px 6px; position: relative; }
     .donut-canvas-pos { position: relative; }
-    .donut-center {
-      position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center; pointer-events: none;
-    }
+    .donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
     .donut-center-value { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
     .donut-center-label { font-size: 10px; color: var(--muted); margin-top: 3px; }
 
-    /* Legend below donut (from mothersdas) */
     .platform-legend { width: 100%; padding: 0 18px; margin-top: 8px; }
-    .legend-item {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 7px 0; border-bottom: 1px solid var(--border);
-    }
+    .legend-item { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); }
     .legend-item:last-child { border: none; }
     .legend-left { display: flex; align-items: center; gap: 8px; }
     .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
@@ -301,16 +291,14 @@
     .mothers-table-wrap { overflow-x: auto; }
     .mothers-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
     .mothers-table th {
-      padding: 8px 12px; text-align: left;
-      font-size: 10.5px; font-weight: 700;
-      color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px;
-      background: #f7fbfe; border-bottom: 1px solid var(--border);
+      padding: 9px 12px; text-align: left;
+      font-size: 10.5px; font-weight: 700; color: var(--brand-dark);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      background: var(--brand-bg); border-bottom: 1px solid var(--border);
     }
-    .mothers-table td {
-      padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: middle;
-    }
+    .mothers-table td { padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     .mothers-table tr:last-child td { border-bottom: none; }
-    .mothers-table tr:hover td { background: #f7fbfe; }
+    .mothers-table tr:hover td { background: var(--brand-bg); }
 
     .rank-num { font-size: 12px; font-weight: 700; color: var(--muted); }
     .mother-cell { display: flex; align-items: center; gap: 8px; }
@@ -324,23 +312,23 @@
     .metric-val { font-size: 13px; font-weight: 700; color: var(--text); }
     .score-pill {
       display: inline-flex; align-items: center; justify-content: center;
-      min-width: 40px; padding: 3px 9px; border-radius: 20px;
+      min-width: 40px; padding: 3px 9px; border-radius: var(--pill);
       font-size: 12px; font-weight: 700;
     }
-    .score-high { background: #dcfce7; color: #16a34a; }
-    .score-mid  { background: #fef9c3; color: #a16207; }
+    .score-high { background: var(--green-bg); color: #16a34a; }
+    .score-mid  { background: var(--amber-bg); color: var(--amber); }
 
     /* ── Recent content table ── */
     .content-table { width: 100%; border-collapse: collapse; }
     .content-table th {
-      font-size: 11px; font-weight: 600; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 0.8px;
-      padding: 8px 18px; text-align: left;
-      border-bottom: 1px solid var(--border); background: #f7fbfe;
+      font-size: 11px; font-weight: 700; color: var(--brand-dark);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 9px 18px; text-align: left;
+      border-bottom: 1px solid var(--border); background: var(--brand-bg);
     }
     .content-table td { padding: 11px 18px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     .content-table tr:last-child td { border-bottom: none; }
-    .content-table tr:hover td { background: #f7fbfe; }
+    .content-table tr:hover td { background: var(--brand-bg); }
 
     .mother-mini { display: flex; align-items: center; gap: 7px; }
     .mother-mini-avatar {
@@ -351,10 +339,7 @@
     .mother-mini-name { font-size: 12px; font-weight: 600; color: var(--text); }
     .mother-mini-handle { font-size: 10.5px; color: var(--muted); }
 
-    .platform-tag {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 28px; height: 28px; border-radius: 8px;
-    }
+    .platform-tag { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; }
     .platform-tag.tiktok { background: #000; }
     .platform-tag.instagram { background: linear-gradient(45deg,#f09433,#dc2743,#bc1888); }
 
@@ -362,30 +347,20 @@
     .caption-text { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .caption-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-    .status-pill {
-      display: inline-flex; align-items: center; gap: 4px;
-      font-size: 11px; font-weight: 600; border-radius: 20px; padding: 3px 9px;
-    }
-    .status-pill.synced  { background: #dcfce7; color: #16a34a; }
-    .status-pill.syncing { background: #dbeafe; color: #2563eb; }
-    .status-pill.failed  { background: #fee2e2; color: #dc2626; }
-    .status-pill.pending { background: #fef9c3; color: #a16207; }
+    .status-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; border-radius: var(--pill); padding: 3px 9px; }
+    .status-pill.synced  { background: var(--green-bg); color: #16a34a; }
+    .status-pill.syncing { background: var(--blue-bg); color: var(--blue); }
+    .status-pill.failed  { background: var(--red-bg); color: var(--red); }
+    .status-pill.pending { background: var(--amber-bg); color: var(--amber); }
 
     .metric-pair { display: flex; flex-direction: column; }
     .metric-main { font-size: 13px; font-weight: 700; color: var(--text); }
     .metric-sub  { font-size: 11px; color: var(--muted); }
 
-    /* ── Country topbar control ── */
-    .date-chip select {
-      border: none; background: transparent; font: inherit; color: inherit;
-      cursor: pointer; outline: none;
-    }
+    .date-chip select { border: none; background: transparent; font: inherit; color: inherit; cursor: pointer; outline: none; }
 
     /* ── Mobile ── */
-    .sidebar-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.4); z-index: 99;
-    }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(30,20,45,0.45); z-index: 99; }
     .hamburger {
       display: none; align-items: center; justify-content: center;
       width: 36px; height: 36px; border-radius: 10px;
@@ -393,49 +368,36 @@
       cursor: pointer; color: var(--text); font-size: 18px;
     }
     @media (max-width: 900px) {
-      .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.28s cubic-bezier(.4,0,.2,1);
-      }
+      .sidebar { transform: translateX(-100%); transition: transform 0.28s cubic-bezier(.4,0,.2,1); }
       .sidebar.open { transform: translateX(0); }
       .sidebar-overlay.open { display: block; }
       .main { margin-left: 0; width: 100%; overflow-x: hidden; }
       .hamburger { display: flex; }
       .date-chip { display: none; }
+      .crumb-search { display: none; }
       .content { padding: 16px 10px 40px; width: 100%; box-sizing: border-box; }
-      /* Stats become a horizontally-swipeable strip: 2 cards visible at a
-         time, swipe right to reveal the next 2, snapping into place. */
       .stats-row {
-        display: flex;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-        gap: 8px;
-        width: 100%;
-        padding-bottom: 6px;
+        display: flex; flex-wrap: nowrap; overflow-x: auto;
+        scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+        gap: 8px; width: 100%; padding-bottom: 6px;
       }
-      .stats-row .stat-card {
-        scroll-snap-align: start;
-        flex: 0 0 calc(50% - 4px);
-        min-width: calc(50% - 4px);
-      }
+      .stats-row .stat-card { scroll-snap-align: start; flex: 0 0 calc(50% - 4px); min-width: calc(50% - 4px); }
       .stat-card { overflow: hidden; padding: 12px 10px; }
       .stat-label { font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .stat-value { font-size: 20px; }
-      .grid-2, .grid-2-equal { grid-template-columns: 1fr; gap: 12px; width: 100%; }
+      .grid-2, .grid-2-equal, .row-top { grid-template-columns: 1fr; gap: 12px; width: 100%; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
       .panel { width: 100%; box-sizing: border-box; overflow: hidden; }
       .chart-wrap { padding: 0 10px 16px; }
       canvas#perf-chart { width: 100% !important; height: 180px !important; }
       .donut-outer { padding: 12px 10px 6px; }
       .content-table-wrap { overflow-x: auto; width: 100%; }
-      .content-table th:nth-child(5),
-      .content-table td:nth-child(5) { display: none; }
+      .content-table th:nth-child(5), .content-table td:nth-child(5) { display: none; }
       .caption-cell { max-width: none; }
-      .mothers-table th:nth-child(4),
-      .mothers-table td:nth-child(4) { display: none; }
+      .mothers-table th:nth-child(4), .mothers-table td:nth-child(4) { display: none; }
       .topbar { padding: 0 12px; overflow: hidden; }
       .topbar-sub { display: none; }
+      .crumb-bar { padding: 8px 12px; }
     }
     @media (max-width: 480px) {
       .stat-value { font-size: 18px; letter-spacing: -0.3px; }
@@ -443,329 +405,14 @@
       .stat-label { font-size: 10px; }
       .stat-period { display: none; }
       .topbar { padding: 0 12px; }
-      .chart-tab { font-size: 11px; padding: 4px 8px; }
-    }
-  
-    /* ══ Midnight Sovereign Admin Theme ══ */
-
-    html, body { background: var(--bg-solid) !important; }
-
-    /* ── Sidebar ── */
-    .sidebar {
-      background: var(--sidebar-gradient) !important;
-      border-right: 1px solid rgba(27,127,212,0.08) !important;
+      .chart-tab { font-size: 11px; padding: 4px 10px; }
     }
 
-    /* Nav items */
-    .sidebar-section-label { color: rgba(27,127,212,0.35) !important; letter-spacing: 2px; }
-    .nav-item { color: rgba(255,255,255,0.45) !important; }
-    .nav-item:hover {
-      background: var(--sidebar-hover) !important;
-      color: var(--brand-soft) !important;
-    }
-    .nav-item.active {
-      background: var(--sidebar-active-bg) !important;
-      color: var(--brand-soft) !important;
-      border-left: 3px solid var(--brand) !important;
-      border-radius: 0 10px 10px 0 !important;
-      padding-left: 9px !important;
-    }
-
-    /* User pill */
-    .user-pill { background: rgba(27,127,212,0.07) !important; border: 1px solid rgba(27,127,212,0.15) !important; }
-    .user-avatar {
-      background: var(--brand-gradient) !important;
-      box-shadow: 0 0 12px rgba(27,127,212,0.4) !important;
-    }
-    .user-role { color: var(--brand-soft) !important; }
-
-    /* Admin badge — gold not red */
-    .admin-badge {
-      background: var(--brand-gradient) !important;
-      color: #0a2a47 !important;
-      font-weight: 800 !important;
-      box-shadow: 0 2px 8px rgba(27,127,212,0.4) !important;
-    }
-
-    /* Topbar — warm parchment shimmer */
-    .topbar {
-      background: linear-gradient(90deg, #ffffff 0%, #f2f9fe 60%, #f2f8fd 100%) !important;
-      border-bottom: 1px solid var(--border) !important;
-      box-shadow: 0 1px 0 rgba(27,127,212,0.08) !important;
-    }
-
-    /* Date chip */
-    .date-chip { background: var(--brand-bg) !important; color: var(--brand-deep) !important; }
-    .icon-btn:hover { border-color: var(--brand) !important; color: var(--brand) !important; }
-
-    /* ── Stat cards ── */
-    .stat-card {
-      background: #fff !important;
-      border: 1px solid var(--border-soft) !important;
-      position: relative;
-      overflow: hidden;
-    }
-    /* Subtle gold shimmer top stripe */
-    .stat-card::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: var(--brand-gradient);
-      border-radius: var(--radius) var(--radius) 0 0;
-    }
-    .stat-label i { color: var(--brand) !important; }
-    .stat-delta.up { color: #065f46 !important; background: #d1fae5 !important; }
-    .stat-delta.down { color: #9f1239 !important; background: #ffe4e6 !important; }
-
-    /* ── Panels ── */
-    .panel {
-      background: #fff !important;
-      border: 1px solid var(--border-soft) !important;
-      box-shadow: 0 2px 12px rgba(20,20,40,0.04) !important;
-    }
-    .panel-action { color: var(--brand-deep) !important; }
-
-    /* Chart tabs */
-    .chart-tab.active {
-      background: var(--brand-bg) !important;
-      color: var(--brand-deep) !important;
-    }
-
-    /* Table header */
-    .content-table th { background: #f5faff !important; color: var(--muted) !important; }
-    .content-table tr:hover td { background: #f2f9fe !important; }
-
-    /* ── Mother list (admin left panel) ── */
-    .mother-item.active,
-    .mother-row.active,
-    .list-item.active {
-      background: linear-gradient(90deg, #e3f2fd, #f7fbff) !important;
-      border-left: 3px solid var(--brand) !important;
-    }
-
-    /* ── Status pills ── */
-    .status-pill.synced, .pill-synced, .badge-synced { background: #d1fae5 !important; color: #065f46 !important; }
-    .status-pill.syncing, .pill-syncing { background: #eff6ff !important; color: #1e40af !important; }
-    .status-pill.failed, .pill-failed { background: var(--red-bg) !important; color: var(--red) !important; }
-    .status-pill.pending, .pill-pending { background: var(--amber-bg) !important; color: var(--amber) !important; }
-
-    /* Link status pills (admin-specific) */
-    .link-pill.synced { background: #d1fae5 !important; color: #065f46 !important; }
-    .link-pill.syncing { background: #dbeafe !important; color: #1d4ed8 !important; }
-    .link-pill.failed { background: var(--red-bg) !important; color: var(--red) !important; }
-
-    /* ── Campaign / reward hero banners ── */
-    .camp-header, .campaign-header, .points-hero,
-    .featured-banner, .hero-banner, .banner-wrap,
-    .reward-hero, .perf-hero {
-      background: linear-gradient(135deg,
-        #07203a 0%, #0a2847 30%,
-        #2a2000 60%, #1b7fd4 90%, #4aa3e8 100%) !important;
-    }
-
-    /* ── Progress bars ── */
-    .progress-fill, .prog-fill, .bar-fill, .fill {
-      background: var(--brand-gradient) !important;
-    }
-    .progress-bar, .prog-track { background: #d9eaf7 !important; }
-
-    /* ── Filter / tab pills active ── */
-    .filter-btn.active, .tag-active, .tab-btn.active,
-    .filter-pill.active, .tab.active {
-      background: var(--brand-gradient) !important;
-      color: #fff !important;
-      box-shadow: 0 2px 8px rgba(27,127,212,0.3) !important;
-    }
-
-    /* ── CTA / submit buttons ── */
-    .btn-primary, .btn-submit, .submit-btn, .cta-btn,
-    button[type=submit], .btn-add, .btn-create, .add-btn {
-      background: var(--brand-gradient) !important;
-      border: none !important;
-      color: #fff !important;
-      box-shadow: 0 3px 12px rgba(27,127,212,0.35) !important;
-    }
-
-    /* ── Reward items ── */
-    .reward-item { background: var(--brand-bg) !important; border-color: #c6e2f6 !important; }
-    .reward-status.earned { background: #d1fae5 !important; color: #065f46 !important; }
-    .reward-status.next { background: var(--brand-bg) !important; color: var(--brand-deep) !important; border-color: var(--brand-soft) !important; }
-
-    /* ── Points hero text ── */
-    .points-label, .points-sub { color: rgba(255,255,255,0.65) !important; }
-    .points-value { color: #fff !important; }
-    .points-icon-wrap { background: rgba(255,255,255,0.12) !important; }
-
-    /* ── Mother search / filter input ── */
-    .search-input:focus, .filter-input:focus {
-      border-color: var(--brand) !important;
-      box-shadow: 0 0 0 3px rgba(27,127,212,0.15) !important;
-    }
-
-    /* ── Tier / level badges ── */
-    .tier-gold, .level-gold, .badge-gold { background: var(--brand-gradient) !important; color: #0a2a47 !important; }
-    .tier-silver { background: linear-gradient(135deg,#9ca3af,#d1d5db) !important; color: #1f2937 !important; }
-    .tier-diamond { background: linear-gradient(135deg,#818cf8,#c4b5fd) !important; color: #1e1b4b !important; }
-
-    /* ── Scrollbar ── */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #e6f2fb; }
-    ::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, #1b7fd4, #4aa3e8);
-      border-radius: 6px;
-    }
-
-    /* ── Sidebar overlay ── */
-    .sidebar-overlay { background: rgba(12,12,20,0.6) !important; }
-
-    /* ── Content detail panel (right side in admin layout) ── */
-    .detail-panel, .preview-panel, .right-panel {
-      background: #fff !important;
-      border-left: 1px solid var(--border-soft) !important;
-    }
-
-    /* ── Performance metric cards ── */
-    .metric-card, .perf-card {
-      background: #fff !important;
-      border: 1px solid var(--border-soft) !important;
-    }
-    .metric-card::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; height: 3px;
-      background: var(--brand-gradient);
-    }
-
-    /* ── Section dividers ── */
-    hr, .divider { border-color: var(--border-soft) !important; }
-
-    /* Panel title accent */
-    .panel-title::before {
-      content: '';
-      display: inline-block;
-      width: 3px; height: 14px;
-      background: var(--brand-gradient);
-      border-radius: 2px;
-      margin-right: 8px;
-      vertical-align: middle;
-    }
-
-  
-    /* ══════════════════════════════════════════════════════════
-       AIWIBI AUSTRALIA BRAND + Monochrome Premium alignment
-       (typography, sizes, card metrics follow mothersdas.html;
-        colors follow Aiwibi AU: signature blue on #f0f8ff)
-       ══════════════════════════════════════════════════════════ */
-    :root {
-      --radius: 20px;
-      --radius-sm: 12px;
-      --pill: 999px;
-      --ink: #101113;
-      --ink-soft: #3a3d42;
-      --aiwibi: #1b7fd4;
-      --aiwibi-deep: #0f5fa8;
-      --aiwibi-soft: #7cc0f0;
-      --aiwibi-bg: #e3f2fd;
-      --shadow-card: 0 1px 2px rgba(16,17,19,0.04), 0 8px 24px rgba(16,17,19,0.05);
-      --shadow-hover: 0 2px 4px rgba(16,17,19,0.05), 0 14px 34px rgba(16,17,19,0.09);
-    }
-    html, body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol' !important;
-      background: #f0f8ff !important;
-      color: var(--ink) !important;
-      font-feature-settings: "cv02","cv03","cv04";
-    }
-    /* ── Topbar: glass, sticky (mothersdas) ── */
-    .topbar {
-      background: rgba(255,255,255,0.85) !important;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid #d9eaf6 !important;
-      position: sticky; top: 0; z-index: 50;
-      height: 68px;
-    }
-    .topbar-title { font-size: 18px !important; font-weight: 800 !important; letter-spacing: -0.025em !important; color: var(--ink) !important; }
-    .topbar-sub { font-size: 12.5px !important; color: #8a8f98 !important; }
-    .icon-btn { border-radius: 50% !important; }
-    /* ── Cards / panels (mothersdas metrics) ── */
-    .stat-card, .panel {
-      border-radius: var(--radius) !important;
-      border: 1px solid #d9eaf6 !important;
-      box-shadow: var(--shadow-card) !important;
-      background-image: none !important;
-    }
-    .stat-card { transition: transform 0.2s ease, box-shadow 0.2s ease !important; }
-    .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover) !important; }
-    .stat-card::before { display: none !important; }
-    .stat-value { font-size: 28px !important; font-weight: 800 !important; letter-spacing: -0.03em !important; color: var(--ink) !important; line-height: 1 !important; font-variant-numeric: tabular-nums; }
-    .stat-label { font-size: 11px !important; font-weight: 600 !important; text-transform: uppercase; letter-spacing: 0.09em; }
-    .panel-title { font-size: 15px !important; font-weight: 700 !important; letter-spacing: -0.015em !important; color: var(--ink) !important; }
-    .section-label { font-size: 15px !important; font-weight: 700 !important; letter-spacing: -0.015em !important; color: var(--ink) !important; }
-    /* ── Pills & buttons ── */
-    .status-pill, .stat-delta { border-radius: var(--pill) !important; font-weight: 600 !important; }
-    .chart-tab, .filter-btn, .tab-btn, .filter-select { border-radius: var(--pill) !important; }
-    .chart-tab.active, .filter-btn.active, .tab-btn.active { background: var(--ink) !important; color: #fff !important; }
-    .btn-primary, .btn-submit, .submit-btn, .cta-btn, button[type=submit] {
-      background: var(--aiwibi) !important; color: #fff !important;
-      border: none !important; border-radius: var(--pill) !important; font-weight: 600 !important;
-    }
-    .btn-primary:hover, .btn-submit:hover, .submit-btn:hover, .cta-btn:hover { background: var(--aiwibi-deep) !important; }
-    .btn-outline { border-radius: var(--pill) !important; }
-    /* ── Tables ── */
-    table th { font-size: 10.5px !important; font-weight: 600 !important; text-transform: uppercase; letter-spacing: 0.1em; color: #8a8f98 !important; background: #f2f9fe !important; }
-    table td { font-size: 12.5px !important; }
-    tr:hover td { background: #f7fbfe !important; }
-    /* ── Numbers ── */
-    td, .stat-value, .points, .pts { font-variant-numeric: tabular-nums; }
     /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #b7d5ec; border-radius: 6px; }
-    /* ── Reduced motion ── */
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { transition: none !important; animation: none !important; }
-    }
+    ::-webkit-scrollbar-thumb { background: var(--brand-light); border-radius: 6px; }
 
-  
-    /* ── Bold gradient stat cards (mothersdas style) ── */
-    .stat-icon-badge {
-      width: 44px; height: 44px; border-radius: 14px;
-      background: rgba(255,255,255,0.22);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; color: #fff; margin-bottom: 14px; flex-shrink: 0;
-    }
-    .stat-card--1, .stat-card--2, .stat-card--3,
-    .stat-card--4, .stat-card--5, .stat-card--6 { border: none !important; }
-    .stat-card--1::after, .stat-card--2::after, .stat-card--3::after,
-    .stat-card--4::after, .stat-card--5::after, .stat-card--6::after { display: none !important; }
-    .stat-card--1 { background: linear-gradient(135deg, #4f7cff 0%, #3d5fe0 100%) !important; }
-    .stat-card--2 { background: linear-gradient(135deg, #ff5f9e 0%, #e2427f 100%) !important; }
-    .stat-card--3 { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important; }
-    .stat-card--4 { background: linear-gradient(135deg, #ffb648 0%, #f5942c 100%) !important; }
-    .stat-card--5 { background: linear-gradient(135deg, #a06bff 0%, #7c4fe0 100%) !important; }
-    .stat-card--6 { background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%) !important; }
-    .stat-card--1 .stat-label, .stat-card--2 .stat-label, .stat-card--3 .stat-label,
-    .stat-card--4 .stat-label, .stat-card--5 .stat-label, .stat-card--6 .stat-label {
-      color: rgba(255,255,255,0.85) !important; font-weight: 700 !important;
-    }
-    .stat-card--1 .stat-value, .stat-card--2 .stat-value, .stat-card--3 .stat-value,
-    .stat-card--4 .stat-value, .stat-card--5 .stat-value, .stat-card--6 .stat-value { color: #fff !important; }
-    .stat-card--1 .stat-value span, .stat-card--2 .stat-value span, .stat-card--3 .stat-value span,
-    .stat-card--4 .stat-value span, .stat-card--5 .stat-value span, .stat-card--6 .stat-value span { color: rgba(255,255,255,0.75) !important; }
-    .stat-card--1 .stat-period, .stat-card--2 .stat-period, .stat-card--3 .stat-period,
-    .stat-card--4 .stat-period, .stat-card--5 .stat-period, .stat-card--6 .stat-period,
-    .stat-card--1 .stat-sub, .stat-card--2 .stat-sub, .stat-card--3 .stat-sub,
-    .stat-card--4 .stat-sub, .stat-card--5 .stat-sub, .stat-card--6 .stat-sub { color: rgba(255,255,255,0.75) !important; }
-    .stat-card--1 .stat-delta, .stat-card--2 .stat-delta, .stat-card--3 .stat-delta,
-    .stat-card--4 .stat-delta, .stat-card--5 .stat-delta, .stat-card--6 .stat-delta {
-      background: rgba(255,255,255,0.22) !important; color: #fff !important;
-    }
-    .stat-card--1 .stat-icon, .stat-card--2 .stat-icon, .stat-card--3 .stat-icon,
-    .stat-card--4 .stat-icon, .stat-card--5 .stat-icon, .stat-card--6 .stat-icon {
-      background: rgba(255,255,255,0.22) !important; color: #fff !important;
-      width: 44px; height: 44px; border-radius: 14px;
-    }
     /* ── Bottom Mobile Nav ── */
     .bottom-nav { display: none; }
     @media (max-width: 900px) {
@@ -775,8 +422,7 @@
         height: 60px; background: #fff;
         border-top: 1px solid var(--border);
         box-shadow: 0 -2px 16px rgba(16,17,19,0.08);
-        z-index: 150;
-        padding-bottom: env(safe-area-inset-bottom);
+        z-index: 150; padding-bottom: env(safe-area-inset-bottom);
       }
       .bottom-nav-item {
         display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -784,7 +430,7 @@
         font-size: 10px; font-weight: 600; flex: 1; height: 100%;
       }
       .bottom-nav-item i { font-size: 19px; }
-      .bottom-nav-item.active { color: #1b7fd4; }
+      .bottom-nav-item.active { color: var(--brand); }
       .content { padding-bottom: 78px !important; }
     }
 </style>
@@ -804,10 +450,10 @@
 
     <div class="sidebar-section">
       <div class="sidebar-section-label">Main</div>
-      <a href="admindas.html" class="nav-item active"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+      <a href="admindash.html" class="nav-item active"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
       <a href="admincont.html" class="nav-item"><i class="ti ti-file-text"></i> Content</a>
       <a href="admincamp.html" class="nav-item"><i class="ti ti-speakerphone"></i> Campaigns</a>
-    <a href="adminreward.html" class="nav-item"><i class="ti ti-gift"></i> Rewards</a>
+      <a href="adminreward.html" class="nav-item"><i class="ti ti-gift"></i> Rewards</a>
       <a href="adminreport.html" class="nav-item"><i class="ti ti-chart-bar"></i> Reports</a>
       <a href="adminsettings.html" class="nav-item"><i class="ti ti-settings"></i> Settings</a>
     </div>
@@ -821,7 +467,7 @@
         </div>
         <div class="admin-badge">ADMIN</div>
       </div>
-     <a href="#" class="nav-item" id="logout-link" style="margin-top:6px;color:#e57373 !important;"><i class="ti ti-logout"></i> Logout</a>
+      <a href="#" class="nav-item" id="logout-link" style="margin-top:6px;"><i class="ti ti-logout"></i> Logout</a>
     </div>
   </nav>
 
@@ -850,39 +496,52 @@
       </div>
     </div>
 
+    <!-- Teal breadcrumb bar -->
+    <div class="crumb-bar">
+      <div class="crumb-left">
+        <i class="ti ti-layout-dashboard"></i>
+        <span>Dashboard</span>
+        <span class="crumb-path">Home &nbsp;›&nbsp; Main Dashboard</span>
+      </div>
+      <div class="crumb-search">
+        <i class="ti ti-search"></i>
+        <input type="text" placeholder="Search...">
+      </div>
+    </div>
+
     <div class="content">
 
-      <!-- Stats -->
-      <div class="stats-row">
-        <div class="stat-card stat-card--5">
-          <div class="stat-icon-badge"><i class="ti ti-users"></i></div>
-          <div class="stat-label">Total Mothers</div>
-          <div class="stat-value">–</div>
-          <span class="stat-period" id="stat-mothers-period">Loading...</span>
+      <!-- Stats (2x2) beside Performance chart, like image 1 -->
+      <div class="row-top">
+        <div class="stats-row">
+          <div class="stat-card stat-card--5">
+            <div class="stat-icon-badge"><i class="ti ti-users"></i></div>
+            <div class="stat-label">Total Mothers</div>
+            <div class="stat-value">–</div>
+            <span class="stat-period" id="stat-mothers-period">Loading...</span>
+          </div>
+          <div class="stat-card stat-card--1">
+            <div class="stat-icon-badge"><i class="ti ti-file-text"></i></div>
+            <div class="stat-label">Total Content</div>
+            <div class="stat-value">–</div>
+            <span class="stat-period" id="stat-content-period">Loading...</span>
+          </div>
+          <div class="stat-card stat-card--3">
+            <div class="stat-icon-badge"><i class="ti ti-eye"></i></div>
+            <div class="stat-label">Total Views</div>
+            <div class="stat-value">–</div>
+            <span class="stat-period" id="stat-views-period">Loading...</span>
+          </div>
+          <div class="stat-card stat-card--2">
+            <div class="stat-icon-badge"><i class="ti ti-heart"></i></div>
+            <div class="stat-label">Total Engagements</div>
+            <div class="stat-value">–</div>
+            <span class="stat-period" id="stat-engagements-period">Loading...</span>
+          </div>
         </div>
-        <div class="stat-card stat-card--1">
-          <div class="stat-icon-badge"><i class="ti ti-file-text"></i></div>
-          <div class="stat-label">Total Content</div>
-          <div class="stat-value">–</div>
-          <span class="stat-period" id="stat-content-period">Loading...</span>
-        </div>
-        <div class="stat-card stat-card--3">
-          <div class="stat-icon-badge"><i class="ti ti-eye"></i></div>
-          <div class="stat-label">Total Views</div>
-          <div class="stat-value">–</div>
-          <span class="stat-period" id="stat-views-period">Loading...</span>
-        </div>
-        <div class="stat-card stat-card--2">
-          <div class="stat-icon-badge"><i class="ti ti-heart"></i></div>
-          <div class="stat-label">Total Engagements</div>
-          <div class="stat-value">–</div>
-          <span class="stat-period" id="stat-engagements-period">Loading...</span>
-        </div>
-      </div>
 
-      <!-- Performance Chart + Platform Breakdown (grid-2 wide+narrow) -->
-      <div class="grid-2">
-       <div class="panel">
+        <!-- Performance Overview -->
+        <div class="panel">
           <div class="panel-header">
             <div class="panel-title">Performance Overview</div>
             <div class="platform-toggle">
@@ -902,8 +561,11 @@
             <canvas id="perf-chart"></canvas>
           </div>
         </div>
+      </div>
 
-        <!-- Platform Breakdown — large donut + legend below like mothersdas -->
+      <!-- Platform Breakdown + Content Submitted -->
+      <div class="grid-2-equal">
+        <!-- Platform Breakdown -->
         <div class="panel">
           <div class="panel-header">
             <div class="panel-title">Platform Breakdown</div>
@@ -922,45 +584,42 @@
           </div>
           <div style="height:14px"></div>
         </div>
-      </div>
 
-      <!-- Top Performing Mothers + Content Submitted -->
-      <div class="grid-2">
-        <!-- Top Performing Mothers -->
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">Top Performing Mothers</div>
-            <a class="panel-action" href="#">View all</a>
-          </div>
-          <div class="mothers-table-wrap">
-            <table class="mothers-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Mother</th>
-                  <th>Views</th>
-                  <th>Engagements</th>
-                  <th>Links</th>
-                  <th>Points</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">Loading top mothers...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Content Submitted — simple total count -->
+        <!-- Content Submitted -->
         <div class="panel">
           <div class="panel-header">
             <div class="panel-title">Content Submitted</div>
           </div>
-          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 18px;">
-            <div id="admin-content-submitted-total" style="font-size:56px;font-weight:800;color:var(--text);line-height:1;letter-spacing:-0.03em;">–</div>
-            <div style="font-size:13px;color:var(--muted);margin-top:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">Total Content Submitted</div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:44px 18px;flex:1;">
+            <div id="admin-content-submitted-total" style="font-size:48px;font-weight:800;color:var(--text);line-height:1;letter-spacing:-0.03em;">–</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">Total Content Submitted</div>
           </div>
+        </div>
+      </div>
+
+      <!-- Top Performing Mothers -->
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header">
+          <div class="panel-title">Top Performing Mothers</div>
+          <a class="panel-action" href="#">View all</a>
+        </div>
+        <div class="mothers-table-wrap">
+          <table class="mothers-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Mother</th>
+                <th>Views</th>
+                <th>Engagements</th>
+                <th>Links</th>
+                <th>Points</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">Loading top mothers...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -992,7 +651,7 @@
 
 <!-- ══ Bottom Mobile Nav ══ -->
 <nav class="bottom-nav">
-  <a class="bottom-nav-item active" href="admindas.html">
+  <a class="bottom-nav-item active" href="admindash.html">
     <i class="ti ti-layout-dashboard"></i> Home
   </a>
   <a class="bottom-nav-item" href="admincont.html">
@@ -1021,15 +680,6 @@
     window.location.href = 'login.html'
   })
 
-  /* ── Country scoping ──────────────────────────────────────────────
-     - adminHomeCountry: from THIS admin's own profiles.country row.
-       'uganda' / 'kenya' => locked to that country, no selector shown.
-       null => superadmin, gets a working selector.
-     - activeCountryFilter: 'all' | 'uganda' | 'kenya' — what's currently
-       being viewed. For scoped admins this always equals their own
-       country. Persisted in localStorage for the superadmin.
-     - motherCountryMap: user_id -> country, for filtering submitted_content
-       (which is queried directly, not via the analytics edge function). ── */
   let adminHomeCountry = null;
   let activeCountryFilter = 'all';
   let motherCountryMap = new Map();
@@ -1083,10 +733,6 @@
     setupCountryScope(profile.country || null);
   }
 
-  /* ── configure the topbar country control based on this admin's own
-     profiles.country. Scoped admins (country set) get a fixed,
-     read-only badge. Superadmins (country null) get a working
-     dropdown, defaulting to whatever they last chose. ── */
   function setupCountryScope(ownCountry) {
     adminHomeCountry = ownCountry;
     const chip = document.getElementById('country-chip');
@@ -1118,9 +764,6 @@
     loadAdminAnalytics().then(loadAllSubmittedContent);
   }
 
-  /* user_id -> country, for filtering submitted_content client-side
-     (that table is queried straight from Supabase, not through the
-     analytics edge function, so it needs its own country lookup). */
   async function loadMotherCountryMap() {
     const { data, error } = await supabase
       .from('profiles')
@@ -1131,7 +774,7 @@
   }
 
   async function getCountryFilteredMotherIds() {
-    if (activeCountryFilter === 'all') return null; // null = no filtering needed
+    if (activeCountryFilter === 'all') return null;
     if (motherCountryMap.size === 0) await loadMotherCountryMap();
     return [...motherCountryMap.entries()]
       .filter(([, country]) => country === activeCountryFilter)
@@ -1145,7 +788,6 @@
     el.textContent = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   }
 
-  /* Mobile sidebar */
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebar-overlay');
   document.getElementById('hamburger').addEventListener('click', () => {
@@ -1162,8 +804,6 @@
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { console.log('No session'); return; }
 
-      // Country filtering happens server-side in the edge function now —
-      // it's already scoped/locked there, we just pass along what we want.
       const { data, error } = await supabase.functions.invoke(
         `postpeer-get-all-analytics?country=${encodeURIComponent(activeCountryFilter)}`,
         { method: 'GET' }
@@ -1189,26 +829,21 @@
         return;
       }
 
-      // Stat cards — mothers count is fetched separately (see loadTotalMothersStat),
-      // not taken from data.summary.totalMothers, since that can under-count.
       document.querySelector('.stat-card:nth-child(3) .stat-value').textContent = formatNumber(data.summary.totalViews);
       document.querySelector('.stat-card:nth-child(4) .stat-value').textContent = formatNumber(data.summary.totalEngagements);
       document.getElementById('stat-mothers-period').textContent = 'All time';
       document.getElementById('stat-views-period').textContent = 'Across all connected platforms';
       document.getElementById('stat-engagements-period').textContent = 'Across all connected platforms';
 
-      // Build url -> post lookup so the submitted-content table can show real views/engagements
       postpeerPostsByUrl = {};
       data.allPosts.forEach(p => {
         if (p.url) postpeerPostsByUrl[normalizeUrl(p.url)] = p;
       });
 
-      // Store all posts and render the platform-aware chart + donut
       allPostsData = data.allPosts || [];
       renderPerfChart();
       renderDonut();
 
-      // Top Performing Mothers table — real submitted-link counts, real points
       const mothersTableBody = document.querySelector('.mothers-table tbody');
       if (mothersTableBody) {
         const medals = ['🏆','🥈','🥉'];
@@ -1222,7 +857,7 @@
           return `
             <tr>
               <td><span class="rank-num">${i + 1}</span></td>
-              <td><div class="mother-cell"><div class="mother-avatar" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe)">${initials}</div><div><div class="mother-name">${m.name}</div><div class="mother-handle">${m.email}</div></div></div></td>
+              <td><div class="mother-cell"><div class="mother-avatar" style="background:linear-gradient(135deg,#844FC1,#b48ee0)">${initials}</div><div><div class="mother-name">${m.name}</div><div class="mother-handle">${m.email}</div></div></div></td>
               <td><span class="metric-val">${formatNumber(m.totalViews)}</span></td>
               <td><span class="metric-val">${formatNumber(m.totalEngagements)}</span></td>
               <td><span class="metric-val">${linkCount}</span></td>
@@ -1244,15 +879,14 @@
     return String(n);
   }
 
-  /* Performance Chart — platform + metric aware */
   let allPostsData = [];
   let activePlatform = 'tiktok';
   let activeMetric = 'views';
 
   const ctx = document.getElementById('perf-chart').getContext('2d');
   const grad = ctx.createLinearGradient(0, 0, 0, 200);
-  grad.addColorStop(0, 'rgba(27,127,212,0.18)');
-  grad.addColorStop(1, 'rgba(27,127,212,0)');
+  grad.addColorStop(0, 'rgba(132,79,193,0.18)');
+  grad.addColorStop(1, 'rgba(132,79,193,0)');
 
   const perfChart = new Chart(ctx, {
     type: 'line',
@@ -1260,8 +894,8 @@
       labels: [],
       datasets: [{
         data: [],
-        borderColor: '#1b7fd4', backgroundColor: grad,
-        borderWidth: 2.5, pointBackgroundColor: '#1b7fd4',
+        borderColor: '#844FC1', backgroundColor: grad,
+        borderWidth: 2.5, pointBackgroundColor: '#844FC1',
         pointRadius: 4, pointHoverRadius: 6,
         fill: true, tension: 0.4,
       }]
@@ -1269,12 +903,12 @@
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false }, tooltip: {
-        backgroundColor: '#07203a', titleFont: { size: 11 }, bodyFont: { size: 12 },
+        backgroundColor: '#2b2b3a', titleFont: { size: 11 }, bodyFont: { size: 12 },
         padding: 10, cornerRadius: 8,
       }},
       scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#9a9070' } },
-        y: { grid: { color: '#e3f2fd' }, ticks: { font: { size: 11 }, color: '#9a9070',
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#6C7293' } },
+        y: { grid: { color: '#eef0f4' }, ticks: { font: { size: 11 }, color: '#6C7293',
           callback: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v
         }}
       }
@@ -1314,16 +948,16 @@
     let segments;
     if (activePlatform === 'tiktok') {
       segments = [
-        { label: 'Likes', value: totals.likes, color: '#3b82f6' },
-        { label: 'Comments', value: totals.comments, color: '#22c55e' },
-        { label: 'Shares', value: totals.shares, color: '#f59e0b' },
+        { label: 'Likes', value: totals.likes, color: '#844FC1' },
+        { label: 'Comments', value: totals.comments, color: '#21BF06' },
+        { label: 'Shares', value: totals.shares, color: '#3B86D1' },
       ];
       if (valueEl) valueEl.textContent = formatNumber(totals.views);
       if (labelEl) labelEl.textContent = 'Total Views';
     } else {
       segments = [
         { label: 'Likes', value: totals.likes, color: '#e1306c' },
-        { label: 'Comments', value: totals.comments, color: '#f59e0b' },
+        { label: 'Comments', value: totals.comments, color: '#f5942c' },
       ];
       if (valueEl) valueEl.textContent = formatNumber(totals.likes + totals.comments);
       if (labelEl) labelEl.textContent = 'Total Engagement';
@@ -1393,7 +1027,6 @@
   window.switchTab = switchTab;
   window.switchPlatform = switchPlatform;
 
-  /* Platform donut */
   const platformDonut = new Chart(document.getElementById('donut-chart').getContext('2d'), {
     type: 'doughnut',
     data: {
@@ -1403,7 +1036,7 @@
     options: {
       cutout: '72%',
       plugins: { legend: { display: false }, tooltip: {
-        backgroundColor: '#07203a', bodyFont: { size: 12 }, padding: 10, cornerRadius: 8,
+        backgroundColor: '#2b2b3a', bodyFont: { size: 12 }, padding: 10, cornerRadius: 8,
       }},
     }
   });
@@ -1419,8 +1052,6 @@
     return u.split('?')[0].replace(/\/$/, '').toLowerCase();
   }
 
-  // Real submitted-link counts per mother, same dedup rule as mothersdas.html's
-  // getUniqueLinkCount — independent of whether PostPeer has synced the post yet.
   async function getSubmittedLinkCounts(motherIds) {
     let query = supabase.from('submitted_content').select('user_id, video_url');
     if (motherIds) query = query.in('user_id', motherIds);
@@ -1434,9 +1065,7 @@
     }
     return new Map([...byUser.entries()].map(([id, set]) => [id, set.size]));
   }
-  
 
-  
   async function loadTotalMothersStat() {
     const el = document.querySelector('.stat-card:nth-child(1) .stat-value');
     if (!el) return;
@@ -1529,7 +1158,7 @@
       return `
         <tr${clickable}>
           <td style="color:var(--muted);font-weight:600;font-size:12px">${i + 1}</td>
-          <td><div class="mother-mini"><div class="mother-mini-avatar" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe)">${initials}</div><div><div class="mother-mini-name">${escapeHtml(name)}</div></div></div></td>
+          <td><div class="mother-mini"><div class="mother-mini-avatar" style="background:linear-gradient(135deg,#844FC1,#b48ee0)">${initials}</div><div><div class="mother-mini-name">${escapeHtml(name)}</div></div></div></td>
           <td><div class="platform-tag ${platformClass}"><i class="ti ti-${iconClass}" style="color:#fff;font-size:13px"></i></div></td>
           <td class="caption-cell"><div class="caption-text">${caption}</div></td>
           <td><div class="caption-date">${dateStr}</div></td>
@@ -1544,7 +1173,6 @@
     const totalEl = document.getElementById('admin-content-submitted-total');
     if (!totalEl) return;
 
-    // Accurate total (not capped by the 20-row fetch above), same country scope
     let query = supabase.from('submitted_content').select('*', { count: 'exact', head: true });
     if (motherIds) query = query.in('user_id', motherIds);
     const { count, error } = await query;
@@ -1554,7 +1182,7 @@
 
  renderCurrentDate();
  (async () => {
-    await loadUserProfile();     // must resolve first: sets activeCountryFilter
+    await loadUserProfile();
     await loadTotalMothersStat();
     await loadTotalContentStat();
     await loadAdminAnalytics();
