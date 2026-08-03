@@ -14,7 +14,7 @@
     html, body {
       height: 100%;
       font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #ede9ff;
+      background: #ede9ff; 
       -webkit-font-smoothing: antialiased;
     }
 
@@ -831,7 +831,7 @@
     const { error } = await supabaseClient.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + '/onboarding-step1.html'
+        redirectTo: window.location.origin + '/login.html'
       }
     });
 
