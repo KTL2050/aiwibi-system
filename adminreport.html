@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Aiwibi — Campaign Reports</title>
+  <title>Aiwibi — Reports</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      /* ── PolluxUI-style palette ── */
+      /* ── PolluxUI-style palette ── */ 
       --brand: #844FC1;
       --brand-dark: #6c3fa0;
       --brand-light: #b48ee0;
@@ -202,6 +202,14 @@
       display: flex; align-items: center; gap: 6px;
     }
     .add-to-report-btn:hover { background: var(--brand-dark); }
+    .totals-actions { display: flex; align-items: center; gap: 8px; position: relative; }
+    .download-btn {
+      border: 1px solid var(--border); border-radius: var(--pill); background: var(--surface); color: var(--text);
+      font-size: 12px; font-weight: 700; padding: 8px 15px; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .download-btn:hover { background: var(--brand-bg); border-color: var(--brand); }
+    .download-btn:disabled { opacity: 0.6; cursor: default; }
     .add-to-report-panel {
       display: none; position: absolute; right: 0; top: calc(100% + 8px); z-index: 40;
       background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
@@ -327,7 +335,7 @@
       <div class="topbar-left">
         <button class="hamburger" id="hamburger"><i class="ti ti-menu-2"></i></button>
         <div>
-          <div class="topbar-title">Campaign Reports <span>📊</span></div>
+          <div class="topbar-title">Reports <span>📊</span></div>
           <div class="topbar-sub">Performance by platform, top mothers and top videos.</div>
         </div>
       </div>
@@ -341,7 +349,7 @@
       <div class="crumb-left">
         <i class="ti ti-chart-bar"></i>
         <span>Reports</span>
-        <span class="crumb-path">Home &nbsp;›&nbsp; Campaign Reports</span>
+        <span class="crumb-path">Home &nbsp;›&nbsp; Reports</span>
       </div>
     </div>
 
@@ -350,18 +358,24 @@
       <!-- Filter bar -->
       <div class="filter-bar">
         <div class="filter-field">
+          <label>Range</label>
+          <select id="range-select">
+            <option value="today">Today</option>
+            <option value="yesterday">Yesterday</option>
+            <option value="week" selected>This Week</option>
+            <option value="last7">Last 7 Days</option>
+            <option value="month">This Month</option>
+            <option value="last30">Last 30 Days</option>
+            <option value="custom">Custom Range</option>
+          </select>
+        </div>
+        <div class="filter-field">
           <label>From</label>
-          <input type="text" id="filter-from" readonly>
+          <input type="date" id="filter-from" disabled>
         </div>
         <div class="filter-field">
           <label>To</label>
-          <input type="text" id="filter-to" readonly>
-        </div>
-        <div class="filter-field grow">
-          <label>Campaign</label>
-          <select id="campaign-select">
-            <option value="">Loading campaigns...</option>
-          </select>
+          <input type="date" id="filter-to" disabled>
         </div>
         <div class="filter-field">
           <label>Platform</label>
@@ -376,15 +390,19 @@
       <!-- Totals -->
       <div class="totals-header">
         <div class="totals-title">Totals</div>
-        <div class="add-to-report">
-          <button class="add-to-report-btn" id="add-to-report-btn"><i class="ti ti-plus"></i> Add to report</button>
-          <div class="add-to-report-panel" id="add-to-report-panel">
+        <div class="totals-actions">
+          <button class="download-btn" id="download-excel-btn"><i class="ti ti-file-spreadsheet"></i> Excel</button>
+          <button class="download-btn" id="download-pdf-btn"><i class="ti ti-file-type-pdf"></i> PDF</button>
+          <div class="add-to-report">
+            <button class="add-to-report-btn" id="add-to-report-btn"><i class="ti ti-plus"></i> Add to report</button>
+            <div class="add-to-report-panel" id="add-to-report-panel">
             <label class="add-to-report-item"><input type="checkbox" data-metric="videos" checked> Total Videos</label>
             <label class="add-to-report-item"><input type="checkbox" data-metric="views" checked> Total Views</label>
             <label class="add-to-report-item"><input type="checkbox" data-metric="eng" checked> Total Engagements</label>
             <label class="add-to-report-item"><input type="checkbox" data-metric="likes"> Total Likes</label>
             <label class="add-to-report-item"><input type="checkbox" data-metric="comments"> Total Comments</label>
             <label class="add-to-report-item"><input type="checkbox" data-metric="shares"> Total Shares</label>
+          </div>
           </div>
         </div>
       </div>
@@ -469,9 +487,66 @@
     return (row.likes || 0) + (row.comments || 0) + (row.shares || 0);
   }
 
-  let allCampaigns = [];
-  let allContent = [];   // full unfiltered content for the selected campaign
+  let allContent = [];   // full unfiltered content for the selected date range
   let profileById = {};
+
+  /* ── Date range presets ── */
+  function startOfDay(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+  function endOfDay(d) { const x = new Date(d); x.setHours(23, 59, 59, 999); return x; }
+  function toDateInputValue(d) {
+    const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function computeRange(preset) {
+    const now = new Date();
+    switch (preset) {
+      case 'today':
+        return { from: startOfDay(now), to: endOfDay(now) };
+      case 'yesterday': {
+        const y = new Date(now); y.setDate(y.getDate() - 1);
+        return { from: startOfDay(y), to: endOfDay(y) };
+      }
+      case 'week': {
+        const day = now.getDay(); // 0 = Sun ... 6 = Sat
+        const diffToMonday = (day === 0 ? 6 : day - 1);
+        const monday = new Date(now); monday.setDate(now.getDate() - diffToMonday);
+        return { from: startOfDay(monday), to: endOfDay(now) };
+      }
+      case 'last7': {
+        const d = new Date(now); d.setDate(d.getDate() - 6);
+        return { from: startOfDay(d), to: endOfDay(now) };
+      }
+      case 'month': {
+        const first = new Date(now.getFullYear(), now.getMonth(), 1);
+        return { from: startOfDay(first), to: endOfDay(now) };
+      }
+      case 'last30': {
+        const d = new Date(now); d.setDate(d.getDate() - 29);
+        return { from: startOfDay(d), to: endOfDay(now) };
+      }
+      default:
+        return null; // 'custom' — leave whatever the user has picked
+    }
+  }
+
+  function applyRangePreset(preset) {
+    const fromEl = document.getElementById('filter-from');
+    const toEl = document.getElementById('filter-to');
+
+    if (preset === 'custom') {
+      fromEl.disabled = false;
+      toEl.disabled = false;
+      return; // wait for the user to pick dates and hit Search
+    }
+
+    fromEl.disabled = true;
+    toEl.disabled = true;
+    const range = computeRange(preset);
+    fromEl.value = toDateInputValue(range.from);
+    toEl.value = toDateInputValue(range.to);
+    loadReport();
+  }
 
   /* ── Chart.js instances (created once, updated on redraw) ── */
   function makeDonut(canvasId) {
@@ -486,65 +561,25 @@
     });
   }
 
-  async function loadCampaigns() {
-    const select = document.getElementById('campaign-select');
+  async function loadReport() {
+    const fromVal = document.getElementById('filter-from').value;
+    const toVal = document.getElementById('filter-to').value;
+    if (!fromVal || !toVal) return; // custom range not picked yet
 
-    // Wire up the platform dropdown immediately — it must not depend on the
-    // campaign fetch succeeding, otherwise switching TikTok/Instagram does
-    // nothing whenever campaigns fail to load or are still loading.
-    document.getElementById('platform-select').addEventListener('change', renderForCurrentPlatform);
-    select.addEventListener('change', () => loadReport(select.value));
+    const fromIso = `${fromVal}T00:00:00`;
+    const toIso = `${toVal}T23:59:59`;
 
-    const { data, error } = await supabase
-      .from('campaigns')
-      .select('id, name, start_date, end_date, is_draft')
-      .order('start_date', { ascending: false });
+    const { data: rows, error } = await supabase
+      .from('submitted_content')
+      .select('id, user_id, platform, video_url, caption, views, likes, comments, shares, submitted_at')
+      .gte('submitted_at', fromIso)
+      .lte('submitted_at', toIso);
 
     if (error) {
       // Surface the real Supabase error (permission denied, bad column, no
       // session, etc.) instead of a generic message — check the console
       // for this, it tells you exactly why the query failed.
-      console.error('Failed to load campaigns:', error);
-      select.innerHTML = `<option value="">Couldn't load campaigns (${escapeHtml(error.message || 'unknown error')})</option>`;
-      renderForCurrentPlatform();
-      return;
-    }
-
-    allCampaigns = data || [];
-
-    if (allCampaigns.length === 0) {
-      select.innerHTML = '<option value="">No campaigns yet</option>';
-      renderForCurrentPlatform();
-      return;
-    }
-
-    select.innerHTML = allCampaigns.map(c =>
-      `<option value="${c.id}">${escapeHtml(c.name)}${c.is_draft ? ' (Draft)' : ''}</option>`
-    ).join('');
-
-    loadReport(select.value);
-  }
-
-  async function loadReport(campaignId) {
-    if (!campaignId) return;
-
-    const campaign = allCampaigns.find(c => c.id === campaignId);
-    const fromEl = document.getElementById('filter-from');
-    const toEl = document.getElementById('filter-to');
-    if (campaign) {
-      const start = campaign.start_date ? new Date(campaign.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-      const end = campaign.end_date ? new Date(campaign.end_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-      if (fromEl) fromEl.value = start;
-      if (toEl) toEl.value = end;
-    }
-
-    const { data: rows, error } = await supabase
-      .from('submitted_content')
-      .select('id, user_id, platform, video_url, caption, views, likes, comments, shares')
-      .eq('campaign_id', campaignId);
-
-    if (error) {
-      console.error('Failed to load campaign content:', error);
+      console.error('Failed to load report content:', error);
       allContent = [];
     } else {
       allContent = rows || [];
@@ -564,6 +599,8 @@
     renderForCurrentPlatform();
   }
 
+  let lastReportData = { platform: 'tiktok', totals: {}, rankedMothers: [] };
+
   function renderForCurrentPlatform() {
     const platform = document.getElementById('platform-select').value; // 'tiktok' | 'instagram'
     /* header stats — filtered to the selected platform */
@@ -574,12 +611,14 @@
     const totalEngagements = headerRows.reduce((s, r) => s + engagementOf(r), 0);
 
     const totalShares = headerRows.reduce((s, r) => s + (r.shares || 0), 0);
-    renderTotals(headerRows, {
+    const totals = {
       videos: headerRows.length, views: totalViews, eng: totalEngagements,
       likes: totalLikes, comments: totalComments, shares: totalShares
-    });
+    };
+    renderTotals(headerRows, totals);
 
-    renderTopMothers(headerRows);
+    const rankedMothers = renderTopMothers(headerRows);
+    lastReportData = { platform, totals, rankedMothers };
   }
 
   const METRIC_DEFS = {
@@ -664,21 +703,28 @@
 
     if (ranked.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4" class="empty-note">No submissions for this selection yet.</td></tr>';
-      return;
+      return [];
     }
 
     const medals = ['🥇', '🥈', '🥉'];
-    tbody.innerHTML = ranked.map((m, i) => {
+    const resolved = ranked.map((m, i) => {
       const mother = profileById[m.userId];
       const name = mother ? (mother.full_name || mother.email) : 'Unknown';
       const email = mother ? (mother.email || '') : '';
-      const initial = name.charAt(0).toUpperCase();
-      const rankHtml = i < 3 ? `<span class="rank-medal">${medals[i]}</span>` : `<span>${i + 1}</span>`;
-
-      // The single video (by views) that drove this mother's ranking
       const topVideo = [...m.videos].sort((a, b) => (b.views || 0) - (a.views || 0))[0];
-      const topVideoCell = topVideo && topVideo.video_url
-        ? `<a class="top-video-link" href="${topVideo.video_url}" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> ${formatNumber(topVideo.views || 0)} views</a>`
+      return {
+        rank: i + 1, name, email,
+        views: m.views, engagements: m.engagements,
+        topVideoUrl: topVideo && topVideo.video_url ? topVideo.video_url : '',
+        topVideoViews: topVideo ? (topVideo.views || 0) : 0
+      };
+    });
+
+    tbody.innerHTML = resolved.map((m, i) => {
+      const initial = m.name.charAt(0).toUpperCase();
+      const rankHtml = i < 3 ? `<span class="rank-medal">${medals[i]}</span>` : `<span>${i + 1}</span>`;
+      const topVideoCell = m.topVideoUrl
+        ? `<a class="top-video-link" href="${m.topVideoUrl}" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> ${formatNumber(m.topVideoViews)} views</a>`
         : `<span class="top-video-none">No link</span>`;
 
       return `
@@ -687,7 +733,7 @@
           <td>
             <div class="mother-cell">
               <div class="mother-avatar">${initial}</div>
-              <div><div class="mother-name">${escapeHtml(name)}</div><div class="mother-email">${escapeHtml(email)}</div></div>
+              <div><div class="mother-name">${escapeHtml(m.name)}</div><div class="mother-email">${escapeHtml(m.email)}</div></div>
             </div>
           </td>
           <td>${formatNumber(m.views)}</td>
@@ -695,6 +741,8 @@
         </tr>
       `;
     }).join('');
+
+    return resolved;
   }
 
   /* "Add to report" checkbox dropdown */
@@ -713,9 +761,164 @@
     cb.addEventListener('change', renderForCurrentPlatform);
   });
 
-  document.getElementById('filter-search-btn').addEventListener('click', renderForCurrentPlatform);
+  document.getElementById('platform-select').addEventListener('change', renderForCurrentPlatform);
+  document.getElementById('range-select').addEventListener('change', (e) => applyRangePreset(e.target.value));
+  /* ── Export: Excel (SheetJS) and PDF (jsPDF + autotable), loaded on demand ── */
+  function loadScriptOnce(src) {
+    return new Promise((resolve, reject) => {
+      if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error(`Failed to load ${src}`));
+      document.head.appendChild(s);
+    });
+  }
 
-  loadCampaigns();
+  function reportFileStem() {
+    const platform = lastReportData.platform === 'instagram' ? 'instagram' : 'tiktok';
+    const from = document.getElementById('filter-from').value || 'from';
+    const to = document.getElementById('filter-to').value || 'to';
+    return `aiwibi-report-${platform}-${from}-to-${to}`;
+  }
+
+  async function downloadExcel() {
+    if (!window.XLSX) await loadScriptOnce('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
+
+    const { platform, totals, rankedMothers } = lastReportData;
+    const metrics = checkedMetrics();
+    const from = document.getElementById('filter-from').value;
+    const to = document.getElementById('filter-to').value;
+
+    const summarySheetRows = [
+      ['Aiwibi — Reports'],
+      ['Platform', platform === 'instagram' ? 'Instagram' : 'TikTok'],
+      ['From', from], ['To', to],
+      [],
+      ['Metric', 'Value']
+    ];
+    metrics.forEach(m => summarySheetRows.push([METRIC_DEFS[m] ? METRIC_DEFS[m].label : m, totals[m] || 0]));
+
+    const mothersSheetRows = [
+      ['Rank', 'Mother', 'Email', 'Views', 'Engagements', 'Top Video URL', 'Top Video Views']
+    ];
+    if (rankedMothers.length === 0) {
+      mothersSheetRows.push(['—', 'No submissions for this selection', '', '', '', '', '']);
+    } else {
+      rankedMothers.forEach(m => mothersSheetRows.push([m.rank, m.name, m.email, m.views, m.engagements, m.topVideoUrl, m.topVideoViews]));
+    }
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summarySheetRows), 'Summary');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(mothersSheetRows), 'Top Mothers');
+    XLSX.writeFile(wb, `${reportFileStem()}.xlsx`);
+  }
+
+  // Renders an off-screen pie chart and returns it as a PNG data URL for embedding in the PDF.
+  async function renderPieImage(labels, data, colors) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 500; canvas.height = 400;
+    const chart = new Chart(canvas.getContext('2d'), {
+      type: 'pie',
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 1 }] },
+      options: {
+        animation: false, responsive: false,
+        plugins: { legend: { position: 'bottom', labels: { font: { size: 13 } } } }
+      }
+    });
+    // Chart.js draws asynchronously on the next frame — wait for it before reading the canvas.
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const dataUrl = canvas.toDataURL('image/png');
+    chart.destroy();
+    return dataUrl;
+  }
+
+  async function downloadPdf() {
+    if (!window.jspdf) await loadScriptOnce('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+    if (!(window.jspdf && window.jspdf.jsPDF && window.jspdf.jsPDF.API && window.jspdf.jsPDF.API.autoTable)) {
+      await loadScriptOnce('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.js');
+    }
+
+    const { jsPDF } = window.jspdf;
+    const { platform, totals, rankedMothers } = lastReportData;
+    const metrics = checkedMetrics();
+    const from = document.getElementById('filter-from').value;
+    const to = document.getElementById('filter-to').value;
+
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text('Aiwibi — Reports', 14, 18);
+    doc.setFontSize(10);
+    doc.setTextColor(110);
+    doc.text(`Platform: ${platform === 'instagram' ? 'Instagram' : 'TikTok'}     Range: ${from} to ${to}`, 14, 25);
+    doc.setTextColor(20);
+
+    doc.autoTable({
+      startY: 32,
+      head: [['Metric', 'Value']],
+      body: metrics.length
+        ? metrics.map(m => [METRIC_DEFS[m] ? METRIC_DEFS[m].label : m, formatNumber(totals[m] || 0)])
+        : [['—', 'No metrics selected']],
+      theme: 'grid', styles: { fontSize: 9 }, headStyles: { fillColor: [124, 92, 255] }
+    });
+
+    let y = doc.lastAutoTable.finalY + 12;
+
+    // Pie chart: engagement breakdown (likes / comments / shares)
+    const engagementTotal = (totals.likes || 0) + (totals.comments || 0) + (totals.shares || 0);
+    if (engagementTotal > 0) {
+      const pieImg = await renderPieImage(
+        ['Likes', 'Comments', 'Shares'],
+        [totals.likes || 0, totals.comments || 0, totals.shares || 0],
+        ['#7c5cff', '#22c1a4', '#ff8a5c']
+      );
+      doc.setFontSize(12);
+      doc.text('Engagement Breakdown', 14, y);
+      doc.addImage(pieImg, 'PNG', 14, y + 4, 90, 72);
+      y += 84;
+    }
+
+    if (y > 250) { doc.addPage(); y = 20; }
+
+    doc.setFontSize(12);
+    doc.text('Top 5 Performing Mothers', 14, y);
+    doc.autoTable({
+      startY: y + 4,
+      head: [['Rank', 'Mother', 'Views', 'Engagements', 'Top Video Views']],
+      body: rankedMothers.length
+        ? rankedMothers.map(m => [m.rank, m.name, formatNumber(m.views), formatNumber(m.engagements), formatNumber(m.topVideoViews)])
+        : [['—', 'No submissions for this selection', '', '', '']],
+      theme: 'grid', styles: { fontSize: 9 }, headStyles: { fillColor: [124, 92, 255] }
+    });
+
+    doc.save(`${reportFileStem()}.pdf`);
+  }
+
+  function withDisabledButton(btn, fn) {
+    return async () => {
+      const original = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ti ti-loader-2"></i> Working…';
+      try {
+        await fn();
+      } catch (err) {
+        console.error(err);
+        alert("Couldn't generate the file — check your connection and try again.");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = original;
+      }
+    };
+  }
+
+  const downloadExcelBtn = document.getElementById('download-excel-btn');
+  const downloadPdfBtn = document.getElementById('download-pdf-btn');
+  downloadExcelBtn.addEventListener('click', withDisabledButton(downloadExcelBtn, downloadExcel));
+  downloadPdfBtn.addEventListener('click', withDisabledButton(downloadPdfBtn, downloadPdf));
+
+  document.getElementById('filter-search-btn').addEventListener('click', loadReport);
+
+  applyRangePreset(document.getElementById('range-select').value); // defaults to "This Week" and loads
   applyPlatformLogo();
 </script>
 </body>
