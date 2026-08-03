@@ -12,7 +12,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
  
     :root { 
-      /* ── Sidebar (UNCHANGED — Sky Nursery) ── */
+      /* ── Sidebar (UNCHANGED — Sky Nursery) ── */ 
       --brand: #3B86D1;
       --brand-soft: #a9c9ec;
       --brand-gradient: linear-gradient(135deg, #844FC1 0%, #3B86D1 100%);
@@ -879,21 +879,6 @@
         <i class="ti ti-loader-2"></i> Fetching preview...
       </div>
 
-      <!-- 3. Choose Campaign -->
-      <div class="section-label">3. Choose Campaign</div>
-      <div class="campaign-picker" id="campaign-picker">
-        <button type="button" class="campaign-picker-trigger" id="campaign-picker-trigger">
-          <span class="cp-trigger-icon"><i class="ti ti-speakerphone"></i></span>
-          <span class="cp-trigger-text" id="cp-trigger-text">Loading campaigns…</span>
-          <i class="ti ti-chevron-down cp-trigger-chevron"></i>
-        </button>
-        <div class="campaign-picker-panel" id="campaign-picker-panel"></div>
-        <select id="campaign-select" style="display:none"></select>
-      </div>
-      <div class="detect-success" id="no-campaign-msg" style="display:none;color:var(--muted);">
-        <i class="ti ti-info-circle"></i> No active campaign right now — your link will still be submitted without one.
-      </div>
-
       <div style="display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:12px;margin-top:14px;">
         <button class="btn-submit">Submit Content <i class="ti ti-arrow-right"></i></button>
       </div>
@@ -1110,127 +1095,6 @@
 
   loadActiveCampaignRail();
 
-  // ── Premium campaign picker (custom dropdown; hidden <select> underneath keeps existing submit logic working) ──
-  const campaignPicker = document.getElementById('campaign-picker')
-  const campaignTrigger = document.getElementById('campaign-picker-trigger')
-  const campaignPanel = document.getElementById('campaign-picker-panel')
-  const cpTriggerText = document.getElementById('cp-trigger-text')
-
-  if (campaignTrigger) {
-    campaignTrigger.addEventListener('click', () => campaignPicker.classList.toggle('open'))
-    document.addEventListener('click', (e) => {
-      if (campaignPicker && !campaignPicker.contains(e.target)) campaignPicker.classList.remove('open')
-    })
-  }
-
-  function setCampaignTrigger(text, sub) {
-    cpTriggerText.innerHTML = sub
-      ? `${escapeHtml(text)}<span class="cp-trigger-sub">${escapeHtml(sub)}</span>`
-      : escapeHtml(text)
-  }
-
-  function selectCampaign(id, label, sub) {
-    const selectEl = document.getElementById('campaign-select')
-    selectEl.value = id
-    setCampaignTrigger(label, sub)
-    campaignPanel.querySelectorAll('.cp-option').forEach(el => {
-      el.classList.toggle('selected', el.dataset.id === id)
-    })
-    campaignPicker.classList.remove('open')
-  }
-
-  function campaignMeta(c) {
-    return c._status.cls === 'active' ? `Ends ${fmtDate(c.end_date)}` : `Starts ${fmtDate(c.start_date)}`
-  }
-
-  function renderCampaignPanel(withStatus, defaultCampaign) {
-    campaignPanel.innerHTML = withStatus.map(c => {
-      const isActive = c._status.cls === 'active'
-      const meta = campaignMeta(c)
-      const isSelected = defaultCampaign && c.id === defaultCampaign.id
-      return `
-        <div class="cp-option${isSelected ? ' selected' : ''}" data-id="${c.id}" data-label="${escapeHtml(c.name)}" data-meta="${escapeHtml(meta)}">
-          <span class="cp-option-status ${isActive ? 'active' : 'upcoming'}"><i class="ti ${isActive ? 'ti-bolt' : 'ti-clock'}"></i></span>
-          <span class="cp-option-body">
-            <span class="cp-option-name">${escapeHtml(c.name)}</span>
-            <span class="cp-option-meta">${meta}</span>
-          </span>
-          <i class="ti ti-check cp-option-check"></i>
-        </div>`
-    }).join('')
-
-    campaignPanel.querySelectorAll('.cp-option').forEach(el => {
-      el.addEventListener('click', () => selectCampaign(el.dataset.id, el.dataset.label, el.dataset.meta))
-    })
-
-    if (defaultCampaign) {
-      setCampaignTrigger(defaultCampaign.name, campaignMeta(defaultCampaign))
-    } else {
-      setCampaignTrigger('Select a campaign (optional)')
-    }
-  }
-
-  async function loadCampaignOptions() {
-    const selectEl = document.getElementById('campaign-select')
-    const noCampMsg = document.getElementById('no-campaign-msg')
-    if (!selectEl) return
-
-    try {
-      const { data: campaigns, error } = await supabase
-        .from('campaigns')
-        .select('*')
-        .eq('is_draft', false)
-        .order('start_date', { ascending: true })
-
-      if (error) throw error
-
-      const withStatus = (campaigns || [])
-        .map(c => ({ ...c, _status: campaignStatus(c) }))
-        .filter(c => c._status.cls === 'active' || c._status.cls === 'upcoming')
-
-      if (withStatus.length === 0) {
-        selectEl.innerHTML = '<option value="">No active or upcoming campaigns</option>'
-        campaignPanel.innerHTML = '<div class="cp-option-empty">No active or upcoming campaigns</div>'
-        setCampaignTrigger('No campaigns right now')
-        if (noCampMsg) noCampMsg.style.display = 'flex'
-        return
-      }
-
-      withStatus.sort((a, b) => {
-        if (a._status.cls !== b._status.cls) return a._status.cls === 'active' ? -1 : 1
-        return a._status.cls === 'active'
-          ? a._status.daysLeft - b._status.daysLeft
-          : a._status.daysUntil - b._status.daysUntil
-      })
-
-      const defaultCampaign = withStatus.find(c => c._status.cls === 'active') || null
-
-      selectEl.innerHTML = withStatus.map(c => {
-        const label = c._status.cls === 'active'
-          ? `${c.name} (ends ${fmtDate(c.end_date)})`
-          : `${c.name} (starts ${fmtDate(c.start_date)})`
-        return `<option value="${c.id}">${escapeHtml(label)}</option>`
-      }).join('')
-
-      renderCampaignPanel(withStatus, defaultCampaign)
-
-      if (defaultCampaign) {
-        selectEl.value = defaultCampaign.id
-        if (noCampMsg) noCampMsg.style.display = 'none'
-      } else if (noCampMsg) {
-        noCampMsg.style.display = 'flex'
-      }
-    } catch (err) {
-      console.error('Failed to load campaigns:', err)
-      const msg = (err && (err.message || err.details || err.hint)) || 'unknown error'
-      selectEl.innerHTML = `<option value="">Couldn't load campaigns: ${msg}</option>`
-      setCampaignTrigger("Couldn't load campaigns")
-      if (noCampMsg) noCampMsg.style.display = 'flex'
-    }
-  }
-
-  loadCampaignOptions();
-
   const TIKTOK_ICON_SVG = '<svg width="13" height="13" viewBox="0 0 24 24" class="tiktok-svg"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/></svg>'
   const INSTAGRAM_ICON_SVG = '<svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>'
 
@@ -1308,6 +1172,22 @@
     if (u.includes('tiktok.com')) return 'tiktok'
     if (u.includes('instagram.com')) return 'instagram'
     return null
+  }
+
+  // Strips query params (utm_source etc.), hash fragments, trailing slashes,
+  // and forces lowercase host+path so the same video pasted with different
+  // tracking params is still recognized as the same link.
+  function normalizeUrl(rawUrl) {
+    try {
+      const u = new URL(rawUrl.trim())
+      u.search = ''
+      u.hash = ''
+      let normalized = (u.origin + u.pathname).toLowerCase()
+      normalized = normalized.replace(/\/+$/, '')
+      return normalized
+    } catch {
+      return rawUrl.trim().toLowerCase().replace(/\/+$/, '')
+    }
   }
 
   let previewDebounce = null
@@ -1409,22 +1289,57 @@ const res = await fetch(`${SUPABASE_URL}/functions/v1/oembed-preview`, {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { window.location.href = 'login.html'; return }
 
-    const campaignSelectEl = document.getElementById('campaign-select')
-    const campaignId = campaignSelectEl && campaignSelectEl.value ? campaignSelectEl.value : null
+    const normalizedUrl = normalizeUrl(url)
+
+    const submitBtn = document.querySelector('.btn-submit')
+    submitBtn.disabled = true
+    submitBtn.style.opacity = '0.6'
+
+    const { data: existing, error: dupCheckError } = await supabase
+      .from('submitted_content')
+      .select('id')
+      .eq('user_id', session.user.id)
+      .eq('video_url_normalized', normalizedUrl)
+      .limit(1)
+
+    if (dupCheckError) {
+      console.error('Duplicate check error:', dupCheckError)
+      alert('Something went wrong checking your submission. Please try again.')
+      submitBtn.disabled = false
+      submitBtn.style.opacity = ''
+      return
+    }
+
+    if (existing && existing.length > 0) {
+      alert("You've already submitted this link before. Please paste a link you haven't submitted yet.")
+      submitBtn.disabled = false
+      submitBtn.style.opacity = ''
+      return
+    }
 
     const { error } = await supabase.from('submitted_content').insert({
       user_id: session.user.id,
       platform: detected,
       video_url: url,
+      video_url_normalized: normalizedUrl,
       status: 'pending',
       caption: currentPreviewCaption,
       thumbnail_url: currentPreviewThumbnail,
-      campaign_id: campaignId
+      campaign_id: null
     })
+
+    submitBtn.disabled = false
+    submitBtn.style.opacity = ''
 
     if (error) {
       console.error('Submit error:', error)
-      alert('Something went wrong submitting your link.')
+      // 23505 = Postgres unique_violation — the DB-level safety net caught a
+      // duplicate the client-side check missed (e.g. a race between two tabs).
+      if (error.code === '23505') {
+        alert("You've already submitted this link before. Please paste a link you haven't submitted yet.")
+      } else {
+        alert('Something went wrong submitting your link.')
+      }
       return
     }
 
