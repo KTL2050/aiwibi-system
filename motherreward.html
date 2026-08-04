@@ -303,12 +303,28 @@
     .tier-name { font-size: 14px; font-weight: 800; color: var(--text); }
     .tier-range { font-size: 10.5px; color: var(--muted); margin-bottom: 10px; }
     .tier-reward-preview {
-      display: none; width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; margin-bottom: 10px;
-      overflow: hidden; background: var(--bg);
+      display: none; position: fixed; width: 500px; height: 500px;
+      max-width: 92vw; max-height: 80vh;
+      border-radius: 14px; overflow: hidden; background: var(--surface);
+      border: 1px solid var(--border); box-shadow: 0 24px 60px rgba(0,0,0,0.28);
       align-items: center; justify-content: center; font-size: 24px; color: var(--muted);
+      z-index: 1000;
     }
     .tier-reward-preview.open { display: flex; }
-    .tier-reward-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .tier-reward-preview img { width: 100%; height: 100%; object-fit: contain; display: block; background: #f6f5fa; }
+    .tier-preview-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(15,15,25,0.35);
+      z-index: 999;
+    }
+    .tier-preview-backdrop.open { display: block; }
+    .tier-preview-close {
+      position: absolute; top: 10px; right: 10px; z-index: 1;
+      width: 30px; height: 30px; border-radius: 50%;
+      background: rgba(0,0,0,0.55); color: #fff; border: none;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; cursor: pointer;
+    }
+    .tier-preview-close:hover { background: rgba(0,0,0,0.75); }
     .tier-reward-name { font-size: 11.5px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
     .tier-status-pill {
       display: inline-flex; align-items: center; gap: 4px;
@@ -693,6 +709,7 @@
       </div>
 
       <!-- Reward Tiers -->
+      <div class="tier-preview-backdrop" id="tier-preview-backdrop"></div>
       <div class="panel" style="margin-bottom:16px;">
         <div class="panel-header"><div class="panel-title">Reward Tiers</div></div>
         <div class="tiers-grid">
@@ -704,7 +721,7 @@
             <div class="tier-icon-wrap" style="background:#fde9d2;color:#c2761e"><i class="ti ti-medal"></i></div>
             <div class="tier-name">Bronze</div>
             <div class="tier-range" id="tier-range-bronze">&nbsp;</div>
-            <div class="tier-reward-preview" id="tier-preview-bronze"><i class="ti ti-gift"></i></div>
+            <div class="tier-reward-preview" id="tier-preview-bronze"><button type="button" class="tier-preview-close" data-tier="bronze" aria-label="Close preview"><i class="ti ti-x"></i></button><i class="ti ti-gift"></i></div>
             <div class="tier-reward-name" id="tier-reward-name-bronze">&nbsp;</div>
             <div class="tier-status-pill locked" id="tier-status-bronze"><i class="ti ti-lock" style="font-size:11px"></i> Locked</div>
           </div>
@@ -717,7 +734,7 @@
             <div class="tier-icon-wrap" style="background:#f1f5f9;color:#64748b"><i class="ti ti-medal"></i></div>
             <div class="tier-name">Silver</div>
             <div class="tier-range" id="tier-range-silver">&nbsp;</div>
-            <div class="tier-reward-preview" id="tier-preview-silver"><i class="ti ti-gift"></i></div>
+            <div class="tier-reward-preview" id="tier-preview-silver"><button type="button" class="tier-preview-close" data-tier="silver" aria-label="Close preview"><i class="ti ti-x"></i></button><i class="ti ti-gift"></i></div>
             <div class="tier-reward-name" id="tier-reward-name-silver">&nbsp;</div>
             <div class="tier-status-pill locked" id="tier-status-silver"><i class="ti ti-lock" style="font-size:11px"></i> Locked</div>
           </div>
@@ -730,7 +747,7 @@
             <div class="tier-icon-wrap" style="background:#fef3c7;color:#b45309"><i class="ti ti-star"></i></div>
             <div class="tier-name">Gold</div>
             <div class="tier-range" id="tier-range-gold">&nbsp;</div>
-            <div class="tier-reward-preview" id="tier-preview-gold"><i class="ti ti-gift"></i></div>
+            <div class="tier-reward-preview" id="tier-preview-gold"><button type="button" class="tier-preview-close" data-tier="gold" aria-label="Close preview"><i class="ti ti-x"></i></button><i class="ti ti-gift"></i></div>
             <div class="tier-reward-name" id="tier-reward-name-gold">&nbsp;</div>
             <div class="tier-status-pill locked" id="tier-status-gold"><i class="ti ti-lock" style="font-size:11px"></i> Locked</div>
           </div>
@@ -955,9 +972,10 @@
       }
       if (rewardNameEl) rewardNameEl.textContent = t.reward_title ? `🎁 ${t.reward_title}` : '';
       if (previewEl) {
-        previewEl.innerHTML = t.image_url
+        const mediaHtml = t.image_url
           ? `<img src="${t.image_url}" alt="${escapeHtml(t.reward_title || t.name + ' reward')}">`
           : '<i class="ti ti-gift"></i>';
+        previewEl.innerHTML = `<button type="button" class="tier-preview-close" data-tier="${t.key}" aria-label="Close preview"><i class="ti ti-x"></i></button>${mediaHtml}`;
       }
 
       cardEl.classList.toggle('current', isCurrent);
@@ -976,19 +994,80 @@
     });
   }
 
+  function closeTierPreview(key) {
+    const preview = document.getElementById(`tier-preview-${key}`);
+    const btn = document.getElementById(`tier-eye-${key}`);
+    const backdrop = document.getElementById('tier-preview-backdrop');
+    if (preview) preview.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
+    if (btn) {
+      btn.classList.remove('active');
+      btn.title = 'See the reward';
+      btn.setAttribute('aria-label', btn.title);
+      btn.innerHTML = '<i class="ti ti-eye"></i>';
+    }
+  }
+
+  function closeAllTierPreviews() {
+    TIERS.forEach(t => closeTierPreview(t.key));
+  }
+
+  function positionTierPreview(preview, cardEl) {
+    // Render it first (off-screen) so we can measure its real size.
+    preview.style.visibility = 'hidden';
+    preview.classList.add('open');
+    const cardRect = cardEl.getBoundingClientRect();
+    const pw = preview.offsetWidth;
+    const ph = preview.offsetHeight;
+    const margin = 12;
+
+    // Prefer just above the card; if there's no room, place just below it.
+    let top = cardRect.top - ph - margin;
+    if (top < margin) top = Math.min(cardRect.bottom + margin, window.innerHeight - ph - margin);
+    top = Math.max(margin, top);
+
+    let left = cardRect.left + cardRect.width / 2 - pw / 2;
+    left = Math.max(margin, Math.min(left, window.innerWidth - pw - margin));
+
+    preview.style.top = `${top}px`;
+    preview.style.left = `${left}px`;
+    preview.style.visibility = '';
+  }
+
   function wireTierEyeButtons() {
+    const backdrop = document.getElementById('tier-preview-backdrop');
+
     document.querySelectorAll('.tier-eye-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const key = btn.dataset.tier;
         const preview = document.getElementById(`tier-preview-${key}`);
-        if (!preview) return;
-        const isOpen = preview.classList.toggle('open');
-        btn.classList.toggle('active', isOpen);
-        btn.title = isOpen ? 'Hide reward' : 'See the reward';
-        btn.setAttribute('aria-label', btn.title);
-        btn.innerHTML = isOpen ? '<i class="ti ti-eye-off"></i>' : '<i class="ti ti-eye"></i>';
+        const cardEl = document.getElementById(`tier-card-${key}`);
+        if (!preview || !cardEl) return;
+
+        const wasOpen = preview.classList.contains('open');
+        closeAllTierPreviews();
+
+        if (!wasOpen) {
+          positionTierPreview(preview, cardEl);
+          if (backdrop) backdrop.classList.add('open');
+          btn.classList.add('active');
+          btn.title = 'Hide reward';
+          btn.setAttribute('aria-label', btn.title);
+          btn.innerHTML = '<i class="ti ti-eye-off"></i>';
+        }
       });
     });
+
+    document.querySelectorAll('.tier-preview-close').forEach(closeBtn => {
+      closeBtn.addEventListener('click', () => closeTierPreview(closeBtn.dataset.tier));
+    });
+
+    if (backdrop) backdrop.addEventListener('click', closeAllTierPreviews);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAllTierPreviews();
+    });
+    window.addEventListener('resize', closeAllTierPreviews);
+    window.addEventListener('scroll', closeAllTierPreviews, true);
   }
 
   async function loadAvailableRewards(points) {
