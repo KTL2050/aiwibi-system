@@ -303,15 +303,17 @@
     .tier-name { font-size: 14px; font-weight: 800; color: var(--text); }
     .tier-range { font-size: 10.5px; color: var(--muted); margin-bottom: 10px; }
     .tier-reward-preview {
-      display: none; position: fixed; width: 500px; height: 500px;
-      max-width: 92vw; max-height: 80vh;
+      display: none; position: fixed;
+      max-width: min(700px, 92vw); max-height: min(700px, 80vh);
+      width: fit-content; height: fit-content;
+      min-width: 220px; min-height: 220px;
       border-radius: 14px; overflow: hidden; background: var(--surface);
       border: 1px solid var(--border); box-shadow: 0 24px 60px rgba(0,0,0,0.28);
       align-items: center; justify-content: center; font-size: 24px; color: var(--muted);
       z-index: 1000;
     }
-    .tier-reward-preview.open { display: flex; }
-    .tier-reward-preview img { width: 100%; height: 100%; object-fit: contain; display: block; background: #f6f5fa; }
+    .tier-reward-preview.open { display: inline-flex; }
+    .tier-reward-preview img { display: block; max-width: 100%; max-height: min(700px, 80vh); width: auto; height: auto; }
     .tier-preview-backdrop {
       display: none; position: fixed; inset: 0; background: rgba(15,15,25,0.35);
       z-index: 999;
@@ -1013,25 +1015,39 @@
   }
 
   function positionTierPreview(preview, cardEl) {
-    // Render it first (off-screen) so we can measure its real size.
+    const doPosition = () => {
+      const cardRect = cardEl.getBoundingClientRect();
+      const pw = preview.offsetWidth;
+      const ph = preview.offsetHeight;
+      const margin = 12;
+
+      // Prefer just above the card; if there's no room, place just below it.
+      let top = cardRect.top - ph - margin;
+      if (top < margin) top = Math.min(cardRect.bottom + margin, window.innerHeight - ph - margin);
+      top = Math.max(margin, top);
+
+      let left = cardRect.left + cardRect.width / 2 - pw / 2;
+      left = Math.max(margin, Math.min(left, window.innerWidth - pw - margin));
+
+      preview.style.top = `${top}px`;
+      preview.style.left = `${left}px`;
+      preview.style.visibility = '';
+    };
+
+    // Hide while we size/position it, so there's no flash at the wrong spot.
     preview.style.visibility = 'hidden';
     preview.classList.add('open');
-    const cardRect = cardEl.getBoundingClientRect();
-    const pw = preview.offsetWidth;
-    const ph = preview.offsetHeight;
-    const margin = 12;
 
-    // Prefer just above the card; if there's no room, place just below it.
-    let top = cardRect.top - ph - margin;
-    if (top < margin) top = Math.min(cardRect.bottom + margin, window.innerHeight - ph - margin);
-    top = Math.max(margin, top);
-
-    let left = cardRect.left + cardRect.width / 2 - pw / 2;
-    left = Math.max(margin, Math.min(left, window.innerWidth - pw - margin));
-
-    preview.style.top = `${top}px`;
-    preview.style.left = `${left}px`;
-    preview.style.visibility = '';
+    const img = preview.querySelector('img');
+    if (img && !img.complete) {
+      // Image not loaded yet: its real dimensions (and therefore the popup's
+      // fit-content size) aren't known until it loads, so wait for that.
+      const onReady = () => requestAnimationFrame(doPosition);
+      img.addEventListener('load', onReady, { once: true });
+      img.addEventListener('error', onReady, { once: true });
+    } else {
+      requestAnimationFrame(doPosition);
+    }
   }
 
   function wireTierEyeButtons() {
