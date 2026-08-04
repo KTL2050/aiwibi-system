@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style> 
+  <style>  
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }  
 
     :root {
@@ -364,6 +364,29 @@
     .tier-table tr:last-child td { border-bottom: none; }
     .tier-table .form-input { padding: 7px 11px; font-size: 12.5px; max-width: 130px; font-variant-numeric: tabular-nums; }
     .tier-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; vertical-align: 1px; }
+
+    /* ── Ambassador tier editor ── */
+    .tier-edit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .tier-edit-card {
+      border: 1px solid var(--border); border-radius: 14px; padding: 14px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .tier-edit-header { font-size: 13.5px; font-weight: 700; color: var(--ink); display: flex; align-items: center; }
+    .tier-edit-card .form-label { font-size: 10.5px; }
+    .tier-image-dropzone {
+      position: relative; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden;
+      background: linear-gradient(140deg, var(--aiwibi-bg) 0%, #f8f5fc 100%);
+      border: 1.5px dashed var(--border); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .tier-image-dropzone.dragover { border-color: var(--aiwibi-deep); background: var(--aiwibi-bg); }
+    .tier-image-preview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .tier-image-placeholder { padding: 10px; font-size: 11px; color: var(--muted); }
+    .tier-image-placeholder i { font-size: 22px; color: var(--aiwibi-soft); display: block; margin-bottom: 4px; }
+    .tier-browse-link { color: var(--aiwibi-deep); font-weight: 700; }
+    .tier-image-status { font-size: 10.5px; color: var(--green); display: none; align-items: center; gap: 4px; }
+    .tier-image-status.show { display: flex; }
 
     /* ── Admins list ── */
     .admin-row {
@@ -926,41 +949,17 @@
               <div class="panel-header">
                 <div>
                   <div class="panel-title">Ambassador Tiers</div>
-                  <div class="panel-desc">Point thresholds that promote mothers between tiers.</div>
+                  <div class="panel-desc">Points required, the reward, and a photo for each tier. These show on the mothers' Rewards page.</div>
                 </div>
               </div>
               <div class="panel-body">
-                <table class="tier-table">
-                  <thead>
-                    <tr><th>Tier</th><th>Points Required</th><th>Perk</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><span class="tier-dot" style="background:#b87333"></span>Bronze</td>
-                      <td><input class="form-input" type="number" value="0"></td>
-                      <td>Welcome kit</td>
-                    </tr>
-                    <tr>
-                      <td><span class="tier-dot" style="background:#9aa4ad"></span>Silver</td>
-                      <td><input class="form-input" type="number" value="400"></td>
-                      <td>Product hamper</td>
-                    </tr>
-                    <tr>
-                      <td><span class="tier-dot" style="background:#dd9328"></span>Gold</td>
-                      <td><input class="form-input" type="number" value="700"></td>
-                      <td>Cash reward + hamper</td>
-                    </tr>
-                    <tr>
-                      <td><span class="tier-dot" style="background:#844FC1"></span>Platinum</td>
-                      <td><input class="form-input" type="number" value="1000"></td>
-                      <td>Brand trip + premium rewards</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div class="tier-edit-grid" id="tier-edit-grid">
+                  <!-- Bronze / Silver / Gold cards are rendered here by JS -->
+                </div>
               </div>
               <div class="save-bar">
-                <button class="btn btn-outline btn-sm">Reset</button>
-                <button class="btn btn-primary btn-sm save-btn">Save Changes</button>
+                <button class="btn btn-outline btn-sm" id="tiers-reset-btn">Reset</button>
+                <button class="btn btn-primary btn-sm" id="tiers-save-btn">Save Changes</button>
               </div>
             </div>
           </div>
@@ -1553,6 +1552,141 @@
     showToast('Rewards saved')
   })
 
+  /* ══ Ambassador Tiers ══ */
+  const TIER_META = {
+    bronze: { label: 'Bronze', dotColor: '#b87333' },
+    silver: { label: 'Silver', dotColor: '#9aa4ad' },
+    gold:   { label: 'Gold',   dotColor: '#dd9328' }
+  }
+  const tierEditGrid = document.getElementById('tier-edit-grid')
+  const pendingTierFiles = {}   // { bronze: File|undefined, ... }
+
+  async function uploadTierImage(tierKey, file) {
+    const ext = file.name.split('.').pop()
+    const path = `tier-${tierKey}-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+    const { error: uploadError } = await supabase.storage.from('reward-images').upload(path, file, { upsert: true })
+    if (uploadError) { showToast('Image upload failed'); console.error(uploadError); return null }
+    const { data } = supabase.storage.from('reward-images').getPublicUrl(path)
+    return data.publicUrl
+  }
+
+  function tierCardHtml(key, row) {
+    const meta = TIER_META[key]
+    const points = row?.min_points ?? ''
+    const rewardTitle = row?.reward_title ?? ''
+    const imageUrl = row?.image_url || ''
+    return `
+      <div class="tier-edit-card" data-tier="${key}">
+        <div class="tier-edit-header"><span class="tier-dot" style="background:${meta.dotColor}"></span>${meta.label}</div>
+        <div class="tier-image-dropzone" data-tier="${key}">
+          ${imageUrl ? `<img class="tier-image-preview" src="${imageUrl}" alt="">` : ''}
+          <div class="tier-image-placeholder" style="${imageUrl ? 'display:none;' : ''}">
+            <i class="ti ti-photo-plus"></i>
+            Drag &amp; drop photo, or <span class="tier-browse-link">browse</span>
+          </div>
+          <input type="file" class="tier-image-file" accept="image/*" style="display:none;">
+        </div>
+        <div class="tier-image-status"><i class="ti ti-circle-check"></i> New photo staged</div>
+        <div class="form-group">
+          <label class="form-label">Points Required</label>
+          <input class="form-input tier-points-input" type="number" min="0" value="${points}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reward</label>
+          <input class="form-input tier-reward-input" placeholder="e.g. Baby T-Shirt" value="${escapeHtml(rewardTitle)}">
+        </div>
+      </div>
+    `
+  }
+
+  async function loadTiers() {
+    const { data: tiers, error } = await supabase
+      .from('tiers')
+      .select('*')
+      .order('sort_order', { ascending: true })
+
+    if (error) {
+      console.error('Failed to load tiers:', error)
+      tierEditGrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:24px;">Couldn\'t load tiers.</div>'
+      return
+    }
+
+    const byKey = {}
+    ;(tiers || []).forEach(t => { byKey[t.key] = t })
+
+    tierEditGrid.innerHTML = ['bronze', 'silver', 'gold']
+      .map(key => tierCardHtml(key, byKey[key]))
+      .join('')
+
+    for (const key of Object.keys(pendingTierFiles)) delete pendingTierFiles[key]
+    wireTierDropzones()
+  }
+
+  function wireTierDropzones() {
+    tierEditGrid.querySelectorAll('.tier-image-dropzone').forEach(zone => {
+      const key = zone.dataset.tier
+      const fileInput = zone.querySelector('.tier-image-file')
+
+      zone.addEventListener('click', () => fileInput.click())
+      ;['dragover', 'dragenter'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('dragover') }))
+      ;['dragleave', 'drop'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove('dragover') }))
+      zone.addEventListener('drop', e => {
+        if (e.dataTransfer.files.length) stageTierFile(key, zone, e.dataTransfer.files[0])
+      })
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) stageTierFile(key, zone, fileInput.files[0])
+        fileInput.value = ''
+      })
+    })
+  }
+
+  function stageTierFile(key, zone, file) {
+    if (!validImage(file)) return
+    pendingTierFiles[key] = file
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      let preview = zone.querySelector('.tier-image-preview')
+      if (!preview) {
+        preview = document.createElement('img')
+        preview.className = 'tier-image-preview'
+        zone.prepend(preview)
+      }
+      preview.src = reader.result
+      const placeholder = zone.querySelector('.tier-image-placeholder')
+      if (placeholder) placeholder.style.display = 'none'
+    }
+    reader.readAsDataURL(file)
+
+    const statusEl = zone.closest('.tier-edit-card').querySelector('.tier-image-status')
+    if (statusEl) statusEl.classList.add('show')
+  }
+
+  document.getElementById('tiers-save-btn')?.addEventListener('click', async () => {
+    const cards = tierEditGrid.querySelectorAll('.tier-edit-card')
+    for (const card of cards) {
+      const key = card.dataset.tier
+      const points = Number(card.querySelector('.tier-points-input').value) || 0
+      const rewardTitle = card.querySelector('.tier-reward-input').value.trim()
+
+      let imageUrl
+      if (pendingTierFiles[key]) {
+        const uploaded = await uploadTierImage(key, pendingTierFiles[key])
+        if (uploaded) imageUrl = uploaded
+      }
+
+      const update = { min_points: points, reward_title: rewardTitle }
+      if (imageUrl) update.image_url = imageUrl
+
+      const { error } = await supabase.from('tiers').update(update).eq('key', key)
+      if (error) { showToast(`Failed to save ${key} tier`); console.error(error); return }
+    }
+    showToast('Tiers saved')
+    await loadTiers()
+  })
+
+  document.getElementById('tiers-reset-btn')?.addEventListener('click', () => loadTiers())
+
   function renderCurrentDate() {
     const el = document.getElementById('current-date-label');
     if (!el) return;
@@ -1564,6 +1698,7 @@
   loadUserProfile()
   loadCampaigns()
   loadRewards()
+  loadTiers()
 
   /* ══ Reports ══ */
   function populateReportCampaignSelect() {
