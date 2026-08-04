@@ -286,14 +286,29 @@
       background: var(--brand); color: #fff; font-size: 9px; font-weight: 800;
       padding: 3px 9px; border-radius: 20px; letter-spacing: 0.3px;
     }
+    .tier-icon-wrap {
+      width: 38px; height: 38px; border-radius: 11px; margin-bottom: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 18.5px;
+    }
+    .tier-eye-btn {
+      position: absolute; top: 14px; right: 14px; z-index: 1;
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted); font-size: 13px; cursor: pointer; padding: 0;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .tier-eye-btn:hover { background: var(--brand-bg); color: var(--brand); border-color: var(--brand); }
+    .tier-eye-btn.active { background: var(--brand); color: #fff; border-color: var(--brand); }
     .tier-name { font-size: 14px; font-weight: 800; color: var(--text); }
     .tier-range { font-size: 10.5px; color: var(--muted); margin-bottom: 10px; }
-    .tier-reward-img {
-      width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; margin-bottom: 10px;
-      background-size: cover; background-position: center; background-color: var(--bg);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 26px; color: var(--muted);
+    .tier-reward-preview {
+      display: none; width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; margin-bottom: 10px;
+      overflow: hidden; background: var(--bg);
+      align-items: center; justify-content: center; font-size: 24px; color: var(--muted);
     }
+    .tier-reward-preview.open { display: flex; }
+    .tier-reward-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .tier-reward-name { font-size: 11.5px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
     .tier-status-pill {
       display: inline-flex; align-items: center; gap: 4px;
@@ -683,27 +698,39 @@
         <div class="tiers-grid">
           <div class="tier-card" id="tier-card-bronze">
             <span class="tier-current-tag" id="tier-tag-bronze" style="display:none;">Current Tier</span>
-            <div class="tier-reward-img" id="tier-img-bronze"><i class="ti ti-gift"></i></div>
+            <button type="button" class="tier-eye-btn" id="tier-eye-bronze" data-tier="bronze" title="See the reward" aria-label="See the reward">
+              <i class="ti ti-eye"></i>
+            </button>
+            <div class="tier-icon-wrap" style="background:#fde9d2;color:#c2761e"><i class="ti ti-medal"></i></div>
             <div class="tier-name">Bronze</div>
             <div class="tier-range" id="tier-range-bronze">&nbsp;</div>
+            <div class="tier-reward-preview" id="tier-preview-bronze"><i class="ti ti-gift"></i></div>
             <div class="tier-reward-name" id="tier-reward-name-bronze">&nbsp;</div>
             <div class="tier-status-pill locked" id="tier-status-bronze"><i class="ti ti-lock" style="font-size:11px"></i> Locked</div>
           </div>
 
           <div class="tier-card" id="tier-card-silver">
             <span class="tier-current-tag" id="tier-tag-silver" style="display:none;">Current Tier</span>
-            <div class="tier-reward-img" id="tier-img-silver"><i class="ti ti-gift"></i></div>
+            <button type="button" class="tier-eye-btn" id="tier-eye-silver" data-tier="silver" title="See the reward" aria-label="See the reward">
+              <i class="ti ti-eye"></i>
+            </button>
+            <div class="tier-icon-wrap" style="background:#f1f5f9;color:#64748b"><i class="ti ti-medal"></i></div>
             <div class="tier-name">Silver</div>
             <div class="tier-range" id="tier-range-silver">&nbsp;</div>
+            <div class="tier-reward-preview" id="tier-preview-silver"><i class="ti ti-gift"></i></div>
             <div class="tier-reward-name" id="tier-reward-name-silver">&nbsp;</div>
             <div class="tier-status-pill locked" id="tier-status-silver"><i class="ti ti-lock" style="font-size:11px"></i> Locked</div>
           </div>
 
           <div class="tier-card" id="tier-card-gold">
             <span class="tier-current-tag" id="tier-tag-gold" style="display:none;">Current Tier</span>
-            <div class="tier-reward-img" id="tier-img-gold"><i class="ti ti-gift"></i></div>
+            <button type="button" class="tier-eye-btn" id="tier-eye-gold" data-tier="gold" title="See the reward" aria-label="See the reward">
+              <i class="ti ti-eye"></i>
+            </button>
+            <div class="tier-icon-wrap" style="background:#fef3c7;color:#b45309"><i class="ti ti-star"></i></div>
             <div class="tier-name">Gold</div>
             <div class="tier-range" id="tier-range-gold">&nbsp;</div>
+            <div class="tier-reward-preview" id="tier-preview-gold"><i class="ti ti-gift"></i></div>
             <div class="tier-reward-name" id="tier-reward-name-gold">&nbsp;</div>
             <div class="tier-status-pill locked" id="tier-status-gold"><i class="ti ti-lock" style="font-size:11px"></i> Locked</div>
           </div>
@@ -914,7 +941,7 @@
       const cardEl = document.getElementById(`tier-card-${t.key}`);
       const rangeEl = document.getElementById(`tier-range-${t.key}`);
       const rewardNameEl = document.getElementById(`tier-reward-name-${t.key}`);
-      const imgEl = document.getElementById(`tier-img-${t.key}`);
+      const previewEl = document.getElementById(`tier-preview-${t.key}`);
       if (!statusEl || !tagEl || !cardEl) return;
 
       const isAchieved = points >= t.min;
@@ -927,14 +954,10 @@
           : `${t.min.toLocaleString()}+ pts`;
       }
       if (rewardNameEl) rewardNameEl.textContent = t.reward_title ? `🎁 ${t.reward_title}` : '';
-      if (imgEl) {
-        if (t.image_url) {
-          imgEl.style.backgroundImage = `url('${t.image_url}')`;
-          imgEl.innerHTML = '';
-        } else {
-          imgEl.style.backgroundImage = '';
-          imgEl.innerHTML = '<i class="ti ti-gift"></i>';
-        }
+      if (previewEl) {
+        previewEl.innerHTML = t.image_url
+          ? `<img src="${t.image_url}" alt="${escapeHtml(t.reward_title || t.name + ' reward')}">`
+          : '<i class="ti ti-gift"></i>';
       }
 
       cardEl.classList.toggle('current', isCurrent);
@@ -950,6 +973,21 @@
         statusEl.className = 'tier-status-pill locked';
         statusEl.innerHTML = '<i class="ti ti-lock" style="font-size:11px"></i> Locked';
       }
+    });
+  }
+
+  function wireTierEyeButtons() {
+    document.querySelectorAll('.tier-eye-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.tier;
+        const preview = document.getElementById(`tier-preview-${key}`);
+        if (!preview) return;
+        const isOpen = preview.classList.toggle('open');
+        btn.classList.toggle('active', isOpen);
+        btn.title = isOpen ? 'Hide reward' : 'See the reward';
+        btn.setAttribute('aria-label', btn.title);
+        btn.innerHTML = isOpen ? '<i class="ti ti-eye-off"></i>' : '<i class="ti ti-eye"></i>';
+      });
     });
   }
 
@@ -1071,6 +1109,7 @@
 
   loadUserProfile();
   loadRewardsPage();
+  wireTierEyeButtons();
 </script>
 </body>
 </html>
