@@ -309,12 +309,12 @@
     .rewards-scroll-wrap { position: relative; padding: 4px 18px 18px; }
     .rewards-scroll {
       display: grid; grid-auto-flow: column; grid-auto-columns: 150px;
-      gap: 14px; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 4px;
+      gap: 22px; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 4px;
     }
     .rewards-scroll::-webkit-scrollbar { height: 0; }
     .reward-card { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
     .reward-img {
-      height: 110px; background: linear-gradient(135deg,#f0eeff,#e2dcff);
+      aspect-ratio: 1 / 1; width: 100%; background: linear-gradient(135deg,#f0eeff,#e2dcff);
       display: flex; align-items: center; justify-content: center; color: var(--brand-soft); font-size: 37px;
     }
     .reward-body { padding: 12px; }
