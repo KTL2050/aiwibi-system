@@ -605,7 +605,16 @@
       }
       .content { padding-bottom: 84px !important; }
     }
-  </style>
+      .nav-item-soon { opacity: 0.55; cursor: pointer; }
+
+    .coming-soon-toast {
+      position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%) translateY(20px);
+      background: #1a1740; color: #fff; font-size: 13px; font-weight: 600;
+      padding: 10px 18px; border-radius: 30px; box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+      z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s;
+    }
+    .coming-soon-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
 </head>
 <body>
 <div class="layout">
@@ -633,7 +642,7 @@
     <div class="sidebar-section">
       <div class="sidebar-section-label">Earnings</div>
       <a class="nav-item active" href="motherreward.html"><i class="ti ti-trophy"></i> Rewards</a>
-      <a class="nav-item" href="mothercamp.html"><i class="ti ti-speakerphone"></i> Campaigns</a>
+      <a class="nav-item nav-item-soon" href="#" data-coming-soon="Campaigns"><i class="ti ti-speakerphone"></i> Campaigns</a>
     </div>
 
     <div class="sidebar-bottom">
@@ -803,7 +812,7 @@
   <a class="bottom-nav-item active" href="motherreward.html">
     <i class="ti ti-trophy"></i> Rewards
   </a>
-  <a class="bottom-nav-item" href="mothercamp.html">
+  <a class="bottom-nav-item nav-item-soon" href="#" data-coming-soon="Campaigns">
     <i class="ti ti-speakerphone"></i> Campaigns
   </a>
 </nav>
@@ -1206,5 +1215,23 @@
   loadRewardsPage();
   wireTierEyeButtons();
 </script>
+  <script>
+    document.querySelectorAll('[data-coming-soon]').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        var label = link.dataset.comingSoon || 'This feature';
+        var toast = document.querySelector('.coming-soon-toast');
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.className = 'coming-soon-toast';
+          document.body.appendChild(toast);
+        }
+        toast.textContent = label + ' — Coming soon';
+        toast.classList.add('show');
+        clearTimeout(toast._hideTimer);
+        toast._hideTimer = setTimeout(function () { toast.classList.remove('show'); }, 2000);
+      });
+    });
+  </script>
 </body>
 </html>
