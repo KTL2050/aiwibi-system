@@ -275,7 +275,7 @@
     .earn-pts { font-size: 10.5px; color: var(--green); font-weight: 700; }
 
     /* ── Reward Tiers ── */
-    .tiers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 4px 18px 18px; }
+    .tiers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding: 4px 18px 18px; }
     .tier-card {
       border: 1.5px solid var(--border); border-radius: 14px; padding: 16px;
       position: relative; transition: border-color 0.15s;
@@ -286,17 +286,15 @@
       background: var(--brand); color: #fff; font-size: 9px; font-weight: 800;
       padding: 3px 9px; border-radius: 20px; letter-spacing: 0.3px;
     }
-    .tier-icon-wrap {
-      width: 38px; height: 38px; border-radius: 11px; margin-bottom: 10px;
-      display: flex; align-items: center; justify-content: center; font-size: 18.5px;
-    }
     .tier-name { font-size: 14px; font-weight: 800; color: var(--text); }
     .tier-range { font-size: 10.5px; color: var(--muted); margin-bottom: 10px; }
-    .tier-perks { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-    .tier-perk { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text); }
-    .tier-perk i { font-size: 13px; color: var(--green); flex-shrink: 0; }
-    .tier-perk.locked i { color: var(--muted); }
-    .tier-perk.locked { color: var(--muted); }
+    .tier-reward-img {
+      width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; margin-bottom: 10px;
+      background-size: cover; background-position: center; background-color: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; color: var(--muted);
+    }
+    .tier-reward-name { font-size: 11.5px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
     .tier-status-pill {
       display: inline-flex; align-items: center; gap: 4px;
       font-size: 10.5px; font-weight: 700; border-radius: 20px; padding: 4px 10px; width: 100%; justify-content: center;
@@ -685,52 +683,29 @@
         <div class="tiers-grid">
           <div class="tier-card" id="tier-card-bronze">
             <span class="tier-current-tag" id="tier-tag-bronze" style="display:none;">Current Tier</span>
-            <div class="tier-icon-wrap" style="background:#fde9d2;color:#c2761e"><i class="ti ti-medal"></i></div>
+            <div class="tier-reward-img" id="tier-img-bronze"><i class="ti ti-gift"></i></div>
             <div class="tier-name">Bronze</div>
-            <div class="tier-range">0 – 499 pts</div>
-            <div class="tier-perks">
-              <div class="tier-perk"><i class="ti ti-check"></i> Access to campaigns</div>
-              <div class="tier-perk"><i class="ti ti-check"></i> Bronze badge</div>
-            </div>
+            <div class="tier-range" id="tier-range-bronze">&nbsp;</div>
+            <div class="tier-reward-name" id="tier-reward-name-bronze">&nbsp;</div>
             <div class="tier-status-pill locked" id="tier-status-bronze"><i class="ti ti-lock" style="font-size:11px"></i> Locked</div>
           </div>
 
           <div class="tier-card" id="tier-card-silver">
             <span class="tier-current-tag" id="tier-tag-silver" style="display:none;">Current Tier</span>
-            <div class="tier-icon-wrap" style="background:#f1f5f9;color:#64748b"><i class="ti ti-medal"></i></div>
+            <div class="tier-reward-img" id="tier-img-silver"><i class="ti ti-gift"></i></div>
             <div class="tier-name">Silver</div>
-            <div class="tier-range">500 – 749 pts</div>
-            <div class="tier-perks">
-              <div class="tier-perk"><i class="ti ti-check"></i> Silver badge</div>
-              <div class="tier-perk"><i class="ti ti-check"></i> Priority support</div>
-            </div>
+            <div class="tier-range" id="tier-range-silver">&nbsp;</div>
+            <div class="tier-reward-name" id="tier-reward-name-silver">&nbsp;</div>
             <div class="tier-status-pill locked" id="tier-status-silver"><i class="ti ti-lock" style="font-size:11px"></i> Locked</div>
           </div>
 
           <div class="tier-card" id="tier-card-gold">
             <span class="tier-current-tag" id="tier-tag-gold" style="display:none;">Current Tier</span>
-            <div class="tier-icon-wrap" style="background:#fef3c7;color:#b45309"><i class="ti ti-star"></i></div>
+            <div class="tier-reward-img" id="tier-img-gold"><i class="ti ti-gift"></i></div>
             <div class="tier-name">Gold</div>
-            <div class="tier-range">750 – 999 pts</div>
-            <div class="tier-perks">
-              <div class="tier-perk"><i class="ti ti-check"></i> Gold badge</div>
-              <div class="tier-perk"><i class="ti ti-check"></i> Exclusive rewards</div>
-              <div class="tier-perk"><i class="ti ti-check"></i> Early access to products</div>
-            </div>
+            <div class="tier-range" id="tier-range-gold">&nbsp;</div>
+            <div class="tier-reward-name" id="tier-reward-name-gold">&nbsp;</div>
             <div class="tier-status-pill locked" id="tier-status-gold"><i class="ti ti-lock" style="font-size:11px"></i> Locked</div>
-          </div>
-
-          <div class="tier-card" id="tier-card-platinum">
-            <span class="tier-current-tag" id="tier-tag-platinum" style="display:none;">Current Tier</span>
-            <div class="tier-icon-wrap" style="background:#ede9fe;color:#7c3aed"><i class="ti ti-diamond"></i></div>
-            <div class="tier-name">Platinum</div>
-            <div class="tier-range">1,000+ pts</div>
-            <div class="tier-perks">
-              <div class="tier-perk locked"><i class="ti ti-lock"></i> Platinum badge</div>
-              <div class="tier-perk locked"><i class="ti ti-lock"></i> Premium rewards</div>
-              <div class="tier-perk locked"><i class="ti ti-lock"></i> Special recognition</div>
-            </div>
-            <div class="tier-status-pill locked" id="tier-status-platinum"><i class="ti ti-lock" style="font-size:11px"></i> Locked</div>
           </div>
         </div>
       </div>
@@ -855,12 +830,33 @@
     return u.split('?')[0].replace(/\/$/, '').toLowerCase();
   }
 
-  const TIERS = [
-    { key: 'bronze', name: 'Bronze', min: 0 },
-    { key: 'silver', name: 'Silver', min: 500 },
-    { key: 'gold', name: 'Gold', min: 750 },
-    { key: 'platinum', name: 'Platinum', min: 1000 }
+  const DEFAULT_TIERS = [
+    { key: 'bronze', name: 'Bronze', min: 1000, reward_title: '', image_url: null },
+    { key: 'silver', name: 'Silver', min: 2500, reward_title: '', image_url: null },
+    { key: 'gold',   name: 'Gold',   min: 5000, reward_title: '', image_url: null }
   ];
+  let TIERS = DEFAULT_TIERS;
+
+  async function loadTierDefs() {
+    const { data, error } = await supabase
+      .from('tiers')
+      .select('*')
+      .order('sort_order', { ascending: true });
+
+    if (error || !data || data.length === 0) {
+      if (error) console.error('Failed to load tiers, using defaults:', error);
+      TIERS = DEFAULT_TIERS;
+      return;
+    }
+
+    TIERS = data.map(t => ({
+      key: t.key,
+      name: t.name,
+      min: t.min_points,
+      reward_title: t.reward_title || '',
+      image_url: t.image_url || null
+    }));
+  }
 
   function currentTier(points) {
     let tier = TIERS[0];
@@ -912,12 +908,34 @@
       ? `${next.min - points} pts to ${next.name} Ambassador`
       : `You've reached the top tier!`;
 
-    TIERS.forEach(t => {
+    TIERS.forEach((t, i) => {
       const statusEl = document.getElementById(`tier-status-${t.key}`);
       const tagEl = document.getElementById(`tier-tag-${t.key}`);
       const cardEl = document.getElementById(`tier-card-${t.key}`);
+      const rangeEl = document.getElementById(`tier-range-${t.key}`);
+      const rewardNameEl = document.getElementById(`tier-reward-name-${t.key}`);
+      const imgEl = document.getElementById(`tier-img-${t.key}`);
+      if (!statusEl || !tagEl || !cardEl) return;
+
       const isAchieved = points >= t.min;
       const isCurrent = tier.key === t.key;
+
+      if (rangeEl) {
+        const next = TIERS[i + 1];
+        rangeEl.textContent = next
+          ? `${t.min.toLocaleString()} – ${(next.min - 1).toLocaleString()} pts`
+          : `${t.min.toLocaleString()}+ pts`;
+      }
+      if (rewardNameEl) rewardNameEl.textContent = t.reward_title ? `🎁 ${t.reward_title}` : '';
+      if (imgEl) {
+        if (t.image_url) {
+          imgEl.style.backgroundImage = `url('${t.image_url}')`;
+          imgEl.innerHTML = '';
+        } else {
+          imgEl.style.backgroundImage = '';
+          imgEl.innerHTML = '<i class="ti ti-gift"></i>';
+        }
+      }
 
       cardEl.classList.toggle('current', isCurrent);
       tagEl.style.display = isCurrent ? '' : 'none';
@@ -1044,6 +1062,7 @@
   }
 
   async function loadRewardsPage() {
+    await loadTierDefs();
     const { points } = await getMyPoints();
     await loadBalanceAndTiers(points);
     await loadAvailableRewards(points);
