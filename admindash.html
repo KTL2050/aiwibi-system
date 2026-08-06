@@ -724,7 +724,8 @@
 
     const name = profile.full_name || profile.email || session.user.email;
     const initial = name.charAt(0).toUpperCase();
-    const roleLabel = profile.role === 'admin' ? 'Super Administrator'
+    const roleLabel = profile.role === 'superadmin' ? 'Super Administrator'
+      : profile.role === 'admin' ? 'Administrator'
       : profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
       : 'Administrator';
 
@@ -739,18 +740,27 @@
     const firstName = name.split(' ')[0];
     if (greetingEl) greetingEl.textContent = `Welcome back, ${firstName}! 👋`;
 
-    setupCountryScope(profile.country || null);
+    setupCountryScope(profile.role, profile.country || null);
   }
 
-  function setupCountryScope(ownCountry) {
+  function setupCountryScope(role, ownCountry) {
     adminHomeCountry = ownCountry;
     const chip = document.getElementById('country-chip');
     const select = document.getElementById('country-filter');
     if (!chip || !select) return;
 
-    if (ownCountry) {
-      activeCountryFilter = ownCountry;
-      select.innerHTML = `<option value="${ownCountry}">${ownCountry === 'uganda' ? '🇺🇬 Uganda' : '🇰🇪 Kenya'}</option>`;
+    // Only a true superadmin gets the free "All Countries" view.
+    // Every other admin is always locked to their assigned country —
+    // even if it hasn't been set yet, in which case they see no data
+    // instead of silently falling back to "All Countries".
+    if (role !== 'superadmin') {
+      if (ownCountry) {
+        activeCountryFilter = ownCountry;
+        select.innerHTML = `<option value="${ownCountry}">${ownCountry === 'uganda' ? '🇺🇬 Uganda' : '🇰🇪 Kenya'}</option>`;
+      } else {
+        activeCountryFilter = 'none';
+        select.innerHTML = `<option value="none">No country assigned</option>`;
+      }
       select.disabled = true;
       chip.style.display = 'flex';
       return;
