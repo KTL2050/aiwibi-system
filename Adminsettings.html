@@ -1151,7 +1151,8 @@
 
     const name = profile.full_name || profile.email || session.user.email;
     const initial = name.charAt(0).toUpperCase();
-    const roleLabel = profile.role === 'admin' ? 'Super Administrator'
+    const roleLabel = profile.role === 'superadmin' ? 'Super Administrator'
+      : profile.role === 'admin' ? 'Administrator'
       : profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
       : 'Administrator';
 
