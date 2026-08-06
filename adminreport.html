@@ -624,6 +624,18 @@
     if (analyticsError) console.error('Failed to load analytics:', analyticsError);
     const allPosts = analyticsData?.allPosts || [];
 
+    // ── TEMP DEBUG — remove once this is sorted ──
+    console.log('[report debug] submitted_content rows in range:', (submittedRows || []).length, submittedRows);
+    console.log('[report debug] analytics allPosts total:', allPosts.length, allPosts);
+    console.log('[report debug] submittedById keys:', Object.keys(submittedById));
+    console.log('[report debug] allPosts urls -> extracted ids:', allPosts.map(p => ({ url: p.url, id: extractPostId(p.url) })));
+
+    // ── TEMP DEBUG — remove once this is sorted ──
+    console.log('[report debug] submitted_content rows in range:', (submittedRows || []).length, submittedRows);
+    console.log('[report debug] analytics allPosts total:', allPosts.length, allPosts);
+    console.log('[report debug] submittedById keys:', Object.keys(submittedById));
+    console.log('[report debug] allPosts urls -> extracted ids:', allPosts.map(p => ({ url: p.url, id: extractPostId(p.url) })));
+
     // 3) Keep only analytics rows whose matching submission falls inside the range
     allContent = allPosts
       .map(post => ({ post, sub: submittedById[extractPostId(post.url)] }))
