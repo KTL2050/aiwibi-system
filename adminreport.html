@@ -570,6 +570,28 @@
     });
   }
 
+  function extractPostId(u) {
+    if (!u) return '';
+    const tiktokMatch = u.match(/\/video\/(\d+)/);
+    if (tiktokMatch) return tiktokMatch[1];
+    const igMatch = u.match(/\/(p|reel)\/([A-Za-z0-9_-]+)/);
+    if (igMatch) return igMatch[2];
+    return u.split('?')[0].replace(/\/$/, '').toLowerCase();
+  }
+
+  async function resolveShortUrl(u) {
+    if (!u) return u;
+    const alreadyCanonical = /\/video\/\d+/.test(u) || /\/(p|reel)\//.test(u);
+    if (alreadyCanonical) return u;
+    try {
+      const res = await fetch(u, { method: 'HEAD', redirect: 'follow' });
+      return res.url || u;
+    } catch (e) {
+      console.log('Failed to resolve short URL, falling back to raw:', u, e);
+      return u;
+    }
+  }
+
   async function loadReport() {
     const fromVal = document.getElementById('filter-from').value;
     const toVal = document.getElementById('filter-to').value;
@@ -578,21 +600,46 @@
     const fromIso = `${fromVal}T00:00:00`;
     const toIso = `${toVal}T23:59:59`;
 
-    const { data: rows, error } = await supabase
+    // 1) Which content was actually submitted in this date range?
+    const { data: submittedRows, error: subError } = await supabase
       .from('submitted_content')
-      .select('id, user_id, platform, video_url, caption, views, likes, comments, shares, submitted_at')
+      .select('id, user_id, platform, video_url, caption, submitted_at')
       .gte('submitted_at', fromIso)
       .lte('submitted_at', toIso);
 
-    if (error) {
-      // Surface the real Supabase error (permission denied, bad column, no
-      // session, etc.) instead of a generic message — check the console
-      // for this, it tells you exactly why the query failed.
-      console.error('Failed to load report content:', error);
-      allContent = [];
-    } else {
-      allContent = rows || [];
+    if (subError) {
+      console.error('Failed to load submitted content:', subError);
     }
+
+    const submittedById = {};
+    for (const row of (submittedRows || [])) {
+      const resolved = await resolveShortUrl(row.video_url);
+      submittedById[extractPostId(resolved)] = row;
+    }
+
+    // 2) Live metrics (views/likes/comments/shares) come from PostPeer via the
+    // same cached admin analytics endpoint the Dashboard uses — submitted_content
+    // never stores these numbers itself.
+    const { data: analyticsData, error: analyticsError } = await supabase.functions.invoke('postpeer-get-all-analytics', { method: 'GET' });
+    if (analyticsError) console.error('Failed to load analytics:', analyticsError);
+    const allPosts = analyticsData?.allPosts || [];
+
+    // 3) Keep only analytics rows whose matching submission falls inside the range
+    allContent = allPosts
+      .map(post => ({ post, sub: submittedById[extractPostId(post.url)] }))
+      .filter(({ sub }) => sub)
+      .map(({ post, sub }) => ({
+        id: sub.id,
+        user_id: post.userId,
+        platform: post.platform,
+        video_url: post.url,
+        caption: sub.caption,
+        views: post.views || 0,
+        likes: post.likes || 0,
+        comments: post.comments || 0,
+        shares: post.shares || 0,
+        submitted_at: sub.submitted_at
+      }));
 
     const userIds = [...new Set(allContent.map(r => r.user_id))];
     profileById = {};
