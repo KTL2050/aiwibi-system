@@ -697,7 +697,7 @@
   /* ── redirect target after successful login, based on role + setup state ── */
   async function redirectForRole(role, userId) {
     localStorage.setItem('aiwibi_last_role', role);
-    if (role === 'admin') {
+    if (role === 'admin' || role === 'superadmin') {
       window.location.href = 'admindash.html';
       return;
     }
