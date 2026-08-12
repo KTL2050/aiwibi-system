@@ -868,10 +868,17 @@
         const medals = ['🏆','🥈','🥉'];
         const linkCounts = await getSubmittedLinkCounts(data.mothers.map(m => m.userId));
 
-        mothersTableBody.innerHTML = data.mothers.slice(0, 10).map((m, i) => {
+        // Attach each mother's points, then rank by points (not by views/order
+        // returned from the analytics function) before slicing to the top 10.
+        const ranked = data.mothers
+          .map(m => ({ ...m, linkCount: linkCounts.get(m.userId) ?? 0, points: (linkCounts.get(m.userId) ?? 0) * 100 }))
+          .sort((a, b) => b.points - a.points)
+          .slice(0, 10);
+
+        mothersTableBody.innerHTML = ranked.map((m, i) => {
           const initials = m.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-          const linkCount = linkCounts.get(m.userId) ?? 0;
-          const points = linkCount * 100;
+          const linkCount = m.linkCount;
+          const points = m.points;
           const pointsClass = points >= 500 ? 'score-high' : 'score-mid';
           return `
             <tr>
