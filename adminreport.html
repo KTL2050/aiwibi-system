@@ -584,17 +584,9 @@
     return u.split('?')[0].replace(/\/$/, '').toLowerCase();
   }
 
-  async function resolveShortUrl(u) {
-    if (!u) return u;
-    const alreadyCanonical = /\/video\/\d+/.test(u) || /\/(p|reel)\//.test(u);
-    if (alreadyCanonical) return u;
-    try {
-      const res = await fetch(u, { method: 'HEAD', redirect: 'follow' });
-      return res.url || u;
-    } catch (e) {
-      console.log('Failed to resolve short URL, falling back to raw:', u, e);
-      return u;
-    }
+  // A canonical link already carries the post ID, so it needs no redirect-following.
+  function isCanonicalUrl(u) {
+    return /\/video\/\d+/.test(u) || /\/(p|reel)\//.test(u);
   }
 
   async function loadReport() {
@@ -616,10 +608,31 @@
       console.error('Failed to load submitted content:', subError);
     }
 
+    // TikTok short links (vt.tiktok.com / vm.tiktok.com) cannot be expanded in the
+    // browser — CORS blocks the redirect — so an Edge Function follows them for us.
+    // Canonical links skip the round trip entirely.
+    const rows = submittedRows || [];
+    const needsResolving = [...new Set(
+      rows.map(r => r.video_url).filter(u => u && !isCanonicalUrl(u))
+    )];
+
+    let resolvedMap = {};
+    if (needsResolving.length) {
+      try {
+        const { data, error } = await supabase.functions.invoke('resolve-short-urls', {
+          body: { urls: needsResolving }
+        });
+        if (error) throw error;
+        resolvedMap = (data && data.resolved) || {};
+      } catch (e) {
+        console.error('Short-URL resolver unavailable — TikTok rows may not match:', e);
+      }
+    }
+
     const submittedById = {};
-    for (const row of (submittedRows || [])) {
-      const resolved = await resolveShortUrl(row.video_url);
-      submittedById[extractPostId(resolved)] = row;
+    for (const row of rows) {
+      const canonical = resolvedMap[row.video_url] || row.video_url;
+      submittedById[extractPostId(canonical)] = row;
     }
 
     // 2) Live metrics (views/likes/comments/shares) come from PostPeer via the
