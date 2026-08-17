@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+ 
     :root {
       /* ── PolluxUI-style palette ── */
       --brand: #844FC1;
@@ -247,6 +247,16 @@
     .status-pill { display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 700; border-radius: var(--pill); padding: 3px 9px; }
     .status-pill.active { background: var(--green-bg); color: #16a34a; }
     .status-pill.processing { background: var(--amber-bg); color: var(--amber); }
+    .status-pill.cancelled { background: var(--red-bg); color: var(--red); }
+
+    .btn-refund {
+      font-size: 11px; font-weight: 700; color: var(--red);
+      background: var(--red-bg); border: none; font-family: inherit;
+      padding: 6px 12px; border-radius: var(--pill); cursor: pointer;
+    }
+    .btn-refund:hover { background: #fbd8de; }
+    .btn-refund:disabled { opacity: .55; cursor: default; }
+    .action-group { display: inline-flex; gap: 6px; flex-wrap: wrap; }
 
     .rewards-toolbar { display: flex; gap: 10px; padding: 0 16px 14px; flex-wrap: wrap; }
     .search-input-wrap {
@@ -698,7 +708,8 @@
 
     const { data: redemptions, error: redeemErr } = await supabase
       .from('reward_redemptions')
-      .select('user_id, points_cost');
+      .select('user_id, points_cost, status')
+      .neq('status', 'Cancelled');
     if (redeemErr) console.error(redeemErr);
 
     const linksByUser = {};
@@ -762,8 +773,9 @@
       return;
     }
 
-    const total = (redemptions || []).length;
-    const pending = (redemptions || []).filter(r => r.status !== 'Delivered').length;
+    const activeRedemptions = (redemptions || []).filter(r => r.status !== 'Cancelled');
+    const total = activeRedemptions.length;
+    const pending = activeRedemptions.filter(r => r.status !== 'Delivered').length;
 
     if (redeemedEl) redeemedEl.textContent = total;
     if (redeemedPeriodEl) redeemedPeriodEl.textContent = 'All time';
@@ -804,13 +816,29 @@
       const mother = profileById[r.user_id];
       const motherName = mother ? (mother.full_name || mother.email) : 'Unknown';
       const date = new Date(r.redeemed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const cancelled = r.status === 'Cancelled';
       const delivered = r.status === 'Delivered';
-      const statusPill = delivered
-        ? '<span class="status-pill active">Delivered</span>'
-        : '<span class="status-pill processing">Processing</span>';
-      const actionHtml = delivered
-        ? '<span style="color:var(--muted);font-size:11.5px;">—</span>'
-        : `<button class="btn-manage mark-delivered-btn" data-id="${r.id}">Mark Delivered</button>`;
+
+      let statusPill;
+      if (cancelled)      statusPill = '<span class="status-pill cancelled">Points restored</span>';
+      else if (delivered) statusPill = '<span class="status-pill active">Delivered</span>';
+      else                statusPill = '<span class="status-pill processing">Processing</span>';
+
+      let actionHtml;
+      if (cancelled) {
+        actionHtml = '<span style="color:var(--muted);font-size:11.5px;">—</span>';
+      } else {
+        const markBtn = delivered
+          ? ''
+          : `<button class="btn-manage mark-delivered-btn" data-id="${r.id}">Mark Delivered</button>`;
+        const refundBtn = `<button class="btn-refund restore-points-btn"
+            data-id="${r.id}"
+            data-cost="${r.points_cost ?? 0}"
+            data-mother="${escapeHtml(motherName)}"
+            data-reward="${escapeHtml(r.reward_title || '')}"
+            data-delivered="${delivered ? '1' : '0'}">Restore Points</button>`;
+        actionHtml = `<div class="action-group">${markBtn}${refundBtn}</div>`;
+      }
 
       return `
         <tr data-id="${r.id}">
@@ -837,6 +865,42 @@
         }
         loadRedemptionHistory();
         loadRedeemedStats();
+      });
+    });
+
+    tbody.querySelectorAll('.restore-points-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const { id, cost, mother, reward } = btn.dataset;
+        const wasDelivered = btn.dataset.delivered === '1';
+
+        let msg = `Restore ${Number(cost).toLocaleString()} pts to ${mother}?\n\n`
+                + `This cancels the redemption of "${reward}" and puts the points back in her balance.`;
+        if (wasDelivered) {
+          msg += `\n\n⚠ This reward was already marked as DELIVERED. Only restore the points if the item was never actually sent.`;
+        }
+        if (!confirm(msg)) return;
+
+        btn.disabled = true;
+        btn.textContent = 'Restoring…';
+
+        const { error: cancelError } = await supabase
+          .from('reward_redemptions')
+          .update({ status: 'Cancelled' })
+          .eq('id', id);
+
+        if (cancelError) {
+          console.error(cancelError);
+          alert('Failed to restore points. Please try again.');
+          btn.disabled = false;
+          btn.textContent = 'Restore Points';
+          return;
+        }
+
+        await Promise.all([
+          loadRedemptionHistory(),
+          loadRedeemedStats(),
+          loadPointsOverview()
+        ]);
       });
     });
   }
