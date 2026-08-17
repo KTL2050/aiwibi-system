@@ -11,7 +11,7 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
  
-    :root {
+    :root { 
       /* ── Brand: Sky Nursery palette ── */ 
       --brand: #844FC1;
       --brand-deep: #6c3fa0;
@@ -384,6 +384,8 @@
       display: flex; align-items: center; justify-content: center; color: var(--brand-soft); font-size: 14px;
     }
     .pts-neg { color: var(--red); font-weight: 700; }
+    .pts-pos { color: var(--green); font-weight: 700; }
+    .hist-note { color: var(--muted); font-size: 11px; font-weight: 500; }
     .status-pill { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; border-radius: 20px; padding: 3px 9px; }
     .status-pill.delivered { background: var(--green-bg); color: #16a34a; }
     .track-link { color: var(--brand); font-size: 11px; cursor: pointer; }
@@ -938,8 +940,9 @@
 
     const { data: redemptions, error: redeemError } = await supabase
       .from('reward_redemptions')
-      .select('points_cost')
-      .eq('user_id', session.user.id);
+      .select('points_cost, status')
+      .eq('user_id', session.user.id)
+      .neq('status', 'Cancelled');
     if (redeemError) console.error(redeemError);
 
     const redeemed = (redemptions || []).reduce((sum, r) => sum + r.points_cost, 0);
@@ -1147,7 +1150,19 @@
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
-    if (!confirm(`Redeem "${rewardTitle}" for ${pointsCost} pts?`)) return;
+    const { points: currentPoints } = await getMyPoints();
+    if (currentPoints < pointsCost) {
+      alert(`You need ${pointsCost} pts for this reward but only have ${currentPoints} pts.`);
+      await loadRewardsPage();
+      return;
+    }
+
+    const remaining = currentPoints - pointsCost;
+    const msg = `Spend ${pointsCost} pts on "${rewardTitle}"?\n\n`
+              + `Your balance: ${currentPoints} pts\n`
+              + `After this: ${remaining} pts\n\n`
+              + `Press OK only if you meant to redeem this reward.`;
+    if (!confirm(msg)) return;
 
     const { error } = await supabase
       .from('reward_redemptions')
@@ -1192,11 +1207,20 @@
 
     tbody.innerHTML = history.map(h => {
       const date = new Date(h.redeemed_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      const cancelled = h.status === 'Cancelled';
+
+      const itemCell = cancelled
+        ? `<div class="hist-item-cell"><div class="hist-thumb"><i class="ti ti-rotate-2"></i></div><span>${escapeHtml(h.reward_title)} <span class="hist-note">— cancelled, points returned</span></span></div>`
+        : `<div class="hist-item-cell"><div class="hist-thumb"><i class="ti ti-gift"></i></div>${escapeHtml(h.reward_title)}</div>`;
+
+      const ptsCell = cancelled
+        ? `<td class="pts-pos">+${h.points_cost} pts</td>`
+        : `<td class="pts-neg">-${h.points_cost} pts</td>`;
 
       return `
         <tr>
-          <td><div class="hist-item-cell"><div class="hist-thumb"><i class="ti ti-gift"></i></div>${escapeHtml(h.reward_title)}</div></td>
-          <td class="pts-neg">-${h.points_cost} pts</td>
+          <td>${itemCell}</td>
+          ${ptsCell}
           <td>${date}</td>
         </tr>
       `;
