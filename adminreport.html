@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } 
 
     :root {
       /* ── PolluxUI-style palette ── */ 
@@ -850,36 +850,183 @@
     return `aiwibi-report-${platform}-${from}-to-${to}`;
   }
 
+  /* ── Shared report styling ── */
+  const RPT = {
+    navy:   'FF1F3864',   // header band + titles
+    zebra:  'FFF2F5FA',   // alternating row shade
+    border: 'FFD6DCE5',
+    muted:  'FF6B7280',
+    link:   'FF1155CC',
+    gold:   'FFB8860B',
+    navyRGB: [31, 56, 100]  // same navy, for jsPDF
+  };
+
+  function rptBorder() {
+    const side = { style: 'thin', color: { argb: RPT.border } };
+    return { top: side, left: side, bottom: side, right: side };
+  }
+
+  function rptGeneratedAt() {
+    return new Date().toLocaleString('en-GB', {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  function rptSubtitle(platformLabel, from, to) {
+    return `Platform: ${platformLabel}  ·  Range: ${from} to ${to}  ·  Generated ${rptGeneratedAt()}`;
+  }
+
+  // Merged title + italic subtitle across the sheet, with a spacer row underneath.
+  function rptTitleBlock(ws, lastCol, title, subtitle) {
+    ws.mergeCells(`A1:${lastCol}1`);
+    const t = ws.getCell('A1');
+    t.value = title;
+    t.font = { name: 'Calibri', size: 16, bold: true, color: { argb: RPT.navy } };
+    t.alignment = { vertical: 'middle' };
+    ws.getRow(1).height = 26;
+
+    ws.mergeCells(`A2:${lastCol}2`);
+    const s = ws.getCell('A2');
+    s.value = subtitle;
+    s.font = { name: 'Calibri', size: 10, italic: true, color: { argb: RPT.muted } };
+    ws.getRow(2).height = 16;
+    ws.getRow(3).height = 6;
+  }
+
+  // Navy band with white bold labels — row 4 on every sheet.
+  function rptHeaderRow(ws, labels) {
+    const row = ws.getRow(4);
+    labels.forEach((label, i) => {
+      const cell = row.getCell(i + 1);
+      cell.value = label;
+      cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: RPT.navy } };
+      cell.alignment = { vertical: 'middle', horizontal: 'left' };
+      cell.border = rptBorder();
+    });
+    row.height = 22;
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   async function downloadExcel() {
-    if (!window.XLSX) await loadScriptOnce('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
+    if (!window.ExcelJS) await loadScriptOnce('https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js');
 
     const { platform, totals, rankedMothers } = lastReportData;
     const metrics = checkedMetrics();
     const from = document.getElementById('filter-from').value;
     const to = document.getElementById('filter-to').value;
+    const platformLabel = platform === 'instagram' ? 'Instagram' : 'TikTok';
+    const subtitle = rptSubtitle(platformLabel, from, to);
 
-    const summarySheetRows = [
-      ['Aiwibi — Reports'],
-      ['Platform', platform === 'instagram' ? 'Instagram' : 'TikTok'],
-      ['From', from], ['To', to],
-      [],
-      ['Metric', 'Value']
-    ];
-    metrics.forEach(m => summarySheetRows.push([METRIC_DEFS[m] ? METRIC_DEFS[m].label : m, totals[m] || 0]));
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'Aiwibi Mothers Community';
+    wb.created = new Date();
 
-    const mothersSheetRows = [
-      ['Rank', 'Mother', 'Email', 'Views', 'Engagements', 'Top Video URL', 'Top Video Views']
-    ];
-    if (rankedMothers.length === 0) {
-      mothersSheetRows.push(['—', 'No submissions for this selection', '', '', '', '', '']);
-    } else {
-      rankedMothers.forEach(m => mothersSheetRows.push([m.rank, m.name, m.email, m.views, m.engagements, m.topVideoUrl, m.topVideoViews]));
+    /* ── Sheet 1: Summary ── */
+    const s1 = wb.addWorksheet('Summary', {
+      views: [{ state: 'frozen', ySplit: 4 }],
+      pageSetup: { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0 }
+    });
+    s1.columns = [{ width: 34 }, { width: 18 }];
+    rptTitleBlock(s1, 'B', 'Aiwibi — Performance Report', subtitle);
+    rptHeaderRow(s1, ['Metric', 'Value']);
+
+    let r = 5;
+    const summaryRows = metrics.length ? metrics : [];
+    summaryRows.forEach((m, i) => {
+      const row = s1.getRow(r++);
+      row.getCell(1).value = METRIC_DEFS[m] ? METRIC_DEFS[m].label : m;
+      row.getCell(2).value = totals[m] || 0;
+      row.getCell(2).numFmt = '#,##0';
+      row.eachCell(c => {
+        c.border = rptBorder();
+        c.font = { name: 'Calibri', size: 11 };
+        if (i % 2 === 1) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: RPT.zebra } };
+      });
+      row.height = 18;
+    });
+    if (!summaryRows.length) {
+      const row = s1.getRow(r++);
+      row.getCell(1).value = 'No metrics selected';
+      row.getCell(1).font = { name: 'Calibri', size: 11, italic: true, color: { argb: RPT.muted } };
     }
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summarySheetRows), 'Summary');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(mothersSheetRows), 'Top Mothers');
-    XLSX.writeFile(wb, `${reportFileStem()}.xlsx`);
+    const s1Total = s1.getRow(r + 1);
+    s1Total.getCell(1).value = 'Mothers ranked';
+    s1Total.getCell(2).value = rankedMothers.length;
+    s1Total.eachCell(c => { c.font = { name: 'Calibri', size: 11, bold: true, color: { argb: RPT.navy } }; });
+
+    /* ── Sheet 2: Top Mothers ── */
+    const s2 = wb.addWorksheet('Top Mothers', {
+      views: [{ state: 'frozen', ySplit: 4 }],
+      pageSetup: { paperSize: 9, orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 }
+    });
+    s2.columns = [
+      { width: 8 }, { width: 26 }, { width: 30 },
+      { width: 12 }, { width: 15 }, { width: 46 }, { width: 17 }
+    ];
+    rptTitleBlock(s2, 'G', 'Aiwibi — Top Performing Mothers', subtitle);
+    rptHeaderRow(s2, ['Rank', 'Mother', 'Email', 'Views', 'Engagements', 'Top Video', 'Top Video Views']);
+
+    let r2 = 5;
+    if (rankedMothers.length === 0) {
+      const row = s2.getRow(r2++);
+      row.getCell(2).value = 'No submissions for this selection';
+      row.getCell(2).font = { name: 'Calibri', size: 11, italic: true, color: { argb: RPT.muted } };
+    } else {
+      rankedMothers.forEach((m, i) => {
+        const row = s2.getRow(r2++);
+        row.getCell(1).value = m.rank;
+        row.getCell(2).value = m.name;
+        row.getCell(3).value = m.email;
+        row.getCell(4).value = m.views;
+        row.getCell(5).value = m.engagements;
+        if (m.topVideoUrl) {
+          row.getCell(6).value = { text: m.topVideoUrl, hyperlink: m.topVideoUrl };
+          row.getCell(6).font = { name: 'Calibri', size: 11, color: { argb: RPT.link }, underline: true };
+        } else {
+          row.getCell(6).value = '—';
+        }
+        row.getCell(7).value = m.topVideoViews;
+
+        [4, 5, 7].forEach(c => { row.getCell(c).numFmt = '#,##0'; });
+        row.getCell(1).alignment = { horizontal: 'center' };
+        if (i < 3) row.getCell(1).font = { name: 'Calibri', size: 11, bold: true, color: { argb: RPT.gold } };
+
+        for (let c = 1; c <= 7; c++) {
+          const cell = row.getCell(c);
+          cell.border = rptBorder();
+          if (!cell.font) cell.font = { name: 'Calibri', size: 11 };
+          if (i % 2 === 1 && c !== 6) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: RPT.zebra } };
+        }
+        row.height = 18;
+      });
+
+      const s2Total = s2.getRow(r2 + 1);
+      s2Total.getCell(3).value = 'Total records:';
+      s2Total.getCell(3).alignment = { horizontal: 'right' };
+      s2Total.getCell(4).value = rankedMothers.length;
+      [3, 4].forEach(c => { s2Total.getCell(c).font = { name: 'Calibri', size: 11, bold: true, color: { argb: RPT.navy } }; });
+
+      s2.autoFilter = { from: { row: 4, column: 1 }, to: { row: 4, column: 7 } };
+    }
+
+    const buffer = await wb.xlsx.writeBuffer();
+    downloadBlob(
+      new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+      `${reportFileStem()}.xlsx`
+    );
   }
 
   // Renders an off-screen pie chart and returns it as a PNG data URL for embedding in the PDF.
@@ -912,52 +1059,106 @@
     const metrics = checkedMetrics();
     const from = document.getElementById('filter-from').value;
     const to = document.getElementById('filter-to').value;
+    const platformLabel = platform === 'instagram' ? 'Instagram' : 'TikTok';
 
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const M = 14; // page margin
+
+    /* ── Title band ── */
+    doc.setFillColor(...RPT.navyRGB);
+    doc.rect(0, 0, pageW, 26, 'F');
+    doc.setTextColor(255);
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
-    doc.text('Aiwibi — Reports', 14, 18);
-    doc.setFontSize(10);
-    doc.setTextColor(110);
-    doc.text(`Platform: ${platform === 'instagram' ? 'Instagram' : 'TikTok'}     Range: ${from} to ${to}`, 14, 25);
+    doc.text('Aiwibi — Performance Report', M, 12);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(`Platform: ${platformLabel}     Range: ${from} to ${to}     Generated ${rptGeneratedAt()}`, M, 19.5);
     doc.setTextColor(20);
 
+    // Small coloured bar + heading, matching the panel style in the app.
+    function sectionHeading(text, y) {
+      doc.setFillColor(...RPT.navyRGB);
+      doc.rect(M, y - 4, 1.6, 5, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...RPT.navyRGB);
+      doc.text(text, M + 4.5, y);
+      doc.setTextColor(20);
+      doc.setFont('helvetica', 'normal');
+    }
+
+    const tableBase = {
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 2.4, lineColor: [214, 220, 229], lineWidth: 0.1 },
+      headStyles: { fillColor: RPT.navyRGB, textColor: 255, fontStyle: 'bold', fontSize: 9.5 },
+      alternateRowStyles: { fillColor: [242, 245, 250] },
+      margin: { left: M, right: M }
+    };
+
+    sectionHeading('Summary', 36);
     doc.autoTable({
-      startY: 32,
+      ...tableBase,
+      startY: 40,
       head: [['Metric', 'Value']],
       body: metrics.length
         ? metrics.map(m => [METRIC_DEFS[m] ? METRIC_DEFS[m].label : m, formatNumber(totals[m] || 0)])
         : [['—', 'No metrics selected']],
-      theme: 'grid', styles: { fontSize: 9 }, headStyles: { fillColor: [124, 92, 255] }
+      columnStyles: { 0: { cellWidth: 70 }, 1: { halign: 'right', cellWidth: 34 } }
     });
 
-    let y = doc.lastAutoTable.finalY + 12;
+    let y = doc.lastAutoTable.finalY + 14;
 
-    // Pie chart: engagement breakdown (likes / comments / shares)
+    /* ── Pie chart: engagement breakdown ── */
     const engagementTotal = (totals.likes || 0) + (totals.comments || 0) + (totals.shares || 0);
     if (engagementTotal > 0) {
+      if (y > 175) { doc.addPage(); y = 24; }
       const pieImg = await renderPieImage(
         ['Likes', 'Comments', 'Shares'],
         [totals.likes || 0, totals.comments || 0, totals.shares || 0],
         ['#7c5cff', '#22c1a4', '#ff8a5c']
       );
-      doc.setFontSize(12);
-      doc.text('Engagement Breakdown', 14, y);
-      doc.addImage(pieImg, 'PNG', 14, y + 4, 90, 72);
-      y += 84;
+      sectionHeading('Engagement Breakdown', y);
+      doc.addImage(pieImg, 'PNG', M, y + 4, 90, 72);
+      y += 86;
     }
 
-    if (y > 250) { doc.addPage(); y = 20; }
+    if (y > 215) { doc.addPage(); y = 24; }
 
-    doc.setFontSize(12);
-    doc.text('Top 5 Performing Mothers', 14, y);
+    sectionHeading('Top 5 Performing Mothers', y);
     doc.autoTable({
+      ...tableBase,
       startY: y + 4,
-      head: [['Rank', 'Mother', 'Views', 'Engagements', 'Top Video Views']],
+      head: [['#', 'Mother', 'Views', 'Engagements', 'Top Video Views']],
       body: rankedMothers.length
-        ? rankedMothers.map(m => [m.rank, m.name, formatNumber(m.views), formatNumber(m.engagements), formatNumber(m.topVideoViews)])
+        ? rankedMothers.map(m => [
+            m.rank, m.name,
+            formatNumber(m.views), formatNumber(m.engagements), formatNumber(m.topVideoViews)
+          ])
         : [['—', 'No submissions for this selection', '', '', '']],
-      theme: 'grid', styles: { fontSize: 9 }, headStyles: { fillColor: [124, 92, 255] }
+      columnStyles: {
+        0: { cellWidth: 12, halign: 'center', fontStyle: 'bold' },
+        1: { cellWidth: 62 },
+        2: { halign: 'right' },
+        3: { halign: 'right' },
+        4: { halign: 'right' }
+      }
     });
+
+    /* ── Footer on every page ── */
+    const pageCount = doc.internal.getNumberOfPages();
+    const pageH = doc.internal.pageSize.getHeight();
+    for (let p = 1; p <= pageCount; p++) {
+      doc.setPage(p);
+      doc.setDrawColor(214, 220, 229);
+      doc.setLineWidth(0.2);
+      doc.line(M, pageH - 14, pageW - M, pageH - 14);
+      doc.setFontSize(8);
+      doc.setTextColor(120);
+      doc.text('Aiwibi Mothers Community', M, pageH - 9);
+      doc.text(`Page ${p} of ${pageCount}`, pageW - M, pageH - 9, { align: 'right' });
+    }
 
     doc.save(`${reportFileStem()}.pdf`);
   }
