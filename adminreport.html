@@ -570,6 +570,11 @@
     });
   }
 
+  // 'TikTok', 'tik_tok', 'TIKTOK' and 'tiktok' must all compare equal.
+  function normPlatform(p) {
+    return String(p || '').toLowerCase().replace(/[^a-z]/g, '');
+  }
+
   function extractPostId(u) {
     if (!u) return '';
     const tiktokMatch = u.match(/\/video\/(\d+)/);
@@ -627,14 +632,20 @@
     // ── TEMP DEBUG — remove once this is sorted ──
     console.log('[report debug] submitted_content rows in range:', (submittedRows || []).length, submittedRows);
     console.log('[report debug] analytics allPosts total:', allPosts.length, allPosts);
-    console.log('[report debug] submittedById keys:', Object.keys(submittedById));
-    console.log('[report debug] allPosts urls -> extracted ids:', allPosts.map(p => ({ url: p.url, id: extractPostId(p.url) })));
-
-    // ── TEMP DEBUG — remove once this is sorted ──
-    console.log('[report debug] submitted_content rows in range:', (submittedRows || []).length, submittedRows);
-    console.log('[report debug] analytics allPosts total:', allPosts.length, allPosts);
-    console.log('[report debug] submittedById keys:', Object.keys(submittedById));
-    console.log('[report debug] allPosts urls -> extracted ids:', allPosts.map(p => ({ url: p.url, id: extractPostId(p.url) })));
+    console.log('[report debug] platform values in submitted_content:',
+      [...new Set((submittedRows || []).map(r => r.platform))]);
+    console.log('[report debug] platform values from PostPeer:',
+      [...new Set(allPosts.map(p => p.platform))]);
+    console.table((submittedRows || []).map(r => ({
+      platform: r.platform,
+      submittedUrl: r.video_url,
+      keyFromSubmission: extractPostId(r.video_url)
+    })));
+    console.table(allPosts.map(p => ({
+      platform: p.platform,
+      analyticsUrl: p.url,
+      keyFromAnalytics: extractPostId(p.url)
+    })));
 
     // 3) Keep only analytics rows whose matching submission falls inside the range
     allContent = allPosts
@@ -643,7 +654,9 @@
       .map(({ post, sub }) => ({
         id: sub.id,
         user_id: post.userId,
-        platform: post.platform,
+        // Prefer the platform the mother chose in our own app; PostPeer's label
+        // is only a fallback, since its spelling/casing isn't guaranteed.
+        platform: sub.platform || post.platform,
         video_url: post.url,
         caption: sub.caption,
         views: post.views || 0,
@@ -672,7 +685,7 @@
   function renderForCurrentPlatform() {
     const platform = document.getElementById('platform-select').value; // 'tiktok' | 'instagram'
     /* header stats — filtered to the selected platform */
-    const headerRows = allContent.filter(r => r.platform === platform);
+    const headerRows = allContent.filter(r => normPlatform(r.platform) === normPlatform(platform));
     const totalViews = headerRows.reduce((s, r) => s + (r.views || 0), 0);
     const totalComments = headerRows.reduce((s, r) => s + (r.comments || 0), 0);
     const totalLikes = headerRows.reduce((s, r) => s + (r.likes || 0), 0);
