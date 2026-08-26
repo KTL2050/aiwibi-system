@@ -144,6 +144,22 @@
     .signup-row { text-align: center; margin-top: 14px; font-size: 13px; color: #999; }
     .signup-row a { color: #6c5ce7; font-weight: 600; text-decoration: none; }
 
+    /* ── Legal note (terms & privacy) ── */
+    .legal-note {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 12px;
+      line-height: 1.55;
+      color: #8b8b9e;
+    }
+    .legal-note a {
+      color: #6c5ce7;
+      font-weight: 500;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .legal-note a:active { opacity: 0.7; }
+
     /* ── Toast ── */
     .toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
@@ -522,6 +538,12 @@
       </div>
       <div class="error-msg" id="su-err"></div>
       <button class="btn-primary" id="signup-btn" type="button" style="margin-top:4px">Create account</button>
+
+      <p class="legal-note">
+        By signing up, you agree to our
+        <a href="terms-of-service.html" target="_blank" rel="noopener">Terms and Conditions</a>
+        and <a href="privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a>.
+      </p>
     </div>
 
   </div><!-- /card -->
