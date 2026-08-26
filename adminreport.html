@@ -594,39 +594,80 @@
     const toVal = document.getElementById('filter-to').value;
     if (!fromVal || !toVal) return; // custom range not picked yet
 
+    const t0 = performance.now();
     const fromIso = `${fromVal}T00:00:00`;
     const toIso = `${toVal}T23:59:59`;
 
     // 1) Which content was actually submitted in this date range?
-    const { data: submittedRows, error: subError } = await supabase
-      .from('submitted_content')
-      .select('id, user_id, platform, video_url, caption, submitted_at')
-      .gte('submitted_at', fromIso)
-      .lte('submitted_at', toIso);
-
-    if (subError) {
-      console.error('Failed to load submitted content:', subError);
+    //    Supabase caps a response at 1,000 rows — a wide date range silently
+    //    loses everything past that, so page until exhausted.
+    const submittedRows = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error: subError } = await supabase
+        .from('submitted_content')
+        .select('id, user_id, platform, video_url, caption, submitted_at')
+        .gte('submitted_at', fromIso)
+        .lte('submitted_at', toIso)
+        .order('submitted_at', { ascending: false })
+        .range(from, from + 999);
+      if (subError) { console.error('Failed to load submitted content:', subError); break; }
+      if (!data || data.length === 0) break;
+      submittedRows.push(...data);
+      if (data.length < 1000) break;
     }
 
     // TikTok short links (vt.tiktok.com / vm.tiktok.com) cannot be expanded in the
     // browser — CORS blocks the redirect — so an Edge Function follows them for us.
     // Canonical links skip the round trip entirely.
-    const rows = submittedRows || [];
-    const needsResolving = [...new Set(
+    // A short link's destination never changes, so resolve each one once and
+    // remember it: first in this browser, then in the shared resolved_urls
+    // table. Only genuinely new links ever hit the network.
+    const rows = submittedRows;
+    const shortUrls = [...new Set(
       rows.map(r => r.video_url).filter(u => u && !isCanonicalUrl(u))
     )];
 
     let resolvedMap = {};
-    if (needsResolving.length) {
-      try {
-        const { data, error } = await supabase.functions.invoke('resolve-short-urls', {
-          body: { urls: needsResolving }
-        });
-        if (error) throw error;
-        resolvedMap = (data && data.resolved) || {};
-      } catch (e) {
-        console.error('Short-URL resolver unavailable — TikTok rows may not match:', e);
+    if (shortUrls.length) {
+      let local = {};
+      try { local = JSON.parse(localStorage.getItem('resolvedUrls') || '{}'); } catch (e) {}
+      shortUrls.forEach(u => { if (local[u]) resolvedMap[u] = local[u]; });
+
+      let missing = shortUrls.filter(u => !resolvedMap[u]);
+
+      if (missing.length) {
+        for (let i = 0; i < missing.length; i += 200) {
+          const { data } = await supabase
+            .from('resolved_urls')
+            .select('raw_url, resolved_url')
+            .in('raw_url', missing.slice(i, i + 200));
+          (data || []).forEach(r => { resolvedMap[r.raw_url] = r.resolved_url; });
+        }
+        missing = missing.filter(u => !resolvedMap[u]);
       }
+
+      if (missing.length) {
+        console.log(`[report] resolving ${missing.length} new links of ${shortUrls.length}`);
+        try {
+          const { data, error } = await supabase.functions.invoke('resolve-short-urls', {
+            body: { urls: missing }
+          });
+          if (error) throw error;
+          const fresh = (data && data.resolved) || {};
+          Object.assign(resolvedMap, fresh);
+
+          const toSave = Object.entries(fresh)
+            .filter(([raw, res]) => res && res !== raw)
+            .map(([raw, res]) => ({ raw_url: raw, resolved_url: res }));
+          if (toSave.length) {
+            await supabase.from('resolved_urls').upsert(toSave, { onConflict: 'raw_url' });
+          }
+        } catch (e) {
+          console.error('Short-URL resolver unavailable — TikTok rows may not match:', e);
+        }
+      }
+
+      try { localStorage.setItem('resolvedUrls', JSON.stringify({ ...local, ...resolvedMap })); } catch (e) {}
     }
 
     const submittedById = {};
@@ -638,27 +679,28 @@
     // 2) Live metrics (views/likes/comments/shares) come from PostPeer via the
     // same cached admin analytics endpoint the Dashboard uses — submitted_content
     // never stores these numbers itself.
-    const { data: analyticsData, error: analyticsError } = await supabase.functions.invoke('postpeer-get-all-analytics', { method: 'GET' });
-    if (analyticsError) console.error('Failed to load analytics:', analyticsError);
+    // The payload is identical for every date range and platform (all filtering
+    // below is client-side), so fetch it once per session rather than on every
+    // Search or dropdown change.
+    let analyticsData = null;
+    try {
+      const raw = sessionStorage.getItem('pp:reportAnalytics');
+      if (raw) {
+        const c = JSON.parse(raw);
+        if (Date.now() - c.at < 10 * 60 * 1000) analyticsData = c.data;
+      }
+    } catch (e) {}
+
+    if (!analyticsData) {
+      const res = await supabase.functions.invoke('postpeer-get-all-analytics', { method: 'GET' });
+      if (res.error) console.error('Failed to load analytics:', res.error);
+      analyticsData = res.data;
+      try {
+        sessionStorage.setItem('pp:reportAnalytics', JSON.stringify({ at: Date.now(), data: analyticsData }));
+      } catch (e) {}
+    }
     const allPosts = analyticsData?.allPosts || [];
 
-    // ── TEMP DEBUG — remove once this is sorted ──
-    console.log('[report debug] submitted_content rows in range:', (submittedRows || []).length, submittedRows);
-    console.log('[report debug] analytics allPosts total:', allPosts.length, allPosts);
-    console.log('[report debug] platform values in submitted_content:',
-      [...new Set((submittedRows || []).map(r => r.platform))]);
-    console.log('[report debug] platform values from PostPeer:',
-      [...new Set(allPosts.map(p => p.platform))]);
-    console.table((submittedRows || []).map(r => ({
-      platform: r.platform,
-      submittedUrl: r.video_url,
-      keyFromSubmission: extractPostId(r.video_url)
-    })));
-    console.table(allPosts.map(p => ({
-      platform: p.platform,
-      analyticsUrl: p.url,
-      keyFromAnalytics: extractPostId(p.url)
-    })));
 
     // 3) Keep only analytics rows whose matching submission falls inside the range
     allContent = allPosts
@@ -690,8 +732,16 @@
       (profiles || []).forEach(p => { profileById[p.id] = p; });
     }
 
+    console.log(`[report] loaded in ${Math.round(performance.now() - t0)}ms — ${rows.length} submissions, ${allContent.length} matched`);
     renderForCurrentPlatform();
   }
+
+  // Clears both caches and reloads — handy right after new content is submitted.
+  function refreshReport() {
+    sessionStorage.removeItem('pp:reportAnalytics');
+    loadReport();
+  }
+  window.refreshReport = refreshReport;
 
   let lastReportData = { platform: 'tiktok', totals: {}, rankedMothers: [] };
 
