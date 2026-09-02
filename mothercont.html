@@ -771,6 +771,78 @@
       z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s;
     }
     .coming-soon-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ══ Video ideas ══ */
+    .ideas-rail-btn {
+      width:100%; border:0; border-radius:14px; cursor:pointer;
+      padding:16px; text-align:left; color:#fff;
+      background:linear-gradient(135deg,#8b5cf6 0%,#6366f1 100%);
+      display:flex; align-items:center; gap:12px;
+    }
+    .ideas-rail-btn:hover { filter:brightness(1.05); }
+    .ideas-rail-btn i { font-size:24px; flex:0 0 auto; }
+    .ideas-rail-title { font-size:14px; font-weight:700; line-height:1.2; }
+    .ideas-rail-sub { font-size:11.5px; opacity:.85; margin-top:3px; }
+
+    .ideas-ov {
+      display:none; position:fixed; inset:0; z-index:900;
+      background:rgba(20,18,40,.55); backdrop-filter:blur(2px);
+      align-items:center; justify-content:center; padding:16px;
+    }
+    .ideas-ov.open { display:flex; }
+    .ideas-modal {
+      background:#fff; border-radius:18px; width:100%; max-width:520px;
+      max-height:88vh; display:flex; flex-direction:column; overflow:hidden;
+      box-shadow:0 24px 60px rgba(0,0,0,.25);
+    }
+    .ideas-head { padding:20px 20px 14px; border-bottom:1px solid #eef0f4; position:relative; }
+    .ideas-title { font-size:19px; font-weight:800; color:#2b2b3a; letter-spacing:-.02em; }
+    .ideas-sub { font-size:12.5px; color:#6C7293; margin-top:4px; }
+    .ideas-x {
+      position:absolute; top:16px; right:16px; width:30px; height:30px; border:0;
+      border-radius:50%; background:#f2f3f7; color:#6C7293; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; font-size:16px;
+    }
+    .ideas-x:hover { background:#e6e8ef; }
+    .ideas-body { padding:16px 20px 20px; overflow-y:auto; }
+
+    .ideas-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .idea-tile {
+      position:relative; border-radius:12px; overflow:hidden; cursor:pointer;
+      border:2px solid transparent; background:#eef0f4; aspect-ratio:1/1;
+    }
+    .idea-tile:hover { border-color:#8b5cf6; }
+    .idea-tile-img { position:absolute; inset:0; background-size:cover; background-position:center; }
+    .idea-tile-shade { position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,.62) 100%); }
+    .idea-tile-label {
+      position:absolute; left:0; right:0; bottom:0; padding:10px;
+      color:#fff; font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+    }
+    .idea-tile-check {
+      position:absolute; top:8px; right:8px; width:24px; height:24px; border-radius:50%;
+      background:#6366f1; color:#fff; display:none; align-items:center; justify-content:center; font-size:14px;
+    }
+    .idea-tile.selected { border-color:#6366f1; }
+    .idea-tile.selected .idea-tile-check { display:flex; }
+
+    .ideas-back {
+      border:0; background:transparent; color:#6366f1; font-size:12.5px; font-weight:700;
+      cursor:pointer; padding:0 0 12px; display:flex; align-items:center; gap:5px;
+    }
+    .idea-vid-row {
+      display:flex; align-items:center; gap:10px; padding:11px 12px; margin-bottom:8px;
+      border:1px solid #eef0f4; border-radius:10px; text-decoration:none; color:#2b2b3a;
+    }
+    .idea-vid-row:hover { background:#faf9ff; border-color:#c9c2f5; }
+    .idea-vid-ic { font-size:19px; color:#6366f1; flex:0 0 auto; }
+    .idea-vid-txt { flex:1; min-width:0; font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .idea-vid-go { font-size:15px; color:#9aa0b5; flex:0 0 auto; }
+    .ideas-empty { text-align:center; color:#6C7293; font-size:13px; padding:26px 10px; }
+
+    @media (max-width:520px){
+      .ideas-modal { max-height:92vh; }
+      .ideas-grid { gap:10px; }
+    }
 </style>
 </head>
 <body>
@@ -942,6 +1014,17 @@
               <span class="b-val">1000 pts</span>
             </div>
           </div>
+        </div>
+
+        <!-- Stuck for ideas? -->
+        <div class="rail-card" style="padding:0;overflow:hidden;">
+          <button class="ideas-rail-btn" id="open-ideas-btn">
+            <i class="ti ti-bulb"></i>
+            <span>
+              <span class="ideas-rail-title">Need an idea?</span>
+              <span class="ideas-rail-sub" style="display:block;">Browse example videos by category</span>
+            </span>
+          </button>
         </div>
 
         <!-- Active campaign (dynamic) -->
@@ -1361,6 +1444,105 @@ const res = await fetch(`${SUPABASE_URL}/functions/v1/oembed-preview`, {
   })
 
   loadSubmittedContent()
+
+  /* ══════════ VIDEO IDEAS ══════════ */
+  // Categories come from Settings on the admin side. Nothing is downloaded or
+  // re-hosted — each link simply opens in a new tab.
+  const ideasOv    = document.getElementById('ideas-ov')
+  const ideasBody  = document.getElementById('ideas-body')
+  const ideasTitle = document.getElementById('ideas-title')
+  const ideasSub   = document.getElementById('ideas-sub')
+
+  let ideaCats = []
+  let ideaVids = []
+  let ideasLoaded = false
+
+  function ideaIcon(url) {
+    const u = String(url || '').toLowerCase()
+    if (u.includes('instagram.')) return 'ti-brand-instagram'
+    if (u.includes('tiktok.'))    return 'ti-brand-tiktok'
+    return 'ti-player-play'
+  }
+
+  function escapeIdea(str) {
+    const d = document.createElement('div')
+    d.textContent = str || ''
+    return d.innerHTML
+  }
+
+  async function loadIdeas() {
+    if (ideasLoaded) return
+    const [catRes, vidRes] = await Promise.all([
+      supabase.from('idea_categories').select('*').eq('is_active', true).order('sort_order').order('created_at'),
+      supabase.from('idea_videos').select('*').order('created_at')
+    ])
+    if (catRes.error) { console.error(catRes.error); return }
+    ideaCats = catRes.data || []
+    ideaVids = vidRes.data || []
+    ideasLoaded = true
+  }
+
+  function renderIdeaCategories() {
+    ideasTitle.textContent = "And, what's your idea?"
+    ideasSub.textContent = 'Choose a category and we will help you find videos to inspire your own.'
+
+    if (!ideaCats.length) {
+      ideasBody.innerHTML = '<div class="ideas-empty">No idea categories yet — check back soon.</div>'
+      return
+    }
+
+    ideasBody.innerHTML = '<div class="ideas-grid">' + ideaCats.map(c => `
+      <div class="idea-tile" data-cat="${c.id}">
+        <div class="idea-tile-img" style="${c.image_url ? `background-image:url('${c.image_url}')` : ''}"></div>
+        <div class="idea-tile-shade"></div>
+        <div class="idea-tile-check"><i class="ti ti-check"></i></div>
+        <div class="idea-tile-label">${escapeIdea(c.name)}</div>
+      </div>`).join('') + '</div>'
+  }
+
+  function renderIdeaVideos(catId) {
+    const cat = ideaCats.find(c => String(c.id) === String(catId))
+    if (!cat) return
+    const list = ideaVids.filter(v => String(v.category_id) === String(catId))
+
+    ideasTitle.textContent = cat.name
+    ideasSub.textContent = cat.description || 'Tap a video to watch it, then make your own version.'
+
+    const rows = list.length ? list.map(v => `
+      <a class="idea-vid-row" href="${v.video_url}" target="_blank" rel="noopener">
+        <i class="ti ${ideaIcon(v.video_url)} idea-vid-ic"></i>
+        <span class="idea-vid-txt">${escapeIdea(v.title || v.video_url)}</span>
+        <i class="ti ti-external-link idea-vid-go"></i>
+      </a>`).join('')
+      : '<div class="ideas-empty">No videos in this category yet.</div>'
+
+    ideasBody.innerHTML =
+      '<button class="ideas-back" id="ideas-back"><i class="ti ti-arrow-left"></i> All categories</button>' + rows
+  }
+
+  document.getElementById('open-ideas-btn')?.addEventListener('click', async () => {
+    ideasOv.classList.add('open')
+    ideasBody.innerHTML = '<div class="ideas-empty">Loading ideas...</div>'
+    await loadIdeas()
+    renderIdeaCategories()
+  })
+
+  function closeIdeas() { ideasOv.classList.remove('open') }
+  document.getElementById('ideas-close')?.addEventListener('click', closeIdeas)
+  ideasOv?.addEventListener('click', e => { if (e.target === ideasOv) closeIdeas() })
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeIdeas() })
+
+  ideasBody?.addEventListener('click', e => {
+    const tile = e.target.closest('.idea-tile')
+    if (tile) {
+      tile.classList.add('selected')
+      // brief tick before switching, so the tap registers visually
+      setTimeout(() => renderIdeaVideos(tile.dataset.cat), 160)
+      return
+    }
+    if (e.target.closest('#ideas-back')) renderIdeaCategories()
+  })
+
 </script>
 
 <script>
@@ -1406,5 +1588,19 @@ const res = await fetch(`${SUPABASE_URL}/functions/v1/oembed-preview`, {
       });
     });
   </script>
+<!-- ══ VIDEO IDEAS MODAL ══ -->
+<div class="ideas-ov" id="ideas-ov">
+  <div class="ideas-modal">
+    <div class="ideas-head">
+      <div class="ideas-title" id="ideas-title">And, what&#39;s your idea?</div>
+      <div class="ideas-sub" id="ideas-sub">Choose a category and we will help you find videos to inspire your own.</div>
+      <button class="ideas-x" id="ideas-close"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="ideas-body" id="ideas-body">
+      <div class="ideas-empty">Loading ideas...</div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
