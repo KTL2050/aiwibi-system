@@ -791,7 +791,7 @@
     }
     .ideas-ov.open { display:flex; }
     .ideas-modal {
-      background:#fff; border-radius:18px; width:100%; max-width:520px;
+      background:#fff; border-radius:18px; width:100%; max-width:460px;
       max-height:88vh; display:flex; flex-direction:column; overflow:hidden;
       box-shadow:0 24px 60px rgba(0,0,0,.25);
     }
@@ -806,7 +806,7 @@
     .ideas-x:hover { background:#e6e8ef; }
     .ideas-body { padding:16px 20px 20px; overflow-y:auto; }
 
-    .ideas-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .ideas-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
     .idea-tile {
       position:relative; border-radius:12px; overflow:hidden; cursor:pointer;
       border:2px solid transparent; background:#eef0f4; aspect-ratio:1/1;
@@ -815,12 +815,18 @@
     .idea-tile-img { position:absolute; inset:0; background-size:cover; background-position:center; }
     .idea-tile-shade { position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,.62) 100%); }
     .idea-tile-label {
-      position:absolute; left:0; right:0; bottom:0; padding:10px;
-      color:#fff; font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+      position:absolute; left:0; right:0; bottom:0; padding:7px 8px;
+      color:#fff; font-size:10.5px; font-weight:700; line-height:1.25;
+      letter-spacing:.03em; text-transform:uppercase;
+    }
+    /* Shown when a category has no cover photo yet, so the tile isn't blank grey. */
+    .idea-tile-ph {
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      color:#b9bdcc; font-size:26px;
     }
     .idea-tile-check {
-      position:absolute; top:8px; right:8px; width:24px; height:24px; border-radius:50%;
-      background:#6366f1; color:#fff; display:none; align-items:center; justify-content:center; font-size:14px;
+      position:absolute; top:6px; right:6px; width:20px; height:20px; border-radius:50%;
+      background:#6366f1; color:#fff; display:none; align-items:center; justify-content:center; font-size:12px;
     }
     .idea-tile.selected { border-color:#6366f1; }
     .idea-tile.selected .idea-tile-check { display:flex; }
@@ -837,11 +843,20 @@
     .idea-vid-ic { font-size:19px; color:#6366f1; flex:0 0 auto; }
     .idea-vid-txt { flex:1; min-width:0; font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .idea-vid-go { font-size:15px; color:#9aa0b5; flex:0 0 auto; }
-    .ideas-empty { text-align:center; color:#6C7293; font-size:13px; padding:26px 10px; }
+    
+    /* In-app player */
+    .idea-embed-wrap { border-radius:12px; overflow:hidden; background:#000; margin-bottom:10px; }
+    .idea-embed { display:block; width:100%; height:min(68vh, 620px); border:0; }
+    .idea-embed-open {
+      display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600;
+      color:#6C7293; text-decoration:none;
+    }
+    .idea-embed-open:hover { color:#6366f1; }
+    .idea-vid-row-btn { border:0; background:transparent; width:100%; text-align:left; cursor:pointer; font:inherit; }
 
-    @media (max-width:520px){
+    @media (max-width:400px){
       .ideas-modal { max-height:92vh; }
-      .ideas-grid { gap:10px; }
+      .ideas-grid { grid-template-columns:repeat(2, 1fr); gap:9px; }
     }
 </style>
 </head>
@@ -1494,30 +1509,68 @@ const res = await fetch(`${SUPABASE_URL}/functions/v1/oembed-preview`, {
     ideasBody.innerHTML = '<div class="ideas-grid">' + ideaCats.map(c => `
       <div class="idea-tile" data-cat="${c.id}">
         <div class="idea-tile-img" style="${c.image_url ? `background-image:url('${c.image_url}')` : ''}"></div>
+        ${c.image_url ? '' : '<div class="idea-tile-ph"><i class="ti ti-photo"></i></div>'}
         <div class="idea-tile-shade"></div>
         <div class="idea-tile-check"><i class="ti ti-check"></i></div>
         <div class="idea-tile-label">${escapeIdea(c.name)}</div>
       </div>`).join('') + '</div>'
   }
 
+  // Both platforms publish an official embed endpoint, so the video plays
+  // inside this modal instead of throwing the mother out to another app.
+  function ideaEmbedUrl(url) {
+    const u = String(url || '')
+    const tik = u.match(/\/video\/(\d+)/)
+    if (tik) return `https://www.tiktok.com/embed/v2/${tik[1]}`
+    const ig = u.match(/instagram\.com\/(p|reel|tv)\/([A-Za-z0-9_-]+)/)
+    if (ig) return `https://www.instagram.com/${ig[1]}/${ig[2]}/embed`
+    return null   // unrecognised link — fall back to opening it
+  }
+
+  let ideaCurrentCat = null
+
   function renderIdeaVideos(catId) {
     const cat = ideaCats.find(c => String(c.id) === String(catId))
     if (!cat) return
+    ideaCurrentCat = catId
     const list = ideaVids.filter(v => String(v.category_id) === String(catId))
 
     ideasTitle.textContent = cat.name
     ideasSub.textContent = cat.description || 'Tap a video to watch it, then make your own version.'
 
     const rows = list.length ? list.map(v => `
-      <a class="idea-vid-row" href="${v.video_url}" target="_blank" rel="noopener">
+      <button class="idea-vid-row idea-vid-row-btn" data-play="${v.id}">
         <i class="ti ${ideaIcon(v.video_url)} idea-vid-ic"></i>
         <span class="idea-vid-txt">${escapeIdea(v.title || v.video_url)}</span>
-        <i class="ti ti-external-link idea-vid-go"></i>
-      </a>`).join('')
+        <i class="ti ti-player-play idea-vid-go"></i>
+      </button>`).join('')
       : '<div class="ideas-empty">No videos in this category yet.</div>'
 
     ideasBody.innerHTML =
       '<button class="ideas-back" id="ideas-back"><i class="ti ti-arrow-left"></i> All categories</button>' + rows
+  }
+
+  function renderIdeaPlayer(vidId) {
+    const v = ideaVids.find(x => String(x.id) === String(vidId))
+    if (!v) return
+    const embed = ideaEmbedUrl(v.video_url)
+
+    // A link we can't embed still has to go somewhere useful.
+    if (!embed) { window.open(v.video_url, '_blank', 'noopener'); return }
+
+    ideasTitle.textContent = v.title || 'Watch'
+    ideasSub.textContent = 'Watch it here, then film your own version.'
+
+    ideasBody.innerHTML = `
+      <button class="ideas-back" id="ideas-back-list"><i class="ti ti-arrow-left"></i> Back to videos</button>
+      <div class="idea-embed-wrap">
+        <iframe class="idea-embed" src="${embed}" loading="lazy"
+                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+      <a class="idea-embed-open" href="${v.video_url}" target="_blank" rel="noopener">
+        <i class="ti ti-external-link"></i> Trouble playing? Open in the app
+      </a>`
   }
 
   document.getElementById('open-ideas-btn')?.addEventListener('click', async () => {
@@ -1527,7 +1580,11 @@ const res = await fetch(`${SUPABASE_URL}/functions/v1/oembed-preview`, {
     renderIdeaCategories()
   })
 
-  function closeIdeas() { ideasOv.classList.remove('open') }
+    function closeIdeas() {
+    ideasOv.classList.remove('open')
+    // Clearing the body unloads any iframe, so audio stops with the modal.
+    ideasBody.innerHTML = ''
+  }
   document.getElementById('ideas-close')?.addEventListener('click', closeIdeas)
   ideasOv?.addEventListener('click', e => { if (e.target === ideasOv) closeIdeas() })
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeIdeas() })
@@ -1540,6 +1597,9 @@ const res = await fetch(`${SUPABASE_URL}/functions/v1/oembed-preview`, {
       setTimeout(() => renderIdeaVideos(tile.dataset.cat), 160)
       return
     }
+    const playBtn = e.target.closest('[data-play]')
+    if (playBtn) { renderIdeaPlayer(playBtn.dataset.play); return }
+    if (e.target.closest('#ideas-back-list')) { renderIdeaVideos(ideaCurrentCat); return }
     if (e.target.closest('#ideas-back')) renderIdeaCategories()
   })
 
