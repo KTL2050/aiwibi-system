@@ -546,7 +546,12 @@
       /* ── Video ideas ── */
     .idea-cat { border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px; }
     .idea-cat-head { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
-    .idea-cat-thumb { width:52px; height:52px; border-radius:8px; background:#eef0f4 center/cover no-repeat; flex:0 0 52px; }
+    .idea-cat-thumb {
+      width:52px; height:52px; border-radius:8px; flex:0 0 52px; cursor:pointer;
+      background:#eef0f4 center/cover no-repeat; border:1px dashed #d4d8e2;
+      display:flex; align-items:center; justify-content:center; color:#9aa0b5; font-size:18px;
+    }
+    .idea-cat-thumb:hover { border-color:var(--aiwibi); }
     .idea-cat-name { width:100%; border:0; font-size:14px; font-weight:700; color:var(--ink); padding:2px 0; background:transparent; }
     .idea-cat-desc { width:100%; border:0; font-size:12px; color:var(--muted); padding:2px 0; background:transparent; }
     .idea-cat-name:focus, .idea-cat-desc:focus { outline:0; border-bottom:1px solid var(--border); }
@@ -1070,10 +1075,16 @@
                     </div>
                   </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom:16px;">
                   <label class="form-label">Short Description <span style="font-weight:400;color:var(--muted)">(optional — shown under the category name)</span></label>
                   <input class="form-input" id="new-cat-desc" placeholder="Fun bath routines mothers can film in under a minute">
                 </div>
+                <div class="dropzone" id="cat-dropzone" style="padding:24px 20px;">
+                  <i class="ti ti-photo-plus"></i>
+                  <div class="dropzone-title">Drag &amp; drop the cover photo, or <span>browse files</span></div>
+                  <div class="dropzone-hint">Square 600&times;600px · JPG, PNG or WebP · up to 2MB</div>
+                </div>
+                <input type="file" id="new-cat-file" accept="image/jpeg,image/png,image/webp" hidden>
               </div>
               <div class="save-bar">
                 <button class="btn btn-primary btn-sm" id="add-cat-btn"><i class="ti ti-plus" style="font-size:14px"></i> Add Category</button>
@@ -1985,7 +1996,7 @@
       return `
         <div class="idea-cat" data-cat="${c.id}">
           <div class="idea-cat-head">
-            <div class="idea-cat-thumb" style="${c.image_url ? `background-image:url('${c.image_url}')` : ''}"></div>
+            <div class="idea-cat-thumb" title="Click to change the cover photo" style="${c.image_url ? `background-image:url('${c.image_url}')` : ''}">${c.image_url ? '' : '<i class="ti ti-photo-plus"></i>'}</div>
             <div style="flex:1;min-width:0;">
               <input class="idea-cat-name" value="${(c.name || '').replace(/"/g, '&quot;')}">
               <input class="idea-cat-desc" value="${(c.description || '').replace(/"/g, '&quot;')}" placeholder="Short description (optional)">
@@ -2003,11 +2014,64 @@
     }).join('')
   }
 
+  /* ── Cover photo upload (same bucket the rewards images use) ── */
+  const catDropzone = document.getElementById('cat-dropzone')
+  const newCatFile  = document.getElementById('new-cat-file')
+  let pendingCatFile = null
+  let catTargetId = null          // set when replacing an existing category's photo
+
+  async function uploadCatFile(file) {
+    if (file.size > 2 * 1024 * 1024) { showToast('That image is over 2MB'); return null }
+    const ext = file.name.split('.').pop()
+    const path = `ideas/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+    const { error } = await supabase.storage.from('reward-images').upload(path, file, { upsert: true })
+    if (error) { showToast('Image upload failed'); console.error(error); return null }
+    const { data } = supabase.storage.from('reward-images').getPublicUrl(path)
+    return data.publicUrl
+  }
+
+  catDropzone?.addEventListener('click', () => { catTargetId = null; newCatFile.click() })
+  catDropzone?.addEventListener('dragover', e => { e.preventDefault(); catDropzone.classList.add('dragover') })
+  catDropzone?.addEventListener('dragleave', () => catDropzone.classList.remove('dragover'))
+  catDropzone?.addEventListener('drop', e => {
+    e.preventDefault(); catDropzone.classList.remove('dragover')
+    const file = e.dataTransfer.files[0]
+    if (!file) return
+    pendingCatFile = file
+    catDropzone.querySelector('.dropzone-title').textContent = file.name
+  })
+
+  newCatFile?.addEventListener('change', async e => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    if (catTargetId) {
+      // Replacing the photo on a category that already exists.
+      const url = await uploadCatFile(file)
+      if (url) {
+        const { error } = await supabase.from('idea_categories').update({ image_url: url }).eq('id', catTargetId)
+        showToast(error ? 'Could not save photo' : 'Cover photo updated')
+        await loadIdeas()
+      }
+      catTargetId = null
+    } else {
+      pendingCatFile = file
+      catDropzone.querySelector('.dropzone-title').textContent = file.name
+    }
+    e.target.value = ''
+  })
+
   document.getElementById('add-cat-btn')?.addEventListener('click', async () => {
     const name = document.getElementById('new-cat-name').value.trim()
-    const url  = document.getElementById('new-cat-url').value.trim() || null
+    let url    = document.getElementById('new-cat-url').value.trim() || null
     const desc = document.getElementById('new-cat-desc').value.trim() || null
     if (!name) { showToast('Please enter a category name'); return }
+
+    // An uploaded file wins over a pasted URL.
+    if (pendingCatFile) {
+      const uploaded = await uploadCatFile(pendingCatFile)
+      if (uploaded) url = uploaded
+    }
 
     const { error } = await supabase.from('idea_categories')
       .insert({ name, image_url: url, description: desc, is_active: true })
@@ -2016,6 +2080,8 @@
     document.getElementById('new-cat-name').value = ''
     document.getElementById('new-cat-url').value = ''
     document.getElementById('new-cat-desc').value = ''
+    pendingCatFile = null
+    catDropzone.querySelector('.dropzone-title').innerHTML = 'Drag &amp; drop the cover photo, or <span>browse files</span>'
     showToast(`"${name}" added`)
     await loadIdeas()
   })
@@ -2024,6 +2090,12 @@
     const catEl = e.target.closest('.idea-cat')
     if (!catEl) return
     const catId = catEl.dataset.cat
+
+    if (e.target.closest('.idea-cat-thumb')) {
+      catTargetId = catId
+      newCatFile.click()
+      return
+    }
 
     if (e.target.closest('.idea-cat-save')) {
       const name = catEl.querySelector('.idea-cat-name').value.trim()
