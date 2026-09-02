@@ -1263,12 +1263,16 @@
   }
 
   async function getRedeemedPoints(userId) {
+    // Must match the Rewards page exactly. A cancelled redemption has been
+    // reversed — the points went back to her — so it must not be subtracted.
+    // Counting them here is what made this page show 0 while Rewards showed 800.
     const { data, error } = await supabase
       .from('reward_redemptions')
-      .select('points_cost')
-      .eq('user_id', userId);
+      .select('points_cost, status')
+      .eq('user_id', userId)
+      .neq('status', 'Cancelled');
     if (error) { console.error('Failed to load redemptions:', error); return 0; }
-    return (data || []).reduce((sum, r) => sum + r.points_cost, 0);
+    return (data || []).reduce((sum, r) => sum + (r.points_cost || 0), 0);
   }
 
   async function loadRewardsSummary() {
