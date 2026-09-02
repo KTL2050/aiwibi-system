@@ -2022,10 +2022,20 @@
 
   async function uploadCatFile(file) {
     if (file.size > 2 * 1024 * 1024) { showToast('That image is over 2MB'); return null }
-    const ext = file.name.split('.').pop()
-    const path = `ideas/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-    const { error } = await supabase.storage.from('reward-images').upload(path, file, { upsert: true })
-    if (error) { showToast('Image upload failed'); console.error(error); return null }
+    // Bucket root, exactly like the rewards upload — a subfolder can trip a
+    // storage policy that checks the first path segment.
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '')
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+    const { error } = await supabase.storage
+      .from('reward-images')
+      .upload(path, file, { upsert: true, contentType: file.type })
+    if (error) {
+      // Show the real reason — "new row violates row-level security policy"
+      // means the storage policy, not the file.
+      showToast('Upload failed: ' + (error.message || 'unknown'))
+      console.error('Cover upload failed:', error)
+      return null
+    }
     const { data } = supabase.storage.from('reward-images').getPublicUrl(path)
     return data.publicUrl
   }
