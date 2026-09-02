@@ -543,7 +543,22 @@
       .bottom-nav-item.active { color: #844FC1; }
       .content { padding-bottom: 78px !important; }
     }
-      .nav-item-soon { opacity: 0.55; cursor: pointer; }
+      /* ── Video ideas ── */
+    .idea-cat { border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px; }
+    .idea-cat-head { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+    .idea-cat-thumb { width:52px; height:52px; border-radius:8px; background:#eef0f4 center/cover no-repeat; flex:0 0 52px; }
+    .idea-cat-name { width:100%; border:0; font-size:14px; font-weight:700; color:var(--ink); padding:2px 0; background:transparent; }
+    .idea-cat-desc { width:100%; border:0; font-size:12px; color:var(--muted); padding:2px 0; background:transparent; }
+    .idea-cat-name:focus, .idea-cat-desc:focus { outline:0; border-bottom:1px solid var(--border); }
+    .idea-videos { display:flex; flex-direction:column; gap:6px; margin:8px 0 10px; }
+    .idea-video-row { display:flex; align-items:center; gap:8px; font-size:12.5px; }
+    .idea-video-link { flex:1; min-width:0; color:var(--ink); text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .idea-video-link:hover { text-decoration:underline; }
+    .idea-video-remove { border:0; background:transparent; color:var(--muted); cursor:pointer; padding:2px 4px; }
+    .idea-video-remove:hover { color:var(--red); }
+    .idea-add-row { display:grid; grid-template-columns:1fr 180px auto; gap:8px; }
+    @media (max-width:700px){ .idea-add-row { grid-template-columns:1fr; } }
+    .nav-item-soon { opacity: 0.55; cursor: pointer; }
 
     .coming-soon-toast {
       position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%) translateY(20px);
@@ -616,6 +631,7 @@
           <button class="settings-nav-item" data-section="campaigns"><i class="ti ti-speakerphone"></i> Campaign Defaults</button>
           <button class="settings-nav-item" data-section="points"><i class="ti ti-trophy"></i> Points &amp; Tiers</button>
           <button class="settings-nav-item" data-section="rewards"><i class="ti ti-gift"></i> Rewards Catalog</button>
+          <button class="settings-nav-item" data-section="ideas"><i class="ti ti-bulb"></i> Video Ideas</button>
         </div>
 
         <!-- ── Settings body ── -->
@@ -1030,6 +1046,54 @@
             </div>
           </div>
 
+
+          <!-- ════ VIDEO IDEAS ════ -->
+          <div class="settings-section" id="section-ideas">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Add Idea Category</div>
+                  <div class="panel-desc">Categories are the tiles mothers tap first — e.g. "Bath Time", "Feeding", "Baby Skincare". Give each one a cover photo (square, 600&times;600px recommended) so the picker looks inviting.</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="form-row" style="grid-template-columns: 1fr 1fr; margin-bottom:16px;">
+                  <div class="form-group">
+                    <label class="form-label">Category Name</label>
+                    <input class="form-input" id="new-cat-name" placeholder="e.g. Bath Time">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Cover Image URL</label>
+                    <div class="input-with-icon">
+                      <i class="ti ti-link"></i>
+                      <input class="form-input" id="new-cat-url" placeholder="https://ik.imagekit.io/6kafqkidx/bathtime.jpg">
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Short Description <span style="font-weight:400;color:var(--muted)">(optional — shown under the category name)</span></label>
+                  <input class="form-input" id="new-cat-desc" placeholder="Fun bath routines mothers can film in under a minute">
+                </div>
+              </div>
+              <div class="save-bar">
+                <button class="btn btn-primary btn-sm" id="add-cat-btn"><i class="ti ti-plus" style="font-size:14px"></i> Add Category</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Categories &amp; Example Videos</div>
+                  <div class="panel-desc">Paste TikTok or Instagram links under each category. These are what mothers browse when they are short of ideas — they open in a new tab, nothing is downloaded or re-hosted.</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div id="ideas-list">
+                  <div style="text-align:center;color:var(--muted);padding:24px;">Loading categories...</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div><!-- /settings-body -->
       </div><!-- /settings-grid -->
     </div><!-- /content -->
@@ -1871,6 +1935,144 @@
   }
 
   document.getElementById('rep-run-btn')?.addEventListener('click', runReport)
+
+  /* ══════════ VIDEO IDEAS ══════════ */
+  // Categories are the tiles mothers see first; videos are the example links
+  // inside each one. Both are plain rows — nothing is uploaded or re-hosted.
+
+  const ideasList = document.getElementById('ideas-list')
+
+  function ideaPlatformOf(url) {
+    const u = String(url || '').toLowerCase()
+    if (u.includes('instagram.')) return 'instagram'
+    if (u.includes('tiktok.'))    return 'tiktok'
+    return 'other'
+  }
+
+  async function loadIdeas() {
+    const [catRes, vidRes] = await Promise.all([
+      supabase.from('idea_categories').select('*').order('sort_order').order('created_at'),
+      supabase.from('idea_videos').select('*').order('created_at')
+    ])
+
+    if (catRes.error) {
+      ideasList.innerHTML = '<div style="text-align:center;color:var(--red);padding:24px;">Could not load categories. Has the SQL been run?</div>'
+      console.error(catRes.error); return
+    }
+
+    const cats = catRes.data || []
+    const vids = vidRes.data || []
+    if (!cats.length) {
+      ideasList.innerHTML = '<div style="text-align:center;color:var(--muted);padding:24px;">No categories yet — add your first one above.</div>'
+      return
+    }
+
+    const byCat = new Map()
+    vids.forEach(v => {
+      if (!byCat.has(v.category_id)) byCat.set(v.category_id, [])
+      byCat.get(v.category_id).push(v)
+    })
+
+    ideasList.innerHTML = cats.map(c => {
+      const list = byCat.get(c.id) || []
+      const rows = list.length ? list.map(v => `
+        <div class="idea-video-row" data-vid="${v.id}">
+          <i class="ti ti-brand-${ideaPlatformOf(v.video_url)}" style="font-size:16px;color:var(--muted);"></i>
+          <a href="${v.video_url}" target="_blank" rel="noopener" class="idea-video-link">${(v.title || v.video_url)}</a>
+          <button class="idea-video-remove" title="Remove link"><i class="ti ti-x"></i></button>
+        </div>`).join('') : '<div style="font-size:12px;color:var(--muted);padding:6px 0;">No links yet.</div>'
+
+      return `
+        <div class="idea-cat" data-cat="${c.id}">
+          <div class="idea-cat-head">
+            <div class="idea-cat-thumb" style="${c.image_url ? `background-image:url('${c.image_url}')` : ''}"></div>
+            <div style="flex:1;min-width:0;">
+              <input class="idea-cat-name" value="${(c.name || '').replace(/"/g, '&quot;')}">
+              <input class="idea-cat-desc" value="${(c.description || '').replace(/"/g, '&quot;')}" placeholder="Short description (optional)">
+            </div>
+            <button class="btn btn-sm idea-cat-save">Save</button>
+            <button class="btn btn-sm idea-cat-del" style="color:var(--red)"><i class="ti ti-trash"></i></button>
+          </div>
+          <div class="idea-videos">${rows}</div>
+          <div class="idea-add-row">
+            <input class="form-input idea-new-url" placeholder="Paste TikTok or Instagram link">
+            <input class="form-input idea-new-title" placeholder="Label (optional)">
+            <button class="btn btn-primary btn-sm idea-add-btn">Add link</button>
+          </div>
+        </div>`
+    }).join('')
+  }
+
+  document.getElementById('add-cat-btn')?.addEventListener('click', async () => {
+    const name = document.getElementById('new-cat-name').value.trim()
+    const url  = document.getElementById('new-cat-url').value.trim() || null
+    const desc = document.getElementById('new-cat-desc').value.trim() || null
+    if (!name) { showToast('Please enter a category name'); return }
+
+    const { error } = await supabase.from('idea_categories')
+      .insert({ name, image_url: url, description: desc, is_active: true })
+    if (error) { showToast('Failed to add category'); console.error(error); return }
+
+    document.getElementById('new-cat-name').value = ''
+    document.getElementById('new-cat-url').value = ''
+    document.getElementById('new-cat-desc').value = ''
+    showToast(`"${name}" added`)
+    await loadIdeas()
+  })
+
+  ideasList?.addEventListener('click', async e => {
+    const catEl = e.target.closest('.idea-cat')
+    if (!catEl) return
+    const catId = catEl.dataset.cat
+
+    if (e.target.closest('.idea-cat-save')) {
+      const name = catEl.querySelector('.idea-cat-name').value.trim()
+      const description = catEl.querySelector('.idea-cat-desc').value.trim() || null
+      const { error } = await supabase.from('idea_categories').update({ name, description }).eq('id', catId)
+      showToast(error ? 'Could not save' : 'Category saved')
+      return
+    }
+
+    if (e.target.closest('.idea-cat-del')) {
+      const name = catEl.querySelector('.idea-cat-name').value || 'this category'
+      if (!confirm(`Delete "${name}" and all its links?`)) return
+      await supabase.from('idea_videos').delete().eq('category_id', catId)
+      const { error } = await supabase.from('idea_categories').delete().eq('id', catId)
+      showToast(error ? 'Could not delete' : 'Category deleted')
+      await loadIdeas()
+      return
+    }
+
+    if (e.target.closest('.idea-video-remove')) {
+      const row = e.target.closest('.idea-video-row')
+      const { error } = await supabase.from('idea_videos').delete().eq('id', row.dataset.vid)
+      if (error) { showToast('Could not remove link'); return }
+      showToast('Link removed')
+      await loadIdeas()
+      return
+    }
+
+    if (e.target.closest('.idea-add-btn')) {
+      const urlEl = catEl.querySelector('.idea-new-url')
+      const titleEl = catEl.querySelector('.idea-new-title')
+      const video_url = urlEl.value.trim()
+      if (!video_url) { showToast('Paste a video link first'); urlEl.focus(); return }
+      if (!/^https?:\/\//i.test(video_url)) { showToast('That does not look like a link'); urlEl.focus(); return }
+
+      const { error } = await supabase.from('idea_videos').insert({
+        category_id: catId,
+        video_url,
+        title: titleEl.value.trim() || null,
+        platform: ideaPlatformOf(video_url)
+      })
+      if (error) { showToast('Could not add link'); console.error(error); return }
+      urlEl.value = ''; titleEl.value = ''
+      showToast('Link added')
+      await loadIdeas()
+    }
+  })
+
+  loadIdeas()
 </script>
   <script>
     document.querySelectorAll('[data-coming-soon]').forEach(function (link) {
