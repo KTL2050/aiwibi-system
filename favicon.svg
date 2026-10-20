@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Aiwibi favicon: the "b" from the wordmark with its red crescent -->
+  <rect width="64" height="64" rx="14" fill="#ffffff"/>
+  <g transform="translate(-4 0)">
+    <!-- stem -->
+    <line x1="21" y1="11" x2="21" y2="38" stroke="#14285e" stroke-width="10" stroke-linecap="round"/>
+    <!-- bowl -->
+    <circle cx="36" cy="38" r="15" fill="none" stroke="#14285e" stroke-width="10"/>
+    <!-- red crescent inside the bowl -->
+    <circle cx="36" cy="38" r="10" fill="#d9222a"/>
+    <circle cx="39.5" cy="36.5" r="8" fill="#ffffff"/>
+  </g>
+</svg>
