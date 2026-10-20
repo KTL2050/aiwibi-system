@@ -833,7 +833,7 @@
 
       if (!data.mothers || data.mothers.length === 0) {
         console.log('No mother data for this filter yet');
-        document.querySelectorAll('.stat-value').forEach(el => el.textContent = '0');
+        document.querySelectorAll('.stat-card:nth-child(3) .stat-value, .stat-card:nth-child(4) .stat-value').forEach(el => el.textContent = '0');
         const donutCenter = document.querySelector('.donut-center-value');
         if (donutCenter) donutCenter.textContent = '0';
         ['stat-mothers-period', 'stat-views-period', 'stat-engagements-period'].forEach(id => {

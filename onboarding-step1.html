@@ -732,7 +732,7 @@
     activePlatform = null;
   }
 
-  function markConnected(platform) {
+  function markConnected(platform, silent = false) {
     connected[platform] = true;
     const card = $('card-' + platform);
     const arrow = $('arrow-' + platform);
@@ -743,8 +743,23 @@
       platform === 'tiktok' ? 'TikTok' : 'Instagram';
     info.querySelector('.connect-sub').textContent = 'Connected';
     updateContinueBtn();
-    toast(`${platforms[platform].name} connected successfully!`);
+    if (!silent) toast(`${platforms[platform].name} connected successfully!`);
   }
+
+  // Show accounts already linked (e.g. after the PostPeer OAuth round-trip)
+  async function loadConnectedAccounts() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const { data: accounts, error } = await supabase
+      .from('social_accounts')
+      .select('platform')
+      .eq('user_id', session.user.id);
+    if (error) { console.error('Failed to load connected accounts:', error); return; }
+    [...new Set((accounts || []).map(a => a.platform))]
+      .filter(p => p === 'tiktok' || p === 'instagram')
+      .forEach(p => markConnected(p, true));
+  }
+  loadConnectedAccounts();
 
   // Card clicks
   ['tiktok','instagram'].forEach(platform => {

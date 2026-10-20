@@ -734,19 +734,11 @@
                 </div>
               </div>
               <div class="panel-body">
-                <div class="form-row">
+                <div class="form-row single">
                   <div class="form-group">
                     <label class="form-label">Campaign</label>
                     <select class="form-select" id="banner-campaign">
                       <option value="">Loading campaigns...</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Banner Placement</label>
-                    <select class="form-select">
-                      <option>Hero banner (large)</option>
-                      <option>List thumbnail (square)</option>
-                      <option>Both (auto-crop)</option>
                     </select>
                   </div>
                 </div>
@@ -756,20 +748,6 @@
                   <div class="dropzone-hint">JPG, PNG or WebP · up to 2MB · 1200×440px recommended</div>
                   <input type="file" id="banner-file" accept="image/jpeg,image/png,image/webp" hidden>
                 </div>
-                <div class="form-row single" style="margin-top:16px;margin-bottom:0;">
-                  <div class="form-group">
-                    <label class="form-label">Or paste an ImageKit URL</label>
-                    <div class="input-with-icon">
-                      <i class="ti ti-link"></i>
-                      <input type="url" class="form-input" placeholder="https://ik.imagekit.io/6kafqkidx/banner.jpg">
-                    </div>
-                    <div class="form-hint">Existing ImageKit assets can be linked directly without re-uploading.</div>
-                  </div>
-                </div>
-              </div>
-              <div class="save-bar">
-                <button class="btn btn-outline btn-sm">Preview</button>
-                <button class="btn btn-primary btn-sm save-btn"><i class="ti ti-upload" style="font-size:14px"></i> Upload Banner</button>
               </div>
             </div>
 
@@ -885,8 +863,8 @@
             <div class="panel">
               <div class="panel-header">
                 <div>
-                  <div class="panel-title">Campaign Defaults</div>
-                  <div class="panel-desc">Defaults applied when a new campaign is created. Each campaign can still override these.</div>
+                  <div class="panel-title">Campaign Defaults — Coming soon</div>
+                  <div class="panel-desc">Defaults applied when a new campaign is created. Each campaign can still override these. These settings can't be saved yet.</div>
                 </div>
               </div>
               <div class="panel-body">
@@ -944,8 +922,8 @@
                 </div>
               </div>
               <div class="save-bar">
-                <button class="btn btn-outline btn-sm">Reset</button>
-                <button class="btn btn-primary btn-sm save-btn">Save Changes</button>
+                <button class="btn btn-outline btn-sm" disabled style="opacity:.5;cursor:not-allowed;">Reset</button>
+                <button class="btn btn-primary btn-sm save-btn" disabled style="opacity:.5;cursor:not-allowed;">Save Changes</button>
               </div>
             </div>
           </div>

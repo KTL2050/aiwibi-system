@@ -476,7 +476,7 @@
 
   async function applyPlatformLogo() {
     const { data } = await supabase.from('platform_settings').select('logo_url').eq('id', 1).single();
-    if (data?.logo_url) document.getElementById('sidebar-logo-img').src = data.logo_url;
+    if (data?.logo_url) document.querySelectorAll('.sidebar-logo-img').forEach(img => { img.src = data.logo_url; });
   }
 
   function escapeHtml(str) {

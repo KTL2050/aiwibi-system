@@ -1082,6 +1082,12 @@
     return div.innerHTML
   }
 
+  document.getElementById('logout-link').addEventListener('click', async (e) => {
+    e.preventDefault()
+    await supabase.auth.signOut()
+    window.location.href = 'login.html'
+  })
+
   document.getElementById('topbar-logout-btn').addEventListener('click', async () => {
     await supabase.auth.signOut()
     window.location.href = 'login.html'
