@@ -10,9 +10,9 @@
    Two colour groups:
    · Admin pages (no body class) keep the Aiwibi purple accent and their
      current sidebar. Only type, cards, borders and tables change.
-   · Mother + sign-in pages (<body class="lt-blue">) take TRACKER blue and the
-     indigo sidebar. Pink and honey stay on points and rewards, the same way
-     kingdomfield kept gold only where money is shown.
+   · Mother + sign-in pages (<body class="lt-blue">) take TRACKER blue but keep
+     their original navy sidebar. Pink and honey stay on points and rewards,
+     the same way kingdomfield kept gold only where money is shown.
 
    Sizes and paddings live inside @media(min-width:901px) so the existing
    phone layout rules in each page keep working unchanged.
@@ -35,13 +35,10 @@ body.lt-blue{
   --brand:#2563eb; --brand-deep:#1d4ed8; --brand-dark:#1d4ed8;
   --brand-soft:#c7d7fe; --brand-bg:#eaf1ff;
   --brand-gradient:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);
-  --sky-2:#aebdd1;
-  --sidebar-bg:#222b9c;
-  --sidebar-gradient:#222b9c;
-  --sidebar-active:#3349cc;
-  --sidebar-active-bg:#3349cc;
   --baby:#2563eb; --baby-bg:#eaf1ff;
 }
+/* the sidebar keeps its original navy colours — restore the brand values it reads */
+body.lt-blue .sidebar{--brand:#3B86D1;--brand-deep:#2a6ba8;--brand-soft:#a9c9ec;}
 
 /* ─── 3. TYPE ────────────────────────────────────────────────────────────── */
 html,body{
@@ -58,29 +55,8 @@ button,input,select,textarea{font-family:inherit;}
 }
 
 /* ─── 4. SIDEBAR ─────────────────────────────────────────────────────────── */
-/* shape for every page: flat items, no left stripe */
-.nav-item{border-radius:6px;}
-.nav-item.active{border-left:none;border-radius:6px;box-shadow:none;}
-.user-pill{border-radius:8px;}
-.sidebar-logo-badge{box-shadow:none;border-radius:7px;}
-
-/* indigo sidebar for the blue group */
-body.lt-blue .sidebar{background:#222b9c!important;border-right:none;}
-body.lt-blue .sidebar-logo,
-body.lt-blue .sidebar-bottom{border-color:rgba(255,255,255,.1);}
-body.lt-blue .sidebar-section-label{color:rgba(174,189,209,.6);letter-spacing:.08em;}
-body.lt-blue .nav-item{color:#aebdd1;}
-body.lt-blue .nav-item:hover{background:#2b3bb6;color:#fff;}
-body.lt-blue .nav-item.active{background:#3349cc;color:#fff;font-weight:500;}
-body.lt-blue .user-pill{background:transparent;border:none;}
-body.lt-blue .user-avatar{background:#3349cc;}
-body.lt-blue .user-role{color:#aebdd1;}
-body.lt-blue .user-level{background:#3349cc;}
-body.lt-blue .sidebar-overlay{background:rgba(18,23,32,.45);}
-
-@media(min-width:901px){
-  .nav-item{padding:8px 12px;font-size:13.5px;margin-bottom:2px;gap:12px;}
-}
+/* Sidebars keep their original colours and shape on every page — only the
+   font changes. Nothing here on purpose. */
 
 /* ─── 5. TOPBAR ──────────────────────────────────────────────────────────── */
 .topbar{
