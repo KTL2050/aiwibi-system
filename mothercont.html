@@ -900,6 +900,7 @@
 
       <!-- Right: logout -->
       <div class="topbar-right">
+        <div class="notif-btn" id="notif-bell"><i class="ti ti-bell"></i></div>
         <div id="topbar-logout-btn" title="Log out"><i class="ti ti-logout"></i></div>
       </div>
     </div>
@@ -1077,6 +1078,7 @@
   const SUPABASE_URL = 'https://cqtebvfegeojjkrkzboq.supabase.co'
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdGVidmZlZ2Vvamprcmt6Ym9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODQ2NjksImV4cCI6MjA5ODU2MDY2OX0.OcCwAD-q6d1XeyHW6f1Gy9r_sBdRV3eWAOUsKLemKEA'
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  import('./lumio-notify.js').then(m => m.initNotifications(supabase))
 
   function escapeHtml(str) {
     const div = document.createElement('div')
