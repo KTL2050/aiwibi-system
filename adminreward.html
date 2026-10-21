@@ -608,9 +608,10 @@
 
   async function loadAllRewards() {
     const tbody = document.getElementById('all-rewards-tbody');
-    const { data: rewards, error } = await supabase
+    const { inCountry, scope } = await countryReady;
+    const { data: rewards, error } = await inCountry(supabase
       .from('rewards')
-      .select('*')
+      .select('*'), scope.country)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -688,7 +689,8 @@
   }
 
   async function loadTotalRewardsStat() {
-    const { count, error } = await supabase.from('rewards').select('*', { count: 'exact', head: true });
+    const { inCountry, scope } = await countryReady;
+    const { count, error } = await inCountry(supabase.from('rewards').select('*', { count: 'exact', head: true }), scope.country);
     const el = document.getElementById('stat-total-rewards');
     const periodEl = document.getElementById('stat-total-rewards-period');
     if (error) { console.error(error); if (el) el.textContent = '0'; return; }
@@ -697,20 +699,21 @@
   }
 
   async function loadPointsOverview() {
-    const { data: profiles, error: profErr } = await supabase
+    const { inCountry, forMothers, scope, ids } = await countryReady;
+    const { data: profiles, error: profErr } = await inCountry(supabase
       .from('profiles')
       .select('id, full_name, email')
-      .eq('role', 'mother');
+      .eq('role', 'mother'), scope.country);
     if (profErr) { console.error(profErr); return; }
 
-    const { data: content, error: contentErr } = await supabase
+    const { data: content, error: contentErr } = await forMothers(supabase
       .from('submitted_content')
-      .select('user_id, video_url');
+      .select('user_id, video_url'), ids);
     if (contentErr) { console.error(contentErr); return; }
 
-    const { data: redemptions, error: redeemErr } = await supabase
+    const { data: redemptions, error: redeemErr } = await forMothers(supabase
       .from('reward_redemptions')
-      .select('user_id, points_cost, status')
+      .select('user_id, points_cost, status'), ids)
       .neq('status', 'Cancelled');
     if (redeemErr) console.error(redeemErr);
 
@@ -760,9 +763,10 @@
   }
 
   async function loadRedeemedStats() {
-    const { data: redemptions, error } = await supabase
+    const { forMothers, ids } = await countryReady;
+    const { data: redemptions, error } = await forMothers(supabase
       .from('reward_redemptions')
-      .select('status');
+      .select('status'), ids);
     const redeemedEl = document.getElementById('stat-redeemed-count');
     const redeemedPeriodEl = document.getElementById('stat-redeemed-period');
     const pendingEl = document.getElementById('stat-pending-count');
@@ -788,9 +792,10 @@
   async function loadRedemptionHistory() {
     const tbody = document.getElementById('redemption-history-tbody');
 
-    const { data: redemptions, error } = await supabase
+    const { forMothers, ids } = await countryReady;
+    const { data: redemptions, error } = await forMothers(supabase
       .from('reward_redemptions')
-      .select('*')
+      .select('*'), ids)
       .order('redeemed_at', { ascending: false });
 
     if (error) {
@@ -914,6 +919,15 @@
     el.textContent = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   }
   renderCurrentDate();
+
+  // Uganda and Kenya are run separately: everything below shows only the
+  // selected country (superadmin) or the admin's own country.
+  const countryReady = (async () => {
+    const m = await import('./lumio-country.js');
+    const scope = await m.initCountry(supabase);
+    const ids = await m.motherIdsIn(supabase, scope.country);
+    return { ...m, scope, ids };
+  })();
 
   loadUserProfile();
   loadAllRewards();

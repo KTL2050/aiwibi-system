@@ -792,23 +792,29 @@
   let postpeerPostsByUrl = {}
 
   async function loadMothersAndContent() {
-    const { data: profiles, error: profErr } = await supabase
+    // Only the selected country's mothers (Uganda and Kenya are run separately)
+    const { initCountry, inCountry, forMothers } = await import('./lumio-country.js')
+    const scope = await initCountry(supabase)
+
+    const { data: profiles, error: profErr } = await inCountry(supabase
       .from('profiles')
       .select('id, full_name, email, role')
-      .eq('role', 'mother')
+      .eq('role', 'mother'), scope.country)
 
     if (profErr) { console.error('Failed to load mothers:', profErr); return }
 
-    const { data: content, error: contentErr } = await supabase
+    const { data: content, error: contentErr } = await forMothers(supabase
       .from('submitted_content')
-      .select('user_id, platform, video_url, caption, thumbnail_url, status, submitted_at')
+      .select('user_id, platform, video_url, caption, thumbnail_url, status, submitted_at'),
+      scope.country === 'all' ? null : profiles.map(p => p.id))
       .order('submitted_at', { ascending: false })
 
     if (contentErr) { console.error('Failed to load submitted content:', contentErr); return }
 
     // Best-effort enrichment — skipped silently if PostPeer credits are unavailable
     try {
-      const { data: analytics } = await supabase.functions.invoke('postpeer-get-all-analytics', { method: 'GET' })
+      const { data: analytics } = await supabase.functions.invoke(
+        `postpeer-get-all-analytics?country=${encodeURIComponent(scope.country)}`, { method: 'GET' })
       if (analytics?.allPosts) {
         analytics.allPosts.forEach(p => {
           if (p.url) postpeerPostsByUrl[normalizeUrl(p.url)] = p

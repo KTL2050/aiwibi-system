@@ -1247,9 +1247,10 @@
   let campaigns = []
 
   async function loadCampaigns() {
-    const { data, error } = await supabase
+    const { inCountry, scope } = await countryReady
+    const { data, error } = await inCountry(supabase
       .from('campaigns')
-      .select('*')
+      .select('*'), scope.country)
       .order('start_date', { ascending: false })
 
     if (error) {
@@ -1436,6 +1437,8 @@
     if (!ccStart.value || !ccEnd.value) { showToast('Please set start and end dates'); return }
     if (new Date(ccEnd.value) < new Date(ccStart.value)) { showToast('End date must be after start date'); return }
     if (pts <= 0) { showToast('Please set the max points'); ccPoints.focus(); return }
+    const country = await pickedCountry()
+    if (!country) return
 
     const { data: { session } } = await supabase.auth.getSession()
 
@@ -1454,6 +1457,7 @@
       allow_tiktok: ccTiktok.checked,
       allow_instagram: ccInstagram.checked,
       is_draft: isDraft,
+      country,
       created_by: session?.user?.id || null
     }).select().single()
 
@@ -1497,9 +1501,10 @@
   }
 
   async function loadRewards() {
-    const { data: rewards, error } = await supabase
+    const { inCountry, scope } = await countryReady
+    const { data: rewards, error } = await inCountry(supabase
       .from('rewards')
-      .select('*')
+      .select('*'), scope.country)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -1561,6 +1566,8 @@
     const pts = Number(newRewardPts.value) || 0
     if (!title) { showToast('Please enter a reward title'); newRewardTitle.focus(); return }
     if (pts <= 0) { showToast('Please enter a points cost'); newRewardPts.focus(); return }
+    const country = await pickedCountry()
+    if (!country) return
 
     let imageUrl = newRewardUrl.value.trim() || null
     if (pendingRewardFile) {
@@ -1573,6 +1580,7 @@
       title,
       points_cost: pts,
       image_url: imageUrl,
+      country,
       created_by: session?.user?.id || null
     })
 
@@ -1665,9 +1673,16 @@
   }
 
   async function loadTiers() {
+    // Each country has its own Bronze/Silver/Gold — edit one country at a time.
+    const { scope, countryLabel } = await countryReady
+    if (scope.country !== 'uganda' && scope.country !== 'kenya') {
+      tierEditGrid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:24px;">Each country has its own tiers — choose 🇺🇬 Uganda or 🇰🇪 Kenya in the country selector at the top to edit them.${scope.country === 'none' ? '' : ` (Currently showing ${countryLabel(scope.country)}.)`}</div>`
+      return
+    }
     const { data: tiers, error } = await supabase
       .from('tiers')
       .select('*')
+      .eq('country', scope.country)
       .order('sort_order', { ascending: true })
 
     if (error) {
@@ -1728,6 +1743,8 @@
   }
 
   document.getElementById('tiers-save-btn')?.addEventListener('click', async () => {
+    const country = await pickedCountry()
+    if (!country) return
     const cards = tierEditGrid.querySelectorAll('.tier-edit-card')
     for (const card of cards) {
       const key = card.dataset.tier
@@ -1743,7 +1760,7 @@
       const update = { min_points: points, reward_title: rewardTitle }
       if (imageUrl) update.image_url = imageUrl
 
-      const { error } = await supabase.from('tiers').update(update).eq('key', key)
+      const { error } = await supabase.from('tiers').update(update).eq('key', key).eq('country', country)
       if (error) { showToast(`Failed to save ${key} tier`); console.error(error); return }
     }
     showToast('Tiers saved')
@@ -1759,6 +1776,26 @@
     el.textContent = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   }
   renderCurrentDate();
+
+  // Uganda and Kenya are run separately: every list on this page shows the
+  // selected country (superadmin) or the admin's own country, and anything
+  // new is created in that country.
+  const countryReady = (async () => {
+    const m = await import('./lumio-country.js')
+    const scope = await m.initCountry(supabase)
+    return { ...m, scope }
+  })()
+
+  // The country to create/save in; in "All Countries" the superadmin must
+  // pick one first, so nothing lands in the wrong country.
+  async function pickedCountry() {
+    const { scope } = await countryReady
+    if (scope.country === 'uganda' || scope.country === 'kenya') return scope.country
+    showToast(scope.country === 'none'
+      ? 'Your admin account has no country assigned'
+      : 'Choose 🇺🇬 Uganda or 🇰🇪 Kenya in the country selector at the top first')
+    return null
+  }
 
   loadUserProfile()
   loadCampaigns()
@@ -1941,9 +1978,10 @@
   }
 
   async function loadIdeas() {
+    const { inCountry, scope } = await countryReady
     const [catRes, vidRes] = await Promise.all([
-      supabase.from('idea_categories').select('*').order('sort_order').order('created_at'),
-      supabase.from('idea_videos').select('*').order('created_at')
+      inCountry(supabase.from('idea_categories').select('*'), scope.country).order('sort_order').order('created_at'),
+      inCountry(supabase.from('idea_videos').select('*'), scope.country).order('created_at')
     ])
 
     if (catRes.error) {
@@ -2056,6 +2094,8 @@
     let url    = document.getElementById('new-cat-url').value.trim() || null
     const desc = document.getElementById('new-cat-desc').value.trim() || null
     if (!name) { showToast('Please enter a category name'); return }
+    const country = await pickedCountry()
+    if (!country) return
 
     // An uploaded file wins over a pasted URL.
     if (pendingCatFile) {
@@ -2064,7 +2104,7 @@
     }
 
     const { error } = await supabase.from('idea_categories')
-      .insert({ name, image_url: url, description: desc, is_active: true })
+      .insert({ name, image_url: url, description: desc, is_active: true, country })
     if (error) { showToast('Failed to add category'); console.error(error); return }
 
     document.getElementById('new-cat-name').value = ''
@@ -2120,12 +2160,15 @@
       const video_url = urlEl.value.trim()
       if (!video_url) { showToast('Paste a video link first'); urlEl.focus(); return }
       if (!/^https?:\/\//i.test(video_url)) { showToast('That does not look like a link'); urlEl.focus(); return }
+      const country = await pickedCountry()
+      if (!country) return
 
       const { error } = await supabase.from('idea_videos').insert({
         category_id: catId,
         video_url,
         title: titleEl.value.trim() || null,
-        platform: ideaPlatformOf(video_url)
+        platform: ideaPlatformOf(video_url),
+        country
       })
       if (error) { showToast('Could not add link'); console.error(error); return }
       urlEl.value = ''; titleEl.value = ''

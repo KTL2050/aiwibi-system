@@ -591,6 +591,16 @@
     return /\/video\/\d+/.test(u) || /\/(p|reel)\//.test(u);
   }
 
+  // Uganda and Kenya are run separately: the report covers only the selected
+  // country (superadmin) or the admin's own country.
+  let countryScopePromise = null;
+  function reportCountry() {
+    if (!countryScopePromise) {
+      countryScopePromise = import('./lumio-country.js').then(m => m.initCountry(supabase));
+    }
+    return countryScopePromise;
+  }
+
   async function loadReport() {
     const fromVal = document.getElementById('filter-from').value;
     const toVal = document.getElementById('filter-to').value;
@@ -684,9 +694,11 @@
     // The payload is identical for every date range and platform (all filtering
     // below is client-side), so fetch it once per session rather than on every
     // Search or dropdown change.
+    const { country } = await reportCountry();
+    const cacheKey = `pp:reportAnalytics:${country}`; // one saved copy per country
     let analyticsData = null;
     try {
-      const raw = sessionStorage.getItem('pp:reportAnalytics');
+      const raw = sessionStorage.getItem(cacheKey);
       if (raw) {
         const c = JSON.parse(raw);
         if (Date.now() - c.at < 10 * 60 * 1000) analyticsData = c.data;
@@ -694,11 +706,12 @@
     } catch (e) {}
 
     if (!analyticsData) {
-      const res = await supabase.functions.invoke('postpeer-get-all-analytics', { method: 'GET' });
+      const res = await supabase.functions.invoke(
+        `postpeer-get-all-analytics?country=${encodeURIComponent(country)}`, { method: 'GET' });
       if (res.error) console.error('Failed to load analytics:', res.error);
       analyticsData = res.data;
       try {
-        sessionStorage.setItem('pp:reportAnalytics', JSON.stringify({ at: Date.now(), data: analyticsData }));
+        sessionStorage.setItem(cacheKey, JSON.stringify({ at: Date.now(), data: analyticsData }));
       } catch (e) {}
     }
     const allPosts = analyticsData?.allPosts || [];
@@ -740,7 +753,9 @@
 
   // Clears both caches and reloads — handy right after new content is submitted.
   function refreshReport() {
-    sessionStorage.removeItem('pp:reportAnalytics');
+    Object.keys(sessionStorage)
+      .filter(k => k.startsWith('pp:reportAnalytics'))
+      .forEach(k => sessionStorage.removeItem(k));
     loadReport();
   }
   window.refreshReport = refreshReport;

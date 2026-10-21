@@ -736,9 +736,12 @@
   const PRODUCT_COLORS = ['#844FC1', '#3B86D1', '#21BF06', '#f5942c', '#e1306c']
 
   async function loadCampaigns() {
-    const { data: campaigns, error } = await supabase
+    // Only the selected country's campaigns (Uganda and Kenya are run separately)
+    const { initCountry, inCountry } = await import('./lumio-country.js')
+    const scope = await initCountry(supabase)
+    const { data: campaigns, error } = await inCountry(supabase
       .from('campaigns')
-      .select('*')
+      .select('*'), scope.country)
       .order('start_date', { ascending: false })
 
     const tbody = document.getElementById('camp-tbody')
