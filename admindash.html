@@ -608,6 +608,16 @@
         </div>
       </div>
 
+      <!-- Top 10 Videos -->
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header">
+          <div class="panel-title">Top 10 Videos</div>
+        </div>
+        <div id="top-videos-strip" style="padding:0 16px 8px;">
+          <div style="text-align:center;color:var(--muted);font-size:12.5px;padding:24px;">Loading...</div>
+        </div>
+      </div>
+
       <!-- Top Performing Mothers -->
       <div class="panel" style="margin-bottom:16px;">
         <div class="panel-header">
@@ -783,7 +793,7 @@
   function reloadAllData() {
     loadTotalMothersStat();
     loadTotalContentStat();
-    loadAdminAnalytics().then(loadAllSubmittedContent);
+    loadAdminAnalytics().then(() => { loadAllSubmittedContent(); loadTopVideos(); });
   }
 
   async function loadMotherCountryMap() {
@@ -1081,6 +1091,70 @@
     return u.split('?')[0].replace(/\/$/, '').toLowerCase();
   }
 
+  // Short TikTok links (vm.tiktok.com/…) → full link with the video ID, so the
+  // card can auto-play. Saved resolutions first, then the resolver function.
+  async function resolveShortUrl(url) {
+    const { data: saved } = await supabase.from('resolved_urls')
+      .select('resolved_url').eq('raw_url', url).maybeSingle();
+    if (saved?.resolved_url) return saved.resolved_url;
+    const { data, error } = await supabase.functions.invoke('resolve-short-urls', { body: { urls: [url] } });
+    if (error) return null;
+    return data?.resolved?.[url] || null;
+  }
+
+  // "Top 10 Videos" strip: most-viewed videos in the current country filter
+  // (allPostsData), matched to submitted_content for the mother + thumbnail.
+  async function loadTopVideos() {
+    const el = document.getElementById('top-videos-strip');
+    if (!el) return;
+    const { renderVideoStrip, videoKey, engagementsOf } = await import('./lumio-videos.js');
+
+    const ranked = [...allPostsData]
+      .filter(p => p.url)
+      .sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
+    if (!ranked.length) {
+      renderVideoStrip(el, [], { emptyHtml: 'No video statistics for this filter yet.' });
+      return;
+    }
+
+    const { data: rows, error } = await supabase
+      .from('submitted_content')
+      .select('user_id, platform, video_url, thumbnail_url, submitted_at');
+    if (error) { console.error('Failed to load submissions for top videos:', error); return; }
+    const subByKey = {};
+    (rows || []).forEach(r => { subByKey[videoKey(r.video_url)] = r; });
+
+    const top = ranked
+      .map(p => ({ post: p, sub: subByKey[videoKey(p.url)] }))
+      .filter(x => x.sub)
+      .slice(0, 10);
+
+    const ids = [...new Set(top.map(x => x.sub.user_id))];
+    const { data: people } = ids.length
+      ? await supabase.from('profiles').select('id, full_name, email, country').in('id', ids)
+      : { data: [] };
+    const personById = Object.fromEntries((people || []).map(p => [p.id, p]));
+
+    const cards = top.map(({ post, sub }) => {
+      const person = personById[sub.user_id] || {};
+      return {
+        name: person.full_name || person.email || 'Mother',
+        country: person.country,
+        platform: sub.platform || post.platform,
+        url: sub.video_url,
+        thumbnail: sub.thumbnail_url || post.thumbnail || null,
+        date: sub.submitted_at,
+        views: post.views ?? 0,
+        likes: post.likes ?? null, comments: post.comments ?? null, shares: post.shares ?? null,
+        engagements: engagementsOf(post)
+      };
+    });
+    renderVideoStrip(el, cards, {
+      emptyHtml: 'No submitted videos match the statistics yet.',
+      resolveUrl: resolveShortUrl
+    });
+  }
+
   async function getSubmittedLinkCounts(motherIds) {
     let query = supabase.from('submitted_content').select('user_id, video_url');
     if (motherIds) query = query.in('user_id', motherIds);
@@ -1215,6 +1289,7 @@
     await loadTotalMothersStat();
     await loadTotalContentStat();
     await loadAdminAnalytics();
+    loadTopVideos();
     await loadAllSubmittedContent();
   })();
 </script>

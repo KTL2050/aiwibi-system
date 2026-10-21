@@ -763,6 +763,17 @@
         </div>
       </div>
 
+      <!-- My Videos -->
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header">
+          <div class="panel-title">My Videos</div>
+          <a class="panel-action" href="mothercont.html">Submit a video</a>
+        </div>
+        <div id="my-videos-strip" style="padding:0 16px 8px;">
+          <div style="text-align:center;color:var(--muted);font-size:13px;padding:24px;">Loading your videos...</div>
+        </div>
+      </div>
+
       <!-- Platform Breakdown + Rewards Summary -->
       <div class="grid-2-equal">
         <!-- Donut -->
@@ -1198,6 +1209,63 @@
     return div.innerHTML;
   }
 
+  // Short TikTok links (vm.tiktok.com/…) → full link with the video ID, so the
+  // card can auto-play. Saved resolutions first, then the resolver function.
+  async function resolveShortUrl(url) {
+    const { data: saved } = await supabase.from('resolved_urls')
+      .select('resolved_url').eq('raw_url', url).maybeSingle();
+    if (saved?.resolved_url) return saved.resolved_url;
+    const { data, error } = await supabase.functions.invoke('resolve-short-urls', { body: { urls: [url] } });
+    if (error) return null;
+    return data?.resolved?.[url] || null;
+  }
+
+  // "My Videos" strip: only this mother's own submissions, newest first,
+  // with views/engagements from the PostPeer data loaded above.
+  async function loadMyVideos() {
+    const el = document.getElementById('my-videos-strip');
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!el || !session) return;
+    try {
+
+    const [{ data: rows, error }, { data: profile }] = await Promise.all([
+      supabase.from('submitted_content')
+        .select('platform, video_url, thumbnail_url, submitted_at')
+        .eq('user_id', session.user.id)
+        .order('submitted_at', { ascending: false })
+        .limit(20),
+      supabase.from('profiles').select('full_name, country').eq('id', session.user.id).single()
+    ]);
+    if (error) throw error;
+
+    const { renderVideoStrip, videoKey, engagementsOf } = await import('./lumio-videos.js');
+    const statsByKey = {};
+    allPostsData.forEach(p => { if (p.url) statsByKey[videoKey(p.url)] = p; });
+
+    const cards = (rows || []).map(r => {
+      const stats = statsByKey[videoKey(r.video_url)];
+      return {
+        name: profile?.full_name || 'Me',
+        country: profile?.country,
+        platform: r.platform,
+        url: r.video_url,
+        thumbnail: r.thumbnail_url || stats?.thumbnail || null,
+        date: r.submitted_at,
+        views: stats ? (stats.views ?? 0) : null,
+        likes: stats?.likes ?? null, comments: stats?.comments ?? null, shares: stats?.shares ?? null,
+        engagements: stats ? engagementsOf(stats) : null
+      };
+    });
+    renderVideoStrip(el, cards, {
+      emptyHtml: 'You haven\'t submitted any videos yet. <a href="mothercont.html">Submit your first video</a>',
+      resolveUrl: resolveShortUrl
+    });
+    } catch (err) {
+      console.error('Failed to load my videos:', err);
+      el.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:24px;">Couldn\'t load your videos.</div>';
+    }
+  }
+
   async function loadRecentSubmittedContent() {
     const tbody = document.getElementById('recent-content-tbody');
     const { data: { session } } = await supabase.auth.getSession();
@@ -1443,7 +1511,8 @@
 
  renderCurrentDate();
   loadUserProfile();
-  loadRealAnalytics().then(loadRecentSubmittedContent);
+  loadMyVideos(); // show videos straight away; stats fill in when PostPeer answers
+  loadRealAnalytics().then(() => { loadRecentSubmittedContent(); loadMyVideos(); });
   loadLinksSubmittedStat();
   loadRewardsSummary();
   checkMissingSocialConnections();
