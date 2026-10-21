@@ -40,10 +40,11 @@ const STYLES = `
   .lv-media{position:relative;aspect-ratio:3/4;background:#101113;overflow:hidden;cursor:pointer;}
   .lv-media img.lv-thumb{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
   .lv-media iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
-  /* TikTok is 9:16: keep that shape, centred, so the shorter card trims top/bottom */
-  .lv-media iframe.lv-tt{inset:auto 0;top:50%;height:auto;aspect-ratio:9/16;transform:translateY(-50%);}
+  /* TikTok is 9:16: keep that shape, anchored to the bottom, so the shorter card
+     trims the top (TikTok's account bar) and its ♥/💬/↗ column stays fully visible */
+  .lv-media iframe.lv-tt{inset:auto 0 0 0;height:auto;aspect-ratio:9/16;}
   .lv-media iframe.lv-ig-crop{height:300%;transform-origin:50% 0;
-    transform:translateY(-97px) scale(1.8);pointer-events:none;} /* 1.8: fills the card even for square posts */
+    transform:translateY(-72px) scale(1.34);pointer-events:none;} /* 1.34: just enough for square posts to fill the 3:4 card */
   .lv-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
     color:rgba(255,255,255,.3);font-size:46px;}
   .lv-media.ig .lv-placeholder{background:linear-gradient(160deg,#f09433,#dc2743 55%,#bc1888);color:rgba(255,255,255,.8);}
@@ -65,7 +66,11 @@ const STYLES = `
     display:inline-flex;align-items:center;justify-content:center;font-size:16px;}
   .lv-icon.ig{background:linear-gradient(45deg,#f09433,#dc2743,#bc1888);}
   .lv-eng{background:#86efac;color:#064e3b;padding:9px 16px;}
-  .lv-side{position:absolute;right:10px;bottom:120px;display:flex;flex-direction:column;align-items:center;
+  .lv-plat{position:absolute;top:12px;left:12px;width:32px;height:32px;border-radius:50%;
+    background:#121720;color:#fff;display:flex;align-items:center;justify-content:center;
+    font-size:17px;box-shadow:0 2px 6px rgba(0,0,0,.25);pointer-events:none;}
+  .lv-plat.ig{background:linear-gradient(45deg,#f09433,#dc2743,#bc1888);}
+  .lv-side{position:absolute;right:10px;bottom:135px;display:flex;flex-direction:column;align-items:center;
     gap:14px;pointer-events:none;color:#fff;font:600 13px 'Inter',system-ui,sans-serif;
     text-shadow:0 1px 3px rgba(0,0,0,.6);}
   .lv-side span{display:flex;flex-direction:column;align-items:center;gap:2px;}
@@ -212,6 +217,7 @@ function cardHtml(c, i) {
         ${thumb ? `<img class="lv-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy">`
                 : `<div class="lv-placeholder"><i class="ti ti-brand-${ig ? 'instagram' : 'tiktok'}"></i></div>`}
         <button type="button" class="lv-play" aria-label="Open video"><i class="ti ti-player-play-filled"></i></button>
+        <span class="lv-plat${ig ? ' ig' : ''}" title="${ig ? 'Instagram' : 'TikTok'}"><i class="ti ti-brand-${ig ? 'instagram' : 'tiktok'}"></i></span>
         ${date ? `<span class="lv-badge">${escapeHtml(date)}</span>` : ''}
         ${ig ? `<div class="lv-side">
           <span title="Likes"><i class="ti ti-heart-filled"></i>${stat(c.likes)}</span>
