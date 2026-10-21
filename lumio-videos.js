@@ -133,6 +133,25 @@ export function videoKey(u) {
   }
 }
 
+/**
+ * The post's own ID — TikTok video number or Instagram code — so a short link
+ * (once expanded) and PostPeer's full link match. Same rule as the Reports
+ * page's extractPostId.
+ */
+export function postId(u) {
+  if (!u) return '';
+  const tiktok = String(u).match(/\/(?:video|photo)\/(\d+)/); // videos and photo slideshows
+  if (tiktok) return tiktok[1];
+  const ig = String(u).match(/\/(p|reels?|tv)\/([A-Za-z0-9_-]+)/);
+  if (ig) return ig[2];
+  return videoKey(u);
+}
+
+/** True when the link already carries the post ID (no expanding needed). */
+export function isCanonicalUrl(u) {
+  return /\/(?:video|photo)\/\d+/.test(u || '') || /\/(p|reels?|tv)\//.test(u || '');
+}
+
 /** likes + comments + shares — the same "engagements" the dashboards use. */
 export function engagementsOf(post) {
   if (!post) return null;

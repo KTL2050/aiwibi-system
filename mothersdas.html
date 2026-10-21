@@ -1238,12 +1238,27 @@
     ]);
     if (error) throw error;
 
-    const { renderVideoStrip, videoKey, engagementsOf } = await import('./lumio-videos.js');
-    const statsByKey = {};
-    allPostsData.forEach(p => { if (p.url) statsByKey[videoKey(p.url)] = p; });
+    const { renderVideoStrip, postId, isCanonicalUrl, engagementsOf } = await import('./lumio-videos.js');
+    // Match stats by post ID; short links are expanded first (saved
+    // resolutions, then the resolver) — only when there are stats to match.
+    const statsById = {};
+    allPostsData.forEach(p => { if (p.url) statsById[postId(p.url)] = p; });
+    const resolved = {};
+    const shortUrls = allPostsData.length
+      ? [...new Set((rows || []).map(r => r.video_url).filter(u => u && !isCanonicalUrl(u)))] : [];
+    if (shortUrls.length) {
+      const { data: saved } = await supabase.from('resolved_urls')
+        .select('raw_url, resolved_url').in('raw_url', shortUrls);
+      (saved || []).forEach(s => { resolved[s.raw_url] = s.resolved_url; });
+      const missing = shortUrls.filter(u => !resolved[u]);
+      if (missing.length) {
+        const { data } = await supabase.functions.invoke('resolve-short-urls', { body: { urls: missing } });
+        Object.assign(resolved, (data && data.resolved) || {});
+      }
+    }
 
     const cards = (rows || []).map(r => {
-      const stats = statsByKey[videoKey(r.video_url)];
+      const stats = statsById[postId(resolved[r.video_url] || r.video_url)];
       return {
         name: profile?.full_name || 'Me',
         country: profile?.country,

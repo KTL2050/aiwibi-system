@@ -1102,12 +1102,37 @@
     return data?.resolved?.[url] || null;
   }
 
+  // Short links → full links, in one batch: saved resolutions first, then the
+  // resolver for new ones only, saving those back (same as the Reports page).
+  async function resolveShortUrls(urls) {
+    const map = {};
+    if (!urls.length) return map;
+    for (let i = 0; i < urls.length; i += 200) {
+      const { data } = await supabase.from('resolved_urls')
+        .select('raw_url, resolved_url').in('raw_url', urls.slice(i, i + 200));
+      (data || []).forEach(r => { map[r.raw_url] = r.resolved_url; });
+    }
+    const missing = urls.filter(u => !map[u]);
+    if (missing.length) {
+      const { data, error } = await supabase.functions.invoke('resolve-short-urls', { body: { urls: missing } });
+      if (error) { console.error('Short-URL resolver unavailable — some TikTok videos may not match:', error); return map; }
+      const fresh = (data && data.resolved) || {};
+      Object.assign(map, fresh);
+      const toSave = Object.entries(fresh)
+        .filter(([raw, res]) => res && res !== raw)
+        .map(([raw, res]) => ({ raw_url: raw, resolved_url: res }));
+      if (toSave.length) await supabase.from('resolved_urls').upsert(toSave, { onConflict: 'raw_url' });
+    }
+    return map;
+  }
+
   // "Top 10 Videos" strip: most-viewed videos in the current country filter
-  // (allPostsData), matched to submitted_content for the mother + thumbnail.
+  // (allPostsData), matched to submitted_content — by post ID, after expanding
+  // short links — for the mother + thumbnail.
   async function loadTopVideos() {
     const el = document.getElementById('top-videos-strip');
     if (!el) return;
-    const { renderVideoStrip, videoKey, engagementsOf } = await import('./lumio-videos.js');
+    const { renderVideoStrip, postId, isCanonicalUrl, engagementsOf } = await import('./lumio-videos.js');
 
     const ranked = [...allPostsData]
       .filter(p => p.url)
@@ -1121,11 +1146,13 @@
       .from('submitted_content')
       .select('user_id, platform, video_url, thumbnail_url, submitted_at');
     if (error) { console.error('Failed to load submissions for top videos:', error); return; }
-    const subByKey = {};
-    (rows || []).forEach(r => { subByKey[videoKey(r.video_url)] = r; });
+    const shortUrls = [...new Set((rows || []).map(r => r.video_url).filter(u => u && !isCanonicalUrl(u)))];
+    const resolved = await resolveShortUrls(shortUrls);
+    const subById = {};
+    (rows || []).forEach(r => { subById[postId(resolved[r.video_url] || r.video_url)] = r; });
 
     const top = ranked
-      .map(p => ({ post: p, sub: subByKey[videoKey(p.url)] }))
+      .map(p => ({ post: p, sub: subById[postId(p.url)] }))
       .filter(x => x.sub)
       .slice(0, 10);
 
@@ -1141,7 +1168,7 @@
         name: person.full_name || person.email || 'Mother',
         country: person.country,
         platform: sub.platform || post.platform,
-        url: sub.video_url,
+        url: isCanonicalUrl(post.url) ? post.url : sub.video_url, // full link → TikTok can auto-play
         thumbnail: sub.thumbnail_url || post.thumbnail || null,
         date: sub.submitted_at,
         views: post.views ?? 0,
