@@ -178,7 +178,7 @@
       background: var(--surface); cursor: pointer; min-width: 150px;
     }
     .filter-field.grow { flex: 1; min-width: 220px; }
-    .filter-field.grow select { width: 100%; }
+    .filter-field.grow select, .filter-field.grow input { width: 100%; cursor: text; }
     .filter-search-btn {
       border: none; border-radius: 8px; background: var(--brand); color: #fff;
       font-size: 13px; font-weight: 700; padding: 9px 18px; cursor: pointer;
@@ -395,6 +395,11 @@
             <option value="instagram">Instagram</option>
           </select>
         </div>
+        <div class="filter-field grow">
+          <label>Mother</label>
+          <input type="search" id="mother-input" list="mother-list" placeholder="All mothers — type to search" autocomplete="off">
+          <datalist id="mother-list"></datalist>
+        </div>
         <button class="filter-search-btn" id="filter-search-btn"><i class="ti ti-search"></i> Search</button>
       </div>
 
@@ -422,11 +427,11 @@
       <!-- Top 5 mothers -->
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">Top 5 Performing Mothers</div>
+          <div class="panel-title" id="table-title">Top 5 Performing Mothers</div>
         </div>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>Rank</th><th>Mother</th><th>Views</th><th>Top Video</th></tr></thead>
+            <thead><tr id="table-head"><th>Rank</th><th>Mother</th><th>Views</th><th>Top Video</th></tr></thead>
             <tbody id="top-mothers-tbody">
               <tr><td colspan="4" class="empty-note">Loading...</td></tr>
             </tbody>
@@ -762,10 +767,38 @@
 
   let lastReportData = { platform: 'tiktok', totals: {}, rankedMothers: [] };
 
+  /* ── Mother filter: "All mothers" or one mother of the selected country ── */
+  let motherByLabel = {}; // "Name — email" → { id, name, email }
+
+  async function loadMotherOptions() {
+    const [{ country }, { inCountry }] = await Promise.all([reportCountry(), import('./lumio-country.js')]);
+    const { data, error } = await inCountry(supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .eq('role', 'mother'), country)
+      .order('full_name', { ascending: true });
+    if (error) { console.error('Failed to load mothers for the filter:', error); return; }
+    motherByLabel = {};
+    (data || []).forEach(p => {
+      const name = p.full_name || p.email || 'Unknown';
+      const label = p.email ? `${name} — ${p.email}` : name;
+      motherByLabel[label] = { id: p.id, name, email: p.email || '' };
+    });
+    document.getElementById('mother-list').innerHTML = Object.keys(motherByLabel)
+      .map(label => `<option value="${escapeHtml(label)}"></option>`).join('');
+  }
+
+  // null = all mothers
+  function selectedMother() {
+    return motherByLabel[document.getElementById('mother-input').value.trim()] || null;
+  }
+
   function renderForCurrentPlatform() {
     const platform = document.getElementById('platform-select').value; // 'tiktok' | 'instagram'
-    /* header stats — filtered to the selected platform */
-    const headerRows = allContent.filter(r => normPlatform(r.platform) === normPlatform(platform));
+    const mother = selectedMother();
+    /* header stats — filtered to the selected platform (and mother, if one is chosen) */
+    const headerRows = allContent.filter(r =>
+      normPlatform(r.platform) === normPlatform(platform) && (!mother || r.user_id === mother.id));
     const totalViews = headerRows.reduce((s, r) => s + (r.views || 0), 0);
     const totalComments = headerRows.reduce((s, r) => s + (r.comments || 0), 0);
     const totalLikes = headerRows.reduce((s, r) => s + (r.likes || 0), 0);
@@ -778,8 +811,56 @@
     };
     renderTotals(headerRows, totals);
 
-    const rankedMothers = renderTopMothers(headerRows);
-    lastReportData = { platform, totals, rankedMothers };
+    if (mother) {
+      const videos = renderMotherVideos(headerRows, mother);
+      lastReportData = { platform, totals, rankedMothers: [], mother, videos };
+    } else {
+      const rankedMothers = renderTopMothers(headerRows);
+      lastReportData = { platform, totals, rankedMothers, mother: null, videos: [] };
+    }
+  }
+
+  // One mother selected: the table lists her videos, most-viewed first.
+  function renderMotherVideos(rows, mother) {
+    document.getElementById('table-title').textContent = `Videos by ${mother.name}`;
+    document.getElementById('table-head').innerHTML =
+      '<th>#</th><th>Video</th><th>Submitted</th><th>Views</th><th>Engagements</th>';
+    const tbody = document.getElementById('top-mothers-tbody');
+
+    const videos = [...rows]
+      .sort((a, b) => (b.views || 0) - (a.views || 0))
+      .map((r, i) => ({
+        rank: i + 1,
+        url: r.video_url || '',
+        caption: (r.caption || '').trim(),
+        submitted: r.submitted_at
+          ? new Date(r.submitted_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+          : '',
+        views: r.views || 0,
+        engagements: engagementOf(r),
+        likes: r.likes || 0, comments: r.comments || 0, shares: r.shares || 0
+      }));
+
+    if (!videos.length) {
+      tbody.innerHTML = `<tr><td colspan="5" class="empty-note">${escapeHtml(mother.name)} has no videos for this selection.</td></tr>`;
+      return videos;
+    }
+
+    tbody.innerHTML = videos.map(v => {
+      const label = v.caption ? (v.caption.length > 60 ? v.caption.slice(0, 60) + '…' : v.caption) : 'Open video';
+      const link = /^https?:\/\//i.test(v.url)
+        ? `<a class="top-video-link" href="${escapeHtml(v.url)}" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> ${escapeHtml(label)}</a>`
+        : `<span class="top-video-none">No link</span>`;
+      return `
+        <tr>
+          <td><div class="rank-cell"><span>${v.rank}</span></div></td>
+          <td>${link}</td>
+          <td>${escapeHtml(v.submitted)}</td>
+          <td>${formatNumber(v.views)}</td>
+          <td>${formatNumber(v.engagements)}</td>
+        </tr>`;
+    }).join('');
+    return videos;
   }
 
   const METRIC_DEFS = {
@@ -847,6 +928,8 @@
   }
 
   function renderTopMothers(rows) {
+    document.getElementById('table-title').textContent = 'Top 5 Performing Mothers';
+    document.getElementById('table-head').innerHTML = '<th>Rank</th><th>Mother</th><th>Views</th><th>Top Video</th>';
     const tbody = document.getElementById('top-mothers-tbody');
 
     const byMother = {};
@@ -923,6 +1006,10 @@
   });
 
   document.getElementById('platform-select').addEventListener('change', renderForCurrentPlatform);
+  // Picking a mother (or clearing back to all) just re-filters the loaded data.
+  document.getElementById('mother-input').addEventListener('change', renderForCurrentPlatform);
+  document.getElementById('mother-input').addEventListener('search', renderForCurrentPlatform);
+  loadMotherOptions();
   document.getElementById('range-select').addEventListener('change', (e) => applyRangePreset(e.target.value));
   /* ── Export: Excel (SheetJS) and PDF (jsPDF + autotable), loaded on demand ── */
   function loadScriptOnce(src) {
@@ -940,7 +1027,9 @@
     const platform = lastReportData.platform === 'instagram' ? 'instagram' : 'tiktok';
     const from = document.getElementById('filter-from').value || 'from';
     const to = document.getElementById('filter-to').value || 'to';
-    return `aiwibi-report-${platform}-${from}-to-${to}`;
+    const mother = lastReportData.mother;
+    const who = mother ? '-' + mother.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : '';
+    return `aiwibi-report-${platform}${who}-${from}-to-${to}`;
   }
 
   /* ── Shared report styling ── */
@@ -967,7 +1056,8 @@
   }
 
   function rptSubtitle(platformLabel, from, to) {
-    return `Platform: ${platformLabel}  ·  Range: ${from} to ${to}  ·  Generated ${rptGeneratedAt()}`;
+    const mother = lastReportData.mother;
+    return `Platform: ${platformLabel}  ·  Range: ${from} to ${to}${mother ? `  ·  Mother: ${mother.name}` : ''}  ·  Generated ${rptGeneratedAt()}`;
   }
 
   // Merged title + italic subtitle across the sheet, with a spacer row underneath.
@@ -1015,7 +1105,7 @@
   async function downloadExcel() {
     if (!window.ExcelJS) await loadScriptOnce('https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js');
 
-    const { platform, totals, rankedMothers } = lastReportData;
+    const { platform, totals, rankedMothers, mother, videos } = lastReportData;
     const metrics = checkedMetrics();
     const from = document.getElementById('filter-from').value;
     const to = document.getElementById('filter-to').value;
@@ -1056,9 +1146,63 @@
     }
 
     const s1Total = s1.getRow(r + 1);
-    s1Total.getCell(1).value = 'Mothers ranked';
-    s1Total.getCell(2).value = rankedMothers.length;
+    s1Total.getCell(1).value = mother ? `Videos by ${mother.name}` : 'Mothers ranked';
+    s1Total.getCell(2).value = mother ? videos.length : rankedMothers.length;
     s1Total.eachCell(c => { c.font = { name: 'Calibri', size: 11, bold: true, color: { argb: RPT.navy } }; });
+
+    if (mother) {
+      /* ── Sheet 2 (one mother): her videos ── */
+      const sv = wb.addWorksheet('Videos', {
+        views: [{ state: 'frozen', ySplit: 4 }],
+        pageSetup: { paperSize: 9, orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 }
+      });
+      sv.columns = [
+        { width: 6 }, { width: 46 }, { width: 50 }, { width: 14 },
+        { width: 12 }, { width: 14 }, { width: 10 }, { width: 11 }, { width: 10 }
+      ];
+      rptTitleBlock(sv, 'I', `Aiwibi — Videos by ${mother.name}`, subtitle);
+      rptHeaderRow(sv, ['#', 'Caption', 'Video', 'Submitted', 'Views', 'Engagements', 'Likes', 'Comments', 'Shares']);
+      let rv = 5;
+      if (!videos.length) {
+        const row = sv.getRow(rv++);
+        row.getCell(2).value = 'No videos for this selection';
+        row.getCell(2).font = { name: 'Calibri', size: 11, italic: true, color: { argb: RPT.muted } };
+      } else {
+        videos.forEach((v, i) => {
+          const row = sv.getRow(rv++);
+          row.getCell(1).value = v.rank;
+          row.getCell(2).value = v.caption || '—';
+          if (v.url) {
+            row.getCell(3).value = { text: v.url, hyperlink: v.url };
+            row.getCell(3).font = { name: 'Calibri', size: 11, color: { argb: RPT.link }, underline: true };
+          } else {
+            row.getCell(3).value = '—';
+          }
+          row.getCell(4).value = v.submitted;
+          row.getCell(5).value = v.views;
+          row.getCell(6).value = v.engagements;
+          row.getCell(7).value = v.likes;
+          row.getCell(8).value = v.comments;
+          row.getCell(9).value = v.shares;
+          [5, 6, 7, 8, 9].forEach(c => { row.getCell(c).numFmt = '#,##0'; });
+          row.getCell(1).alignment = { horizontal: 'center' };
+          for (let c = 1; c <= 9; c++) {
+            const cell = row.getCell(c);
+            cell.border = rptBorder();
+            if (!cell.font) cell.font = { name: 'Calibri', size: 11 };
+            if (i % 2 === 1 && c !== 3) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: RPT.zebra } };
+          }
+          row.height = 18;
+        });
+        sv.autoFilter = { from: { row: 4, column: 1 }, to: { row: 4, column: 9 } };
+      }
+      const buffer = await wb.xlsx.writeBuffer();
+      downloadBlob(
+        new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+        `${reportFileStem()}.xlsx`
+      );
+      return;
+    }
 
     /* ── Sheet 2: Top Mothers ── */
     const s2 = wb.addWorksheet('Top Mothers', {
@@ -1148,7 +1292,7 @@
     }
 
     const { jsPDF } = window.jspdf;
-    const { platform, totals, rankedMothers } = lastReportData;
+    const { platform, totals, rankedMothers, mother, videos } = lastReportData;
     const metrics = checkedMetrics();
     const from = document.getElementById('filter-from').value;
     const to = document.getElementById('filter-to').value;
@@ -1167,7 +1311,7 @@
     doc.text('Aiwibi — Performance Report', M, 12);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.text(`Platform: ${platformLabel}     Range: ${from} to ${to}     Generated ${rptGeneratedAt()}`, M, 19.5);
+    doc.text(`Platform: ${platformLabel}     Range: ${from} to ${to}${mother ? `     Mother: ${mother.name}` : ''}     Generated ${rptGeneratedAt()}`, M, 19.5);
     doc.setTextColor(20);
 
     // Small coloured bar + heading, matching the panel style in the app.
@@ -1219,6 +1363,25 @@
 
     if (y > 215) { doc.addPage(); y = 24; }
 
+    if (mother) {
+      // One mother selected: her videos instead of the Top 5 table.
+      sectionHeading(`Videos by ${mother.name}`, y);
+      doc.autoTable({
+        ...tableBase,
+        startY: y + 4,
+        head: [['#', 'Video', 'Submitted', 'Views', 'Engagements']],
+        body: videos.length
+          ? videos.map(v => [v.rank, v.caption ? v.caption.slice(0, 70) : v.url, v.submitted,
+                             formatNumber(v.views), formatNumber(v.engagements)])
+          : [['—', 'No videos for this selection', '', '', '']],
+        columnStyles: {
+          0: { cellWidth: 10, halign: 'center', fontStyle: 'bold' },
+          1: { cellWidth: 92 },
+          3: { halign: 'right' },
+          4: { halign: 'right' }
+        }
+      });
+    } else {
     sectionHeading('Top 5 Performing Mothers', y);
     doc.autoTable({
       ...tableBase,
@@ -1238,6 +1401,7 @@
         4: { halign: 'right' }
       }
     });
+    }
 
     /* ── Footer on every page ── */
     const pageCount = doc.internal.getNumberOfPages();
