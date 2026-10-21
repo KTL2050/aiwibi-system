@@ -16,7 +16,8 @@
 
    card = { name, country, platform, url, thumbnail, date, views, engagements,
             likes, comments, shares }
-   (numbers may be null while PostPeer hasn't synced the post; Instagram cards
+   (numbers may be null while PostPeer hasn't synced the post — the pills are
+    then left out; Instagram cards
     show likes/comments/shares in a TikTok-style side column)
    opts = { emptyHtml?, resolveUrl?: (shortUrl) => Promise<fullUrl|null> }
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -36,9 +37,11 @@ const STYLES = `
     border:2px solid #fff;object-fit:cover;background:#fff;}
   .lv-name{font:600 15.5px 'Inter',system-ui,sans-serif;color:#121720;white-space:nowrap;
     overflow:hidden;text-overflow:ellipsis;}
-  .lv-media{position:relative;aspect-ratio:9/16;background:#101113;overflow:hidden;cursor:pointer;}
+  .lv-media{position:relative;aspect-ratio:3/4;background:#101113;overflow:hidden;cursor:pointer;}
   .lv-media img.lv-thumb{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
   .lv-media iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+  /* TikTok is 9:16: keep that shape, centred, so the shorter card trims top/bottom */
+  .lv-media iframe.lv-tt{inset:auto 0;top:50%;height:auto;aspect-ratio:9/16;transform:translateY(-50%);}
   .lv-media iframe.lv-ig-crop{height:300%;transform-origin:50% 0;
     transform:translateY(-97px) scale(1.8);pointer-events:none;} /* 1.8: fills the card even for square posts */
   .lv-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
@@ -216,9 +219,8 @@ function cardHtml(c, i) {
           <span title="Shares"><i class="ti ti-share-3"></i>${stat(c.shares)}</span>
         </div>` : ''}
         <div class="lv-pills">
-          <span class="lv-pill lv-views"><span class="lv-icon${ig ? ' ig' : ''}"><i class="ti ti-brand-${ig ? 'instagram' : 'tiktok'}"></i></span>${
-            synced ? `${compact(c.views)} <small>views</small>` : '<small>Syncing…</small>'}</span>
-          ${synced ? `<span class="lv-pill lv-eng">${compact(c.engagements)} <small>engagements</small></span>` : ''}
+          ${synced ? `<span class="lv-pill lv-views"><span class="lv-icon${ig ? ' ig' : ''}"><i class="ti ti-brand-${ig ? 'instagram' : 'tiktok'}"></i></span>${compact(c.views)} <small>views</small></span>
+          <span class="lv-pill lv-eng">${compact(c.engagements)} <small>engagements</small></span>` : ''}
         </div>
       </div>
     </div>`;
@@ -332,7 +334,7 @@ export function renderVideoStrip(container, cards, opts = {}) {
     if (media.classList.contains('playing')) return;
     const c = cardOf(media);
     let f = null;
-    if (c._ttId) f = frame(tiktokPlayer(c._ttId));
+    if (c._ttId) f = frame(tiktokPlayer(c._ttId), 'lv-tt');
     else if (media.dataset.igCrop === '1') f = frame(instagramEmbed(c.url), 'lv-ig-crop');
     if (!f) return;
     media.insertBefore(f, media.firstChild);
