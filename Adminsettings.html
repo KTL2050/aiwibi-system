@@ -1859,9 +1859,16 @@
   async function callTeam(action, payload) {
     const { data, error } = await supabase.functions.invoke('manage-admins', { body: { action, ...payload } })
     if (error) {
-      let msg = 'Something went wrong'
-      try { msg = (await error.context.json()).error || msg } catch {}
-      showToast(msg)
+      // Show the real reason (e.g. function not deployed, not allowed) instead of a generic message.
+      let msg = error.message || 'Something went wrong'
+      const status = error.context?.status
+      try {
+        const body = await error.context.json()
+        msg = body.error || body.message || body.msg || msg
+      } catch {}
+      if (status === 404) msg = 'The manage-admins function is not deployed yet'
+      console.error('manage-admins failed:', status, msg, error)
+      showToast(status ? `${msg} (${status})` : msg)
       return null
     }
     return data
