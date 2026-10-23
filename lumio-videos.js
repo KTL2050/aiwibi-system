@@ -371,6 +371,30 @@ export function renderVideoStrip(container, cards, opts = {}) {
     if (!f) return;
     media.insertBefore(f, media.firstChild);
     media.classList.add('playing');
+    if (c._ttId) startMuted(f);
+  }
+
+  // TikTok's player starts WITH sound, which Chrome refuses to auto-play. Once
+  // it reports ready, tell it to mute and play — muted video may always
+  // auto-play. (Also sent a moment after load, in case "ready" was missed.)
+  function startMuted(f) {
+    const send = type => {
+      try { f.contentWindow?.postMessage({ type, value: null, 'x-tiktok-player': true }, '*'); } catch {}
+    };
+    const kick = () => { send('mute'); send('play'); };
+    const onMessage = e => {
+      if (e.source !== f.contentWindow) return;
+      let d = e.data;
+      if (typeof d === 'string') { try { d = JSON.parse(d); } catch { return; } }
+      if (d && d['x-tiktok-player'] && d.type === 'onPlayerReady') kick();
+    };
+    window.addEventListener('message', onMessage);
+    f.addEventListener('load', () => setTimeout(kick, 1500));
+    // Stop listening once the card's video is removed.
+    const watch = new MutationObserver(() => {
+      if (!f.isConnected) { window.removeEventListener('message', onMessage); watch.disconnect(); }
+    });
+    watch.observe(f.parentNode, { childList: true });
   }
 
   function stop(media) {
