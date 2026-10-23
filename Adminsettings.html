@@ -1094,7 +1094,7 @@
               <div class="panel-header">
                 <div>
                   <div class="panel-title">Invite an Admin</div>
-                  <div class="panel-desc">Admins manage one country only. If the person already has an account (for example they signed up as a mother), they become an admin straight away. Otherwise you get a one-time invite link to send them — they open it, choose a password and sign in.</div>
+                  <div class="panel-desc">Admins manage one country only. If the person already has an account (for example they signed up as a mother), they become an admin straight away. Otherwise they get an invitation email — they open it, choose a password and sign in. (If the email can't be sent, you get a link to send them yourself.)</div>
                 </div>
               </div>
               <div class="panel-body">
@@ -1116,7 +1116,7 @@
                   </div>
                 </div>
                 <div id="team-result" style="display:none;margin-top:16px;padding:14px 16px;border:1px solid var(--border);border-radius:10px;background:var(--raise);">
-                  <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Invite link — send this to them yourself</div>
+                  <div style="font-size:13px;font-weight:600;margin-bottom:6px;">The email couldn't be sent — send them this link yourself</div>
                   <div style="display:flex;gap:8px;align-items:center;">
                     <input class="form-input" id="team-link" readonly style="flex:1;font-size:12px;">
                     <button class="btn btn-outline btn-sm" id="team-copy-btn"><i class="ti ti-copy" style="font-size:14px"></i> Copy</button>
@@ -1918,12 +1918,14 @@
     if (!res) return
     const result = document.getElementById('team-result')
     if (res.status === 'invited' && res.link) {
+      // Email couldn't be sent — fall back to a link to send by hand.
       document.getElementById('team-link').value = res.link
       result.style.display = 'block'
-      showToast('Invitation created — copy the link and send it')
+      showToast('Email could not be sent — copy the link and send it yourself')
     } else {
       result.style.display = 'none'
-      showToast(res.status === 'promoted' ? 'That account is now an admin' : 'Done')
+      showToast(res.status === 'emailed' ? `Invitation emailed to ${res.email}`
+        : res.status === 'promoted' ? 'That account is now an admin' : 'Done')
     }
     document.getElementById('team-email').value = ''
     document.getElementById('team-name').value = ''

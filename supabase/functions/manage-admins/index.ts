@@ -3,9 +3,10 @@
 // Superadmin-only management of admin accounts (Settings → Team).
 //
 //   POST { action: 'invite',      email, country, full_name? }
-//        → new person: creates the account and returns a one-time invite link
-//          (send it yourself); they open it, set a password, and are an admin
-//          of that country.
+//        → new person: creates the account and emails them the invitation;
+//          they open it, set a password, and are an admin of that country.
+//          If the email can't be sent, returns a one-time link instead
+//          (send it yourself).
 //        → existing account (e.g. signed up as a mother): made an admin of
 //          that country straight away.
 //   POST { action: 'set_country', userId, country }  → move an admin
@@ -85,17 +86,34 @@ Deno.serve(async (req) => {
       return json({ status: 'promoted', userId: existing.id })
     }
 
-    // New person: create the account and a one-time invite link.
-    const { data: link, error: linkError } = await db.auth.admin.generateLink({
-      type: 'invite',
-      email,
-      options: { redirectTo: redirectFor(req), data: fullName ? { full_name: fullName } : {} },
-    })
-    if (linkError || !link?.user) {
-      console.log('[manage-admins] invite failed', linkError?.message)
-      return json({ error: linkError?.message || 'Could not create the invitation.' }, 500)
+    // New person: create the account and EMAIL the invitation (custom SMTP).
+    // If the email can't be sent, fall back to a one-time link the superadmin
+    // sends themselves — so an invite never just fails.
+    const redirectTo = redirectFor(req)
+    const meta = fullName ? { full_name: fullName } : {}
+    let newId: string | null = null
+    let fallbackLink: string | null = null
+
+    const { data: invited, error: inviteError } = await db.auth.admin.inviteUserByEmail(email, { redirectTo, data: meta })
+    if (!inviteError && invited?.user) {
+      newId = invited.user.id
+    } else {
+      console.log('[manage-admins] invite email failed, falling back to a link:', inviteError?.message)
+      // The account may or may not have been created before the email failed:
+      // try an invite link first, then a set-password (recovery) link.
+      for (const type of ['invite', 'recovery'] as const) {
+        const { data: link, error: linkError } = await db.auth.admin.generateLink({
+          type, email, options: { redirectTo, ...(type === 'invite' ? { data: meta } : {}) },
+        })
+        if (!linkError && link?.user) {
+          newId = link.user.id
+          fallbackLink = link.properties?.action_link ?? null
+          break
+        }
+        console.log(`[manage-admins] ${type} link failed:`, linkError?.message)
+      }
+      if (!newId) return json({ error: inviteError?.message || 'Could not create the invitation.' }, 500)
     }
-    const newId = link.user.id
 
     // Make sure the profile exists (signup trigger may already have made it),
     // then make it an admin of the chosen country.
@@ -109,8 +127,10 @@ Deno.serve(async (req) => {
       return json({ error: 'Account created, but could not make it an admin: ' + roleError.message }, 500)
     }
 
-    console.log(`[manage-admins] ${user.id} invited ${newId} as admin (${country})`)
-    return json({ status: 'invited', userId: newId, link: link.properties?.action_link ?? null })
+    console.log(`[manage-admins] ${user.id} invited ${newId} as admin (${country})${fallbackLink ? ' — link fallback' : ' — emailed'}`)
+    return fallbackLink
+      ? json({ status: 'invited', userId: newId, link: fallbackLink })
+      : json({ status: 'emailed', userId: newId, email })
   }
 
   // ── change an admin's country / revoke admin access ───────────────────
