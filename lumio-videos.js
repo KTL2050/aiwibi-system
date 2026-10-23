@@ -362,9 +362,15 @@ export function renderVideoStrip(container, cards, opts = {}) {
     return f;
   }
 
+  // Videos load ONCE: scrolling away only pauses them; coming back resumes the
+  // same player instantly instead of reloading it.
   function play(media) {
-    if (media.classList.contains('playing')) return;
     const c = cardOf(media);
+    const loaded = media.querySelector('iframe');
+    if (loaded) {
+      if (c._ttId && loaded._ttPaused) { loaded._ttSend?.('play'); loaded._ttPaused = false; }
+      return;
+    }
     let f = null;
     if (c._ttId) f = frame(tiktokPlayer(c._ttId), 'lv-tt');
     else if (media.dataset.igCrop === '1') f = frame(instagramEmbed(c.url), 'lv-ig-crop');
@@ -381,7 +387,8 @@ export function renderVideoStrip(container, cards, opts = {}) {
     const send = type => {
       try { f.contentWindow?.postMessage({ type, value: null, 'x-tiktok-player': true }, '*'); } catch {}
     };
-    const kick = () => { send('mute'); send('play'); };
+    f._ttSend = send; // used to pause / resume later without reloading
+    const kick = () => { send('mute'); if (!f._ttPaused) send('play'); };
     const onMessage = e => {
       if (e.source !== f.contentWindow) return;
       let d = e.data;
@@ -397,9 +404,10 @@ export function renderVideoStrip(container, cards, opts = {}) {
     watch.observe(f.parentNode, { childList: true });
   }
 
+  // Off screen: pause (TikTok) and keep the player; Instagram pictures just stay.
   function stop(media) {
-    media.querySelector('iframe')?.remove();
-    media.classList.remove('playing');
+    const f = media.querySelector('iframe');
+    if (f && f._ttSend && !f._ttPaused) { f._ttSend('pause'); f._ttPaused = true; }
   }
 
   function refresh() {
@@ -409,7 +417,7 @@ export function renderVideoStrip(container, cards, opts = {}) {
       const wants = c._ttId || m.dataset.igCrop === '1';
       if (!wants) continue;
       if (visible.has(m) && (!c._ttId || playing < MAX_PLAYING)) { play(m); if (c._ttId) playing++; }
-      else if (!visible.has(m)) stop(m);
+      else stop(m);
     }
   }
 

@@ -933,11 +933,21 @@
         <div class="mc-sum-note">Likes + comments + shares</div>
       </div>`
 
+    // Each mother's cards are built once and kept (just hidden when you pick
+    // someone else), so going back to her shows the already-loaded videos.
+    const key = `${mother.id}|${pfFilter}`
+    grid.querySelectorAll(':scope > :not([data-mother-key])').forEach(el => el.remove()) // "Loading…" placeholder
+    grid.querySelectorAll(':scope > [data-mother-key]').forEach(el => { el.hidden = el.dataset.motherKey !== key })
+    if (grid.querySelector(`:scope > [data-mother-key="${CSS.escape(key)}"]`)) return
+    const pane = document.createElement('div')
+    pane.dataset.motherKey = key
+    grid.appendChild(pane)
+
     const { renderVideoStrip } = await import('./lumio-videos.js')
     // Most-viewed first; videos without stats after, newest first.
     const ordered = [...posts].sort((a, b) =>
       (b.stats?.views ?? -1) - (a.stats?.views ?? -1) || new Date(b.submittedAt) - new Date(a.submittedAt))
-    renderVideoStrip(grid, ordered.map(p => ({
+    renderVideoStrip(pane, ordered.map(p => ({
       name: mother.name,
       country: mother.country,
       platform: p.platform,
