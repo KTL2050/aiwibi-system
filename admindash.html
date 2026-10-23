@@ -347,6 +347,18 @@
     .caption-text { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .caption-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
+    .rc-video { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .rc-thumb { position: relative; width: 40px; height: 52px; border-radius: 8px; background: #2a1f3d center/cover no-repeat; flex-shrink: 0; }
+    .rc-thumb .platform-tag { position: absolute; left: 3px; bottom: 3px; width: 16px; height: 16px; border-radius: 5px; }
+    .rc-thumb .platform-tag i { font-size: 10px !important; }
+    .status-pill.unsynced { background: #f1eff5; color: var(--muted); }
+    .rc-modal { position: fixed; inset: 0; background: rgba(30,20,45,.6); display: none; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
+    .rc-modal.show { display: flex; }
+    .rc-modal-box { background: var(--surface); border-radius: 16px; padding: 14px; width: 300px; max-width: 100%; }
+    .rc-modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; font-weight: 600; }
+    .rc-modal-close { border: none; background: none; font-size: 20px; cursor: pointer; color: var(--muted); }
+    .rc-modal-open { display: block; text-align: center; margin-top: 10px; font-size: 12.5px; font-weight: 600; color: var(--brand); }
+
     .status-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; border-radius: var(--pill); padding: 3px 9px; }
     .status-pill.synced  { background: var(--green-bg); color: #16a34a; }
     .status-pill.syncing { background: var(--blue-bg); color: var(--blue); }
@@ -654,9 +666,9 @@
           <thead>
             <tr>
               <th>#</th>
+              <th>Video</th>
               <th>Mother</th>
-              <th>Platform</th>
-              <th>Caption</th>
+              <th>Status</th>
               <th>Submitted</th>
             </tr>
           </thead>
@@ -664,6 +676,13 @@
             <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Loading recent content...</td></tr>
           </tbody>
         </table>
+      </div>
+      <div class="rc-modal" id="rc-modal">
+        <div class="rc-modal-box">
+          <div class="rc-modal-head"><span id="rc-modal-title"></span><button class="rc-modal-close" id="rc-modal-close" aria-label="Close">&times;</button></div>
+          <div id="rc-modal-card"></div>
+          <a class="rc-modal-open" id="rc-modal-open" target="_blank" rel="noopener">Open on TikTok</a>
+        </div>
       </div>
 
     </div><!-- /content -->
@@ -917,6 +936,25 @@
     if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
     return String(n);
   }
+
+  function timeAgo(d) {
+    const s = Math.max(0, (Date.now() - new Date(d).getTime()) / 1000);
+    if (s < 60) return 'just now';
+    const units = [[31536000, 'year'], [2592000, 'month'], [604800, 'week'], [86400, 'day'], [3600, 'hour'], [60, 'minute']];
+    for (const [sec, name] of units) {
+      if (s >= sec) { const n = Math.floor(s / sec); return `${n} ${name}${n > 1 ? 's' : ''} ago`; }
+    }
+  }
+
+  // Recent content preview pop-up: close on × or the dark background, and clear the video so it stops playing.
+  function closeRecentPreview() {
+    document.getElementById('rc-modal').classList.remove('show');
+    const card = document.getElementById('rc-modal-card');
+    card._lvObserver?.disconnect();
+    card.innerHTML = '';
+  }
+  document.getElementById('rc-modal-close').addEventListener('click', closeRecentPreview);
+  document.getElementById('rc-modal').addEventListener('click', e => { if (e.target.id === 'rc-modal') closeRecentPreview(); });
 
   let allPostsData = [];
   let activePlatform = 'tiktok';
@@ -1271,30 +1309,75 @@
     const userIds = [...new Set(rows.map(r => r.user_id))];
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('id, full_name, email')
+      .select('id, full_name, email, country')
       .in('id', userIds);
     const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
 
-    tbody.innerHTML = rows.slice(0, 5).map((row, i) => {
+    const { postId, isCanonicalUrl, tiktokInfo, renderVideoStrip, engagementsOf } = await import('./lumio-videos.js');
+    const recent = rows.slice(0, 5);
+    // Match each video to the stats already loaded (same as Top 10): by post ID, short links expanded.
+    const shortUrls = [...new Set(recent.map(r => r.video_url).filter(u => u && !isCanonicalUrl(u)))];
+    const resolved = await resolveShortUrls(shortUrls);
+    const postById = {};
+    allPostsData.forEach(p => { if (p.url) postById[postId(p.url)] = p; });
+    const items = recent.map(row => ({ row, post: postById[postId(resolved[row.video_url] || row.video_url)] || null }));
+
+    tbody.innerHTML = items.map(({ row, post }, i) => {
       const profile = profileMap[row.user_id];
       const name = profile?.full_name || profile?.email || 'Unknown';
       const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
       const platformClass = row.platform === 'tiktok' ? 'tiktok' : 'instagram';
       const iconClass = row.platform === 'tiktok' ? 'brand-tiktok' : 'brand-instagram';
-      const dateStr = new Date(row.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-      const caption = row.caption ? escapeHtml(row.caption) : '<span style="color:var(--muted);font-style:italic;">No caption yet</span>';
-      const clickable = ` style="cursor:pointer" onclick="window.open('${row.video_url}','_blank')"`;
+      const exact = new Date(row.submitted_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      const caption = row.caption || post?.content || '';
+      const captionHtml = caption
+        ? escapeHtml(caption)
+        : `<span style="color:var(--muted);font-style:italic;">${row.platform === 'tiktok' ? 'TikTok' : 'Instagram'} video</span>`;
+      const status = post
+        ? `<span class="status-pill synced">${formatNumber(post.views ?? 0)} views</span>`
+        : `<span class="status-pill unsynced">Not synced yet</span>`;
+      const thumbStyle = row.thumbnail_url ? ` style="background-image:url('${escapeHtml(row.thumbnail_url)}')"` : '';
 
       return `
-        <tr${clickable}>
+        <tr style="cursor:pointer" data-rc="${i}">
           <td style="color:var(--muted);font-weight:600;font-size:12px">${i + 1}</td>
+          <td class="caption-cell"><div class="rc-video"><div class="rc-thumb"${thumbStyle}><div class="platform-tag ${platformClass}"><i class="ti ti-${iconClass}" style="color:#fff"></i></div></div><div class="caption-text">${captionHtml}</div></div></td>
           <td><div class="mother-mini"><div class="mother-mini-avatar" style="background:linear-gradient(135deg,#844FC1,#b48ee0)">${initials}</div><div><div class="mother-mini-name">${escapeHtml(name)}</div></div></div></td>
-          <td><div class="platform-tag ${platformClass}"><i class="ti ti-${iconClass}" style="color:#fff;font-size:13px"></i></div></td>
-          <td class="caption-cell"><div class="caption-text">${caption}</div></td>
-          <td><div class="caption-date">${dateStr}</div></td>
+          <td>${status}</td>
+          <td><div class="caption-date" title="${exact}">${timeAgo(row.submitted_at)}</div></td>
         </tr>
       `;
     }).join('');
+
+    // Fill in TikTok thumbnails/captions afterwards (free oEmbed, cached per session).
+    items.forEach(({ row, post }, i) => {
+      if (row.platform !== 'tiktok') return;
+      tiktokInfo(row.video_url, resolveShortUrl).then(info => {
+        const tr = tbody.querySelector(`tr[data-rc="${i}"]`);
+        if (!tr) return;
+        if (info.thumbnail && !row.thumbnail_url) tr.querySelector('.rc-thumb').style.backgroundImage = `url('${info.thumbnail}')`;
+        if (info.title && !row.caption && !post?.content) tr.querySelector('.caption-text').textContent = info.title;
+      });
+    });
+
+    // Row click → preview pop-up with the playing video card.
+    tbody.querySelectorAll('tr[data-rc]').forEach(tr => tr.addEventListener('click', () => {
+      const { row, post } = items[Number(tr.dataset.rc)];
+      const profile = profileMap[row.user_id] || {};
+      const name = profile.full_name || profile.email || 'Mother';
+      document.getElementById('rc-modal-title').textContent = name;
+      const open = document.getElementById('rc-modal-open');
+      open.href = row.video_url;
+      open.textContent = row.platform === 'tiktok' ? 'Open on TikTok' : 'Open on Instagram';
+      renderVideoStrip(document.getElementById('rc-modal-card'), [{
+        name, country: profile.country, platform: row.platform,
+        url: post && isCanonicalUrl(post.url) ? post.url : row.video_url,
+        thumbnail: row.thumbnail_url || null, date: row.submitted_at,
+        views: post?.views ?? null, likes: post?.likes ?? null, comments: post?.comments ?? null, shares: post?.shares ?? null,
+        engagements: post ? engagementsOf(post) : null
+      }], { drift: false, resolveUrl: resolveShortUrl });
+      document.getElementById('rc-modal').classList.add('show');
+    }));
 
     updateStatusOverview(motherIds);
   }

@@ -192,9 +192,9 @@ function readCache() {
 function writeCache(cache) {
   try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch {}
 }
-async function tiktokInfo(url, resolveUrl) {
+export async function tiktokInfo(url, resolveUrl) {
   const cache = readCache();
-  if (cache[url]) return cache[url];
+  if (cache[url] && 'title' in cache[url]) return cache[url];
 
   let full = url;
   if (!tiktokIdFromUrl(full) && typeof resolveUrl === 'function') {
@@ -202,16 +202,18 @@ async function tiktokInfo(url, resolveUrl) {
   }
   let id = tiktokIdFromUrl(full);
   let thumbnail = null;
+  let title = null;
   try {
     const res = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(full)}`);
     if (res.ok) {
       const data = await res.json();
       id = id || (/^\d+$/.test(String(data.embed_product_id || '')) ? String(data.embed_product_id) : null);
       thumbnail = safeUrl(data.thumbnail_url);
+      title = typeof data.title === 'string' ? data.title : null;
     }
   } catch { /* offline / blocked: keep what we have */ }
 
-  const info = { id, thumbnail, full: full !== url ? full : null };
+  const info = { id, thumbnail, title, full: full !== url ? full : null };
   if (id || thumbnail) { cache[url] = info; writeCache(cache); }
   return info;
 }
