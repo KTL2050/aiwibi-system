@@ -208,6 +208,7 @@
       border: none; background: none; font-family: inherit; width: 100%; text-align: left;
     }
     .settings-nav-item i { font-size: 16px; color: var(--muted); flex-shrink: 0; transition: color 0.15s; }
+    .settings-nav-item[hidden] { display: none; }
     .settings-nav-item:hover { background: var(--raise); color: var(--ink); }
     .settings-nav-item.active { background: var(--aiwibi-bg); color: var(--aiwibi-deep); font-weight: 600; }
     .settings-nav-item.active i { color: var(--aiwibi); }
@@ -639,6 +640,7 @@
           <button class="settings-nav-item" data-section="points"><i class="ti ti-trophy"></i> Points &amp; Tiers</button>
           <button class="settings-nav-item" data-section="rewards"><i class="ti ti-gift"></i> Rewards Catalog</button>
           <button class="settings-nav-item" data-section="ideas"><i class="ti ti-bulb"></i> Video Ideas</button>
+          <button class="settings-nav-item" data-section="team" id="team-nav" hidden><i class="ti ti-users"></i> Team</button>
         </div>
 
         <!-- ── Settings body ── -->
@@ -1082,6 +1084,60 @@
                 <div id="ideas-list">
                   <div style="text-align:center;color:var(--muted);padding:24px;">Loading categories...</div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ════ TEAM (superadmin only) ════ -->
+          <div class="settings-section" id="section-team">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Invite an Admin</div>
+                  <div class="panel-desc">Admins manage one country only. If the person already has an account (for example they signed up as a mother), they become an admin straight away. Otherwise you get a one-time invite link to send them — they open it, choose a password and sign in.</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="form-row" style="grid-template-columns: 1.4fr 1fr 0.8fr; margin-bottom:0;">
+                  <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input class="form-input" id="team-email" type="email" placeholder="name@example.com" autocomplete="off">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Full name <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+                    <input class="form-input" id="team-name" placeholder="e.g. Grace Wanjiku" autocomplete="off">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Country</label>
+                    <select class="form-select" id="team-country">
+                      <option value="uganda">🇺🇬 Uganda</option>
+                      <option value="kenya">🇰🇪 Kenya</option>
+                    </select>
+                  </div>
+                </div>
+                <div id="team-result" style="display:none;margin-top:16px;padding:14px 16px;border:1px solid var(--border);border-radius:10px;background:var(--raise);">
+                  <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Invite link — send this to them yourself</div>
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <input class="form-input" id="team-link" readonly style="flex:1;font-size:12px;">
+                    <button class="btn btn-outline btn-sm" id="team-copy-btn"><i class="ti ti-copy" style="font-size:14px"></i> Copy</button>
+                  </div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:6px;">It works once and expires after a while — if it does, just invite the same email again.</div>
+                </div>
+              </div>
+              <div class="save-bar">
+                <button class="btn btn-primary btn-sm" id="team-invite-btn"><i class="ti ti-user-plus" style="font-size:14px"></i> Invite Admin</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Admins</div>
+                  <div class="panel-desc">Change which country an admin manages, or remove their admin access (their account stays, as a normal account).</div>
+                </div>
+              </div>
+              <div class="panel-body" id="team-list">
+                <div style="text-align:center;color:var(--muted);padding:24px;">Loading admins...</div>
               </div>
             </div>
           </div>
@@ -1796,6 +1852,108 @@
       : 'Choose 🇺🇬 Uganda or 🇰🇪 Kenya in the country selector at the top first')
     return null
   }
+
+  /* ── Team (superadmin only): invite admins, change country, revoke ── */
+  const teamList = document.getElementById('team-list')
+
+  async function callTeam(action, payload) {
+    const { data, error } = await supabase.functions.invoke('manage-admins', { body: { action, ...payload } })
+    if (error) {
+      let msg = 'Something went wrong'
+      try { msg = (await error.context.json()).error || msg } catch {}
+      showToast(msg)
+      return null
+    }
+    return data
+  }
+
+  async function loadTeam() {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, role, country')
+      .in('role', ['admin', 'superadmin'])
+      .order('role', { ascending: false })
+      .order('full_name', { ascending: true })
+    if (error) { console.error('Failed to load admins:', error); teamList.innerHTML = '<div style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load admins.</div>'; return }
+    if (!data || !data.length) { teamList.innerHTML = '<div style="text-align:center;color:var(--muted);padding:24px;">No admins yet.</div>'; return }
+
+    teamList.innerHTML = data.map(p => {
+      const name = escapeHtml(p.full_name || p.email || 'Unknown')
+      const isSuper = p.role === 'superadmin'
+      const countrySel = isSuper
+        ? '<span style="font-size:12.5px;color:var(--muted);">All countries</span>'
+        : `<select class="form-select team-country" style="max-width:150px;">
+             <option value="uganda"${p.country === 'uganda' ? ' selected' : ''}>🇺🇬 Uganda</option>
+             <option value="kenya"${p.country === 'kenya' ? ' selected' : ''}>🇰🇪 Kenya</option>
+             ${p.country ? '' : '<option value="" selected disabled>No country</option>'}
+           </select>`
+      return `
+        <div class="team-row" data-id="${escapeHtml(p.id)}" style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;">
+          <div style="flex:1;min-width:180px;">
+            <div style="font-weight:600;font-size:13.5px;">${name}</div>
+            <div style="font-size:12px;color:var(--muted);">${escapeHtml(p.email || '')} · ${isSuper ? 'Superadmin' : 'Admin'}</div>
+          </div>
+          ${countrySel}
+          ${isSuper ? '' : '<button class="btn btn-danger-outline btn-sm team-revoke">Remove admin</button>'}
+        </div>`
+    }).join('')
+  }
+
+  document.getElementById('team-invite-btn').addEventListener('click', async () => {
+    const email = document.getElementById('team-email').value.trim()
+    const full_name = document.getElementById('team-name').value.trim()
+    const country = document.getElementById('team-country').value
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Please enter a valid email'); return }
+    const btn = document.getElementById('team-invite-btn')
+    btn.disabled = true
+    const res = await callTeam('invite', { email, full_name, country })
+    btn.disabled = false
+    if (!res) return
+    const result = document.getElementById('team-result')
+    if (res.status === 'invited' && res.link) {
+      document.getElementById('team-link').value = res.link
+      result.style.display = 'block'
+      showToast('Invitation created — copy the link and send it')
+    } else {
+      result.style.display = 'none'
+      showToast(res.status === 'promoted' ? 'That account is now an admin' : 'Done')
+    }
+    document.getElementById('team-email').value = ''
+    document.getElementById('team-name').value = ''
+    await loadTeam()
+  })
+
+  document.getElementById('team-copy-btn').addEventListener('click', async () => {
+    const input = document.getElementById('team-link')
+    try { await navigator.clipboard.writeText(input.value); showToast('Link copied') }
+    catch { input.select(); showToast('Select the link and copy it') }
+  })
+
+  teamList.addEventListener('change', async e => {
+    const sel = e.target.closest('.team-country')
+    if (!sel) return
+    const row = sel.closest('.team-row')
+    const res = await callTeam('set_country', { userId: row.dataset.id, country: sel.value })
+    if (res) showToast('Country updated')
+    await loadTeam()
+  })
+
+  teamList.addEventListener('click', async e => {
+    const btn = e.target.closest('.team-revoke')
+    if (!btn) return
+    const row = btn.closest('.team-row')
+    if (!confirm('Remove admin access for this person? Their account stays, as a normal account.')) return
+    const res = await callTeam('revoke', { userId: row.dataset.id })
+    if (res) showToast('Admin access removed')
+    await loadTeam()
+  })
+
+  // Only the superadmin sees the Team tab.
+  countryReady.then(({ scope }) => {
+    if (!scope.isSuper) return
+    document.getElementById('team-nav').hidden = false
+    loadTeam()
+  })
 
   loadUserProfile()
   loadCampaigns()
