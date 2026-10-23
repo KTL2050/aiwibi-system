@@ -319,6 +319,75 @@
       border-radius: var(--pill); padding: 2px 9px; font-variant-numeric: tabular-nums;
     }
 
+    /* Tier ladder: current tier + progress to the next */
+    .earn-bonus-row.current .b-label { color: #fff; font-weight: 700; }
+    .earn-bonus-row.current .b-val { background: #fff; color: var(--rose-deep, #c9407a); }
+    .tier-progress { margin-top: 12px; }
+    .tier-progress-bar { height: 7px; border-radius: 99px; background: rgba(255,255,255,0.25); overflow: hidden; }
+    .tier-progress-fill { height: 100%; border-radius: 99px; background: #fff; width: 0; transition: width .8s ease; }
+    .tier-progress-text { font-size: 12px; color: #fff; margin-top: 6px; font-weight: 600; }
+
+    /* Her stats + streak (top of page) */
+    .mc-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+    .mc-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; min-width: 0; }
+    .mc-stat-label { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .mc-stat-label i { font-size: 15px; }
+    .mc-stat-value { font-size: 21px; font-weight: 700; margin-top: 3px; letter-spacing: -0.01em; color: var(--ink); }
+    .streak-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 99px;
+      background: #fff4e5; color: #9a5b00; font-size: 12.5px; font-weight: 600; margin-bottom: 18px; }
+    .streak-chip.cold { background: var(--raise); color: var(--muted); }
+
+    /* Paste button + link feedback + live preview */
+    .url-input.has-paste { padding-right: 128px; }
+    .url-paste { position: absolute; right: 44px; top: 50%; transform: translateY(-50%);
+      border: 1px solid var(--border); background: var(--raise); color: var(--ink); border-radius: 8px;
+      padding: 6px 10px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+    .url-paste:hover { border-color: var(--brand); color: var(--brand); }
+    .link-feedback { display: flex; align-items: flex-start; gap: 7px; margin-top: 10px; font-size: 12.5px; font-weight: 600; line-height: 1.4; }
+    .link-feedback i { font-size: 16px; flex: 0 0 auto; margin-top: 1px; }
+    .link-feedback.ok { color: var(--sage, #2e9e5b); }
+    .link-feedback.err { color: #d0361c; }
+    .link-feedback.warn { color: #9a5b00; background: #fff4e5; padding: 9px 12px; border-radius: 10px; font-weight: 500; }
+    .link-preview { margin-top: 12px; display: flex; gap: 14px; align-items: flex-start; }
+    .link-preview .lp-card { flex: 0 0 200px; }
+    .link-preview .lp-card .lv-strip { padding: 0; }
+    .link-preview .lp-card .lv-card { flex-basis: 200px; }
+    .lp-info { flex: 1; min-width: 0; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+    .lp-info b { color: var(--ink); }
+    .lp-caption { color: var(--ink-soft, #475467); margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* +100 pts celebration */
+    .celebrate { position: fixed; inset: 0; z-index: 4000; display: flex; align-items: center; justify-content: center;
+      background: rgba(18,23,32,0.35); opacity: 0; pointer-events: none; transition: opacity .25s; }
+    .celebrate.show { opacity: 1; pointer-events: auto; }
+    .celebrate-card { background: #fff; border-radius: 20px; padding: 28px 36px; text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25); transform: scale(.8); transition: transform .35s cubic-bezier(.2,1.4,.4,1); }
+    .celebrate.show .celebrate-card { transform: scale(1); }
+    .celebrate-emoji { font-size: 44px; line-height: 1; }
+    .celebrate-pts { font-size: 40px; font-weight: 800; color: var(--rose-deep, #c9407a); margin-top: 6px; letter-spacing: -0.02em; }
+    .celebrate-sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
+    .celebrate-bal { font-size: 13px; color: var(--ink); margin-top: 10px; font-weight: 600; }
+    .confetti { position: fixed; top: -12px; width: 9px; height: 14px; border-radius: 2px; z-index: 4001; pointer-events: none;
+      animation: confetti-fall 1.6s ease-in forwards; }
+    @keyframes confetti-fall { to { transform: translateY(105vh) rotate(540deg); opacity: .9; } }
+
+    /* Inline example videos (ideas) */
+    .ideas-inline-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+    .idea-mini { position: relative; aspect-ratio: 3/4; border-radius: 10px; overflow: hidden; background: #101113;
+      border: none; padding: 0; cursor: pointer; }
+    .idea-mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .idea-mini-ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.4); font-size: 26px; }
+    .idea-mini-label { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 8px 7px; font-size: 11px; font-weight: 600; color: #fff; text-align: left;
+      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.7)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .idea-mini-play { position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,.9);
+      color: #121720; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+
+    @media (max-width: 600px) {
+      .mc-stats { gap: 8px; } .mc-stat { padding: 10px; } .mc-stat-value { font-size: 17px; }
+      .link-preview { flex-direction: column; } .link-preview .lp-card { flex-basis: auto; width: 180px; }
+      .url-input.has-paste { padding-right: 112px; }
+    }
+
     /* Tips card */
     .tip-item { display: flex; gap: 11px; align-items: flex-start; padding: 9px 0; }
     .tip-item + .tip-item { border-top: 1px solid var(--border-soft); }
@@ -873,7 +942,7 @@
           <div class="user-name"></div>
           <div class="user-role"></div>
         </div>
-        <div class="user-level">Gold</div>
+        <div class="user-level" id="user-level" style="display:none;"></div>
       </div>
       <a href="login.html" class="nav-item" id="logout-link" style="margin-top:6px;color:#e57373 !important;"><i class="ti ti-logout"></i> Logout</a>
     </div>
@@ -920,6 +989,14 @@
       <div class="page-grid">
       <div class="form-col">
 
+      <!-- Her stats + posting streak -->
+      <div class="mc-stats">
+        <div class="mc-stat"><div class="mc-stat-label"><i class="ti ti-movie"></i> Videos submitted</div><div class="mc-stat-value" id="stat-videos">—</div></div>
+        <div class="mc-stat"><div class="mc-stat-label"><i class="ti ti-eye"></i> Total views</div><div class="mc-stat-value" id="stat-views">—</div></div>
+        <div class="mc-stat"><div class="mc-stat-label"><i class="ti ti-coins"></i> Points balance</div><div class="mc-stat-value" id="stat-points">—</div></div>
+      </div>
+      <div class="streak-chip cold" id="streak-chip" style="display:none;"></div>
+
       <!-- 1. Select Platform -->
       <div class="section-label">1. Select Platform</div>
       <div class="platform-row">
@@ -943,14 +1020,14 @@
       <div class="section-label">2. Paste Video Link</div>
       <div class="url-input-wrap">
         <i class="ti ti-link link-icon"></i>
-        <input class="url-input" type="text" id="url-input"
+        <input class="url-input has-paste" type="text" id="url-input"
           value=""
           placeholder="https://www.tiktok.com/@username/video/..."/>
+        <button type="button" class="url-paste" id="url-paste" title="Paste from clipboard"><i class="ti ti-clipboard"></i> Paste</button>
         <i class="ti ti-x url-clear" onclick="clearUrl()"></i>
       </div>
-      <div class="detect-success" id="detect-msg" style="display:none;">
-        <i class="ti ti-circle-check"></i> Link detected successfully!
-      </div>
+      <div class="link-feedback" id="link-feedback" style="display:none;"></div>
+      <div class="link-preview" id="link-preview" style="display:none;"></div>
       <div class="detect-success" id="preview-loading" style="display:none;color:var(--muted);">
         <i class="ti ti-loader-2"></i> Fetching preview...
       </div>
@@ -959,26 +1036,12 @@
         <button class="btn-submit">Submit Content <i class="ti ti-arrow-right"></i></button>
       </div>
 
-      <!-- Submitted Links -->
+      <!-- Her submitted videos, as cards -->
       <div class="submitted-header">
-        <div class="submitted-title">Your Submitted Links</div>
-        <a class="view-all-link" href="#">View all</a>
+        <div class="submitted-title">Your Videos</div>
       </div>
-
-      <div class="links-table-wrap">
-        <table class="links-table">
-          <thead>
-            <tr>
-              <th>Platform</th>
-              <th>Video Link</th>
-              <th>Caption</th>
-              <th>Submitted</th>
-            </tr>
-          </thead>
-          <tbody id="links-tbody">
-            <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Loading your submissions...</td></tr>
-          </tbody>
-        </table>
+      <div id="my-video-strip">
+        <div style="text-align:center;color:var(--muted);padding:24px;">Loading your videos...</div>
       </div>
 
       </div><!-- /form-col -->
@@ -991,23 +1054,11 @@
           <div class="earn-eyebrow">You'll earn for this post</div>
           <div class="earn-points">+100 <span>pts</span></div>
           <div class="earn-note">Every video you submit earns a flat 100 points once it's counted — no view or engagement thresholds required.</div>
-          <div class="earn-bonus">
-            <div class="earn-bonus-row">
-              <span class="b-label"><i class="ti ti-medal" style="font-size:13px"></i> Bronze</span>
-              <span class="b-val">0 pts</span>
-            </div>
-            <div class="earn-bonus-row">
-              <span class="b-label"><i class="ti ti-medal" style="font-size:13px"></i> Silver</span>
-              <span class="b-val">500 pts</span>
-            </div>
-            <div class="earn-bonus-row">
-              <span class="b-label"><i class="ti ti-medal" style="font-size:13px"></i> Gold</span>
-              <span class="b-val">750 pts</span>
-            </div>
-            <div class="earn-bonus-row">
-              <span class="b-label"><i class="ti ti-medal" style="font-size:13px"></i> Platinum</span>
-              <span class="b-val">1000 pts</span>
-            </div>
+          <!-- Her country's real tiers (from Settings), current one highlighted -->
+          <div class="earn-bonus" id="tier-ladder"></div>
+          <div class="tier-progress" id="tier-progress" style="display:none;">
+            <div class="tier-progress-bar"><div class="tier-progress-fill" id="tier-progress-fill"></div></div>
+            <div class="tier-progress-text" id="tier-progress-text"></div>
           </div>
         </div>
 
@@ -1020,6 +1071,12 @@
               <span class="ideas-rail-sub" style="display:block;">Browse example videos by category</span>
             </span>
           </button>
+        </div>
+
+        <!-- A few example videos right here -->
+        <div class="rail-card" id="ideas-inline" style="display:none;">
+          <div class="rail-title"><i class="ti ti-player-play" style="font-size:16px;color:var(--brand)"></i> Example videos</div>
+          <div class="ideas-inline-row" id="ideas-inline-row"></div>
         </div>
 
         <!-- Tips -->
@@ -1141,49 +1198,161 @@
     return { datePart, timePart }
   }
 
+  /* ══════════ HER OVERVIEW: stats, streak, tiers, sidebar, video cards ══════════ */
+  // Shared with the link checker below.
+  const me = {
+    submittedKeys: new Set(),  // normalized links she already submitted
+    handles: new Set(),        // her TikTok @handles, learned from her synced videos
+    points: 0,
+    tiers: []
+  }
+
+  function compactNum(n) {
+    n = Number(n) || 0
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+    if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
+    return String(n)
+  }
+  const dayKey = d => { const x = new Date(d); return `${x.getFullYear()}-${x.getMonth()}-${x.getDate()}` }
+  const tierName = t => (t.key || '').charAt(0).toUpperCase() + (t.key || '').slice(1) // bronze → Bronze
+
+  // Days in a row (ending today, or yesterday if nothing yet today) with ≥1 submission.
+  function computeStreak(rows) {
+    const days = new Set(rows.map(r => dayKey(r.submitted_at)))
+    const d = new Date()
+    const postedToday = days.has(dayKey(d))
+    if (!postedToday) d.setDate(d.getDate() - 1)
+    let streak = 0
+    while (days.has(dayKey(d))) { streak++; d.setDate(d.getDate() - 1) }
+    return { streak, postedToday }
+  }
+
+  function renderStreak({ streak, postedToday }) {
+    const chip = document.getElementById('streak-chip')
+    chip.style.display = 'inline-flex'
+    chip.classList.toggle('cold', streak === 0)
+    chip.textContent = streak === 0
+      ? '🔥 Start a streak — post a video today'
+      : postedToday
+        ? `🔥 ${streak}-day streak — you've posted today, nice!`
+        : `🔥 ${streak}-day streak — post today to keep it going`
+  }
+
+  function renderTiers(points) {
+    const ladder = document.getElementById('tier-ladder')
+    const tiers = [...me.tiers].sort((a, b) => (a.min_points || 0) - (b.min_points || 0))
+    if (!tiers.length) { ladder.innerHTML = ''; return }
+    const current = [...tiers].reverse().find(t => points >= (t.min_points || 0)) || null
+    const next = tiers.find(t => (t.min_points || 0) > points) || null
+    ladder.innerHTML = tiers.map(t => `
+      <div class="earn-bonus-row${current && t.key === current.key ? ' current' : ''}">
+        <span class="b-label"><i class="ti ${current && t.key === current.key ? 'ti-circle-check-filled' : 'ti-medal'}" style="font-size:13px"></i> ${escapeHtml(tierName(t))}</span>
+        <span class="b-val">${(t.min_points || 0).toLocaleString()} pts</span>
+      </div>`).join('')
+
+    const prog = document.getElementById('tier-progress')
+    prog.style.display = 'block'
+    const fill = document.getElementById('tier-progress-fill')
+    const text = document.getElementById('tier-progress-text')
+    if (next) {
+      const from = current ? (current.min_points || 0) : 0
+      const pct = Math.max(0, Math.min(100, ((points - from) / ((next.min_points || 1) - from)) * 100))
+      requestAnimationFrame(() => { fill.style.width = pct + '%' })
+      text.textContent = `${((next.min_points || 0) - points).toLocaleString()} pts to ${tierName(next)}`
+    } else {
+      fill.style.width = '100%'
+      text.textContent = `You've reached the top tier${current ? ' — ' + tierName(current) : ''}! 🎉`
+    }
+
+    // Sidebar badge: her real tier
+    const badge = document.getElementById('user-level')
+    if (badge) {
+      badge.textContent = current ? tierName(current) : ''
+      badge.style.display = current ? '' : 'none'
+    }
+  }
+
+  // Expand short TikTok links to full ones (saved resolutions, then the resolver).
+  async function resolveShort(urls) {
+    const map = {}
+    if (!urls.length) return map
+    const { data: saved } = await supabase.from('resolved_urls').select('raw_url, resolved_url').in('raw_url', urls)
+    ;(saved || []).forEach(s => { map[s.raw_url] = s.resolved_url })
+    const missing = urls.filter(u => !map[u])
+    if (missing.length) {
+      const { data } = await supabase.functions.invoke('resolve-short-urls', { body: { urls: missing } })
+      Object.assign(map, (data && data.resolved) || {})
+    }
+    return map
+  }
+
   async function loadSubmittedContent() {
-    const tbody = document.getElementById('links-tbody')
+    const strip = document.getElementById('my-video-strip')
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return
+    const uid = session.user.id
 
-    const { data: rows, error } = await supabase
-      .from('submitted_content')
-      .select('id, platform, video_url, caption, thumbnail_url, status, submitted_at')
-      .eq('user_id', session.user.id)
-      .order('submitted_at', { ascending: false })
-      .limit(20)
+    const [rowsRes, profileRes, redeemRes, tiersRes] = await Promise.all([
+      supabase.from('submitted_content')
+        .select('id, platform, video_url, video_url_normalized, caption, thumbnail_url, status, submitted_at')
+        .eq('user_id', uid).order('submitted_at', { ascending: false }),
+      supabase.from('profiles').select('full_name, email, country').eq('id', uid).single(),
+      supabase.from('reward_redemptions').select('points_cost, status').eq('user_id', uid).neq('status', 'Cancelled'),
+      supabase.from('tiers').select('key, min_points, reward_title, sort_order').order('min_points', { ascending: true })
+    ])
 
-    if (error) {
-      console.log('Failed to load submitted content:', error)
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load your submissions.</td></tr>'
+    if (rowsRes.error) {
+      console.log('Failed to load submitted content:', rowsRes.error)
+      strip.innerHTML = '<div style="text-align:center;color:var(--muted);padding:24px;">Couldn\'t load your videos.</div>'
       return
     }
+    const rows = rowsRes.data || []
+    const profile = profileRes.data || {}
+    me.tiers = tiersRes.data || []
+    me.submittedKeys = new Set(rows.map(r => r.video_url_normalized || normalizeUrl(r.video_url)))
+    const redeemed = (redeemRes.data || []).reduce((s, r) => s + (r.points_cost || 0), 0)
+    me.points = me.submittedKeys.size * 100 - redeemed
 
-    if (!rows || rows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">You haven\'t submitted any links yet.</td></tr>'
-      return
+    document.getElementById('stat-videos').textContent = rows.length
+    document.getElementById('stat-points').textContent = me.points.toLocaleString()
+    renderStreak(computeStreak(rows))
+    renderTiers(me.points)
+
+    // Her views/engagements (same cached analytics as her dashboard — no extra credits)
+    const { postId, isCanonicalUrl, engagementsOf, renderVideoStrip } = await import('./lumio-videos.js')
+    let posts = []
+    try {
+      const { data } = await supabase.functions.invoke('postpeer-get-analytics', { method: 'GET' })
+      posts = data?.posts || []
+      document.getElementById('stat-views').textContent = compactNum(data?.summary?.totalViews || 0)
+    } catch (e) {
+      document.getElementById('stat-views').textContent = '0'
     }
+    me.handles = new Set(posts
+      .map(p => (String(p.url || '').match(/tiktok\.com\/@([^/?#]+)/i) || [])[1])
+      .filter(Boolean).map(h => h.toLowerCase()))
 
-    tbody.innerHTML = rows.map(row => {
-      const iconSvg = row.platform === 'tiktok' ? TIKTOK_ICON_SVG : INSTAGRAM_ICON_SVG
-      const iconClass = row.platform === 'tiktok' ? 'tiktok' : 'instagram'
-      const { datePart, timePart } = formatSubmittedAt(row.submitted_at)
-      const captionText = row.caption ? escapeHtml(row.caption) : '<span style="color:var(--faint);font-style:italic;">No caption yet</span>'
-      const linkHtml = row.video_url
-        ? `<a class="video-link-cell" href="${row.video_url}" target="_blank" rel="noopener" title="${row.video_url}">${row.video_url}</a>`
-        : '<span style="color:var(--faint);">—</span>'
+    const statsById = {}
+    posts.forEach(p => { if (p.url) statsById[postId(p.url)] = p })
+    const shortUrls = posts.length
+      ? [...new Set(rows.map(r => r.video_url).filter(u => u && !isCanonicalUrl(u)))] : []
+    const resolved = shortUrls.length ? await resolveShort(shortUrls) : {}
 
-      return `
-        <tr>
-          <td><div class="plat-icon-sm ${iconClass}">${iconSvg}</div></td>
-          <td>${linkHtml}</td>
-          <td class="caption-cell">
-            <div class="caption-text">${captionText}</div>
-          </td>
-          <td><div class="caption-date" style="white-space:nowrap;">${datePart}<br>${timePart}</div></td>
-        </tr>
-      `
-    }).join('')
+    const name = profile.full_name || profile.email || 'Me'
+    renderVideoStrip(strip, rows.map(r => {
+      const s = statsById[postId(resolved[r.video_url] || r.video_url)]
+      return {
+        name, country: profile.country, platform: r.platform,
+        url: s?.url || resolved[r.video_url] || r.video_url,
+        thumbnail: r.thumbnail_url, date: r.submitted_at,
+        views: s ? (s.views ?? 0) : null, engagements: s ? engagementsOf(s) : null,
+        likes: s?.likes ?? null, comments: s?.comments ?? null, shares: s?.shares ?? null
+      }
+    }), {
+      drift: false,
+      resolveUrl: async u => (await resolveShort([u]))[u] || null,
+      emptyHtml: 'You haven\'t submitted any videos yet — paste your first link above.'
+    })
   }
 
   let selectedPlatform = 'tiktok'
@@ -1308,11 +1477,11 @@ const res = await fetch(`${SUPABASE_URL}/functions/v1/oembed-preview`, {
 
     const detected = detectPlatformFromUrl(url)
     if (detected && detected !== selectedPlatform) {
-      alert(`This looks like a ${detected} link, but ${selectedPlatform} is selected. Please double-check before submitting.`)
+      showLinkFeedback('err', `This looks like a ${detected === 'tiktok' ? 'TikTok' : 'Instagram'} link, but ${selectedPlatform === 'tiktok' ? 'TikTok' : 'Instagram'} is selected. Please double-check.`)
       return
     }
     if (!detected) {
-      alert('Please paste a valid TikTok or Instagram video link.')
+      showLinkFeedback('err', 'Please paste a valid TikTok or Instagram video link.')
       return
     }
 
@@ -1334,14 +1503,14 @@ const res = await fetch(`${SUPABASE_URL}/functions/v1/oembed-preview`, {
 
     if (dupCheckError) {
       console.error('Duplicate check error:', dupCheckError)
-      alert('Something went wrong checking your submission. Please try again.')
+      showLinkFeedback('err', 'Something went wrong checking your submission. Please try again.')
       submitBtn.disabled = false
       submitBtn.style.opacity = ''
       return
     }
 
     if (existing && existing.length > 0) {
-      alert("You've already submitted this link before. Please paste a link you haven't submitted yet.")
+      showLinkFeedback('err', "You've already submitted this video. Paste a link you haven't submitted yet.")
       submitBtn.disabled = false
       submitBtn.style.opacity = ''
       return
@@ -1366,20 +1535,138 @@ const res = await fetch(`${SUPABASE_URL}/functions/v1/oembed-preview`, {
       // 23505 = Postgres unique_violation — the DB-level safety net caught a
       // duplicate the client-side check missed (e.g. a race between two tabs).
       if (error.code === '23505') {
-        alert("You've already submitted this link before. Please paste a link you haven't submitted yet.")
+        showLinkFeedback('err', "You've already submitted this video. Paste a link you haven't submitted yet.")
       } else {
-        alert('Something went wrong submitting your link.')
+        showLinkFeedback('err', 'Something went wrong submitting your link. Please try again.')
       }
       return
     }
 
-    alert('Content submitted! It will sync shortly.')
+    const before = me.points
     urlInputEl.value = ''
-    document.getElementById('detect-msg').style.display = 'none'
+    urlInputEl.dispatchEvent(new Event('input')) // clears feedback + preview
     currentPreviewCaption = null
     currentPreviewThumbnail = null
+    celebrate(before, before + 100)
     loadSubmittedContent()
   })
+
+  /* ══════════ LINK CHECK + LIVE PREVIEW + PASTE ══════════ */
+  const feedbackEl = document.getElementById('link-feedback')
+  const previewEl = document.getElementById('link-preview')
+
+  function showLinkFeedback(kind, text) {
+    const icon = { ok: 'ti-circle-check', err: 'ti-alert-circle', warn: 'ti-alert-triangle' }[kind]
+    feedbackEl.className = 'link-feedback ' + kind
+    feedbackEl.innerHTML = `<i class="ti ${icon}"></i><span>${escapeHtml(text)}</span>`
+    feedbackEl.style.display = 'flex'
+  }
+  function hideLinkFeedback() { feedbackEl.style.display = 'none' }
+  function hidePreview() { previewEl.style.display = 'none'; previewEl.innerHTML = '' }
+
+  // TikTok's free public info about a video: who posted it, caption, picture.
+  async function tiktokOembed(url) {
+    try {
+      const r = await fetch('https://www.tiktok.com/oembed?url=' + encodeURIComponent(url))
+      if (!r.ok) return null
+      const j = await r.json()
+      const handle = j.author_unique_id || (String(j.author_url || '').match(/@([^/?#]+)/) || [])[1] || null
+      return { handle, name: j.author_name || null, caption: j.title || '', thumbnail: j.thumbnail_url || null }
+    } catch { return null }
+  }
+
+  let checkSeq = 0
+  async function checkLink() {
+    const seq = ++checkSeq
+    const val = urlInputEl.value.trim()
+    if (!val) { hideLinkFeedback(); hidePreview(); return }
+
+    const platform = detectPlatformFromUrl(val)
+    if (!platform || !/^https?:\/\//i.test(val)) {
+      showLinkFeedback('err', "That doesn't look like a TikTok or Instagram video link yet.")
+      hidePreview(); return
+    }
+    if (me.submittedKeys.has(normalizeUrl(val))) {
+      showLinkFeedback('err', "You've already submitted this video — paste a different one.")
+      hidePreview(); return
+    }
+    showLinkFeedback('ok', `${platform === 'tiktok' ? 'TikTok' : 'Instagram'} link detected — check the preview, then submit.`)
+
+    // Preview card (same card as everywhere else) + who posted it
+    previewEl.style.display = 'flex'
+    previewEl.innerHTML = '<div class="lp-card" id="lp-card"></div><div class="lp-info" id="lp-info">Loading preview…</div>'
+    const { renderVideoStrip } = await import('./lumio-videos.js')
+    if (seq !== checkSeq) return
+    renderVideoStrip(document.getElementById('lp-card'), [{
+      name: 'Preview', platform, url: val, thumbnail: null, date: new Date().toISOString(), views: null
+    }], { drift: false, resolveUrl: async u => (await resolveShort([u]))[u] || null })
+
+    const info = document.getElementById('lp-info')
+    if (platform === 'instagram') {
+      info.innerHTML = '<b>Instagram post</b><div class="lp-caption">Make sure it\'s posted from your own connected Instagram account.</div>'
+      return
+    }
+    let o = await tiktokOembed(val)
+    if (!o && !/\/video\/\d+/.test(val)) {
+      const full = (await resolveShort([val]))[val]
+      if (full) o = await tiktokOembed(full)
+    }
+    if (seq !== checkSeq) return
+    if (!o) { info.innerHTML = '<b>TikTok video</b><div class="lp-caption">Preview details unavailable — you can still submit.</div>'; return }
+    info.innerHTML = `<b>${o.handle ? '@' + escapeHtml(o.handle) : escapeHtml(o.name || 'TikTok video')}</b> · TikTok
+      ${o.caption ? `<div class="lp-caption">${escapeHtml(o.caption)}</div>` : ''}`
+
+    // Not her account? Warn gently (only when we know her handle from synced videos).
+    if (o.handle && me.handles.size && !me.handles.has(o.handle.toLowerCase())) {
+      showLinkFeedback('warn', `This video is from @${o.handle} — not your connected account. It may not earn points.`)
+    }
+  }
+
+  let checkTimer = null
+  urlInputEl.addEventListener('input', () => {
+    clearTimeout(checkTimer)
+    if (!urlInputEl.value.trim()) { hideLinkFeedback(); hidePreview(); return }
+    checkTimer = setTimeout(checkLink, 450)
+  })
+
+  document.getElementById('url-paste').addEventListener('click', async () => {
+    try {
+      const text = (await navigator.clipboard.readText()).trim()
+      if (!text) { showLinkFeedback('warn', 'Your clipboard is empty — copy the video link first.'); return }
+      urlInputEl.value = text
+      urlInputEl.dispatchEvent(new Event('input'))
+    } catch {
+      urlInputEl.focus()
+      showLinkFeedback('warn', 'Your browser blocked pasting — long-press the box and choose Paste.')
+    }
+  })
+
+  /* ══════════ +100 PTS CELEBRATION ══════════ */
+  function celebrate(fromPts, toPts) {
+    const ov = document.getElementById('celebrate')
+    const bal = document.getElementById('celebrate-bal')
+    ov.classList.add('show')
+    const start = performance.now()
+    const step = t => {
+      const p = Math.min(1, (t - start) / 900)
+      bal.textContent = `Your balance: ${Math.round(fromPts + (toPts - fromPts) * p).toLocaleString()} pts`
+      if (p < 1) requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
+    const colors = ['#e2578f', '#2563eb', '#dd9328', '#2e9e5b', '#8b5cf6']
+    for (let i = 0; i < 40; i++) {
+      const c = document.createElement('div')
+      c.className = 'confetti'
+      c.style.left = Math.random() * 100 + 'vw'
+      c.style.background = colors[i % colors.length]
+      c.style.animationDelay = Math.random() * 0.4 + 's'
+      document.body.appendChild(c)
+      setTimeout(() => c.remove(), 2200)
+    }
+    const close = () => ov.classList.remove('show')
+    ov.onclick = close
+    setTimeout(close, 2400)
+  }
 
   loadSubmittedContent()
 
@@ -1526,6 +1813,49 @@ const res = await fetch(`${SUPABASE_URL}/functions/v1/oembed-preview`, {
     if (e.target.closest('#ideas-back')) renderIdeaCategories()
   })
 
+  /* ══════════ EXAMPLE VIDEOS, INLINE ══════════ */
+  // A few of her country's idea videos right on the page; tapping one plays it
+  // in the ideas window. Pictures come from TikTok's free public info.
+  async function loadInlineIdeas() {
+    const box = document.getElementById('ideas-inline')
+    const row = document.getElementById('ideas-inline-row')
+    const { data, error } = await supabase.from('idea_videos')
+      .select('id, title, video_url, category_id').order('created_at', { ascending: false }).limit(4)
+    if (error || !data || !data.length) return
+    const attr = s => escapeIdea(String(s ?? '')).replace(/"/g, '&quot;') // safe inside attributes
+    row.innerHTML = data.map(v => `
+      <button type="button" class="idea-mini" data-play="${attr(v.id)}" data-cat="${attr(v.category_id)}" title="${attr(v.title || 'Example video')}">
+        <div class="idea-mini-ph"><i class="ti ${ideaIcon(v.video_url)}"></i></div>
+        <span class="idea-mini-play"><i class="ti ti-player-play-filled"></i></span>
+        <span class="idea-mini-label">${escapeIdea(v.title || 'Example video')}</span>
+      </button>`).join('')
+    box.style.display = ''
+    data.forEach(async v => {
+      if (!/tiktok\.com/i.test(v.video_url || '')) return
+      const o = await tiktokOembed(v.video_url)
+      if (!o?.thumbnail) return
+      const btn = row.querySelector(`[data-play="${CSS.escape(String(v.id))}"]`)
+      if (!btn) return
+      const img = document.createElement('img')
+      img.alt = ''
+      img.src = o.thumbnail
+      img.onload = () => btn.querySelector('.idea-mini-ph')?.remove()
+      btn.prepend(img)
+    })
+  }
+
+  document.getElementById('ideas-inline-row')?.addEventListener('click', async e => {
+    const btn = e.target.closest('.idea-mini')
+    if (!btn) return
+    ideasOv.classList.add('open')
+    ideasBody.innerHTML = '<div class="ideas-empty">Loading video...</div>'
+    await loadIdeas()
+    ideaCurrentCat = btn.dataset.cat // so "Back to videos" returns to its category
+    renderIdeaPlayer(btn.dataset.play)
+  })
+
+  loadInlineIdeas()
+
 </script>
 
 <script>
@@ -1542,17 +1872,22 @@ const res = await fetch(`${SUPABASE_URL}/functions/v1/oembed-preview`, {
     overlay.classList.remove('open');
   });
 
-  /* ── URL clear ── */
+  /* ── URL clear ── (the page script hides the feedback/preview on 'input') */
   function clearUrl() {
-    document.getElementById('url-input').value = '';
-    document.getElementById('detect-msg').style.display = 'none';
+    const input = document.getElementById('url-input');
+    input.value = '';
+    input.dispatchEvent(new Event('input'));
   }
-
-  document.getElementById('url-input').addEventListener('input', function() {
-    const msg = document.getElementById('detect-msg');
-    msg.style.display = this.value.trim().length > 10 ? 'flex' : 'none';
-  });
 </script>
+<!-- ══ +100 pts celebration ══ -->
+<div class="celebrate" id="celebrate" aria-live="polite">
+  <div class="celebrate-card">
+    <div class="celebrate-emoji">🎉</div>
+    <div class="celebrate-pts">+100 pts</div>
+    <div class="celebrate-sub">Video submitted — great job!</div>
+    <div class="celebrate-bal" id="celebrate-bal"></div>
+  </div>
+</div>
   <script>
     document.querySelectorAll('[data-coming-soon]').forEach(function (link) {
       link.addEventListener('click', function (e) {
