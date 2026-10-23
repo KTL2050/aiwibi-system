@@ -304,6 +304,15 @@
       flex: 1;
     }
 
+    /* Selected mother's summary cards */
+    .mc-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 4px 16px 16px; }
+    .mc-sum-card { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; background: var(--surface); }
+    .mc-sum-label { font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .mc-sum-label i { font-size: 15px; }
+    .mc-sum-value { font-size: 22px; font-weight: 600; margin-top: 4px; letter-spacing: -0.01em; }
+    .mc-sum-note { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    @media (max-width: 600px) { .mc-summary { gap: 8px; padding: 4px 12px 12px; } .mc-sum-card { padding: 10px; } .mc-sum-value { font-size: 18px; } }
+
     /* Links panel header */
     .links-panel-header {
       display: flex; align-items: center; justify-content: space-between;
@@ -620,66 +629,16 @@
         <!-- ── RIGHT: Links + Preview ── -->
         <div class="right-col">
 
-          <!-- Links panel -->
+          <!-- Selected mother: summary cards + her videos as cards -->
           <div class="panel">
             <div class="links-panel-header">
               <div>
                 <div class="links-panel-title" id="links-panel-title">Loading...</div>
               </div>
-              <a class="view-all-link" href="#">View all </a>
             </div>
-            <div class="links-list" id="links-list">
-              <!-- Populated by JS -->
-            </div>
-          </div>
-
-          <!-- Preview panel -->
-          <div class="panel preview-panel" id="preview-panel">
-            <div class="preview-panel-header">
-              <div class="preview-panel-title" id="preview-title">Loading preview...</div>
-            </div>
-            <div class="preview-body">
-              <div class="preview-card">
-                <div class="preview-details">
-                  <div class="preview-plat-row">
-                    <div class="preview-plat-icon tiktok" id="preview-plat-icon">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.78a4.85 4.85 0 01-1.01-.09z"/></svg>
-                    </div>
-                    <span class="preview-handle" id="preview-handle">Loading...</span>
-                  </div>
-                  <div class="preview-caption" id="preview-caption">
-                    Loading...
-                  </div>
-                  <div class="preview-stats">
-                    <span><i class="ti ti-player-play"></i> <span id="prev-views">—</span></span>
-                    <span><i class="ti ti-heart"></i> <span id="prev-likes">—</span></span>
-                    <span><i class="ti ti-message-circle"></i> <span id="prev-comments">—</span></span>
-                  </div>
-                  <a id="preview-video-link" class="video-link-cell" href="#" target="_blank" rel="noopener" style="display:block;margin-top:8px;max-width:100%;"></a>
-                </div>
-              </div>
-            </div>
-            <div class="preview-meta-row">
-              <div class="preview-meta-item">
-                <div class="preview-meta-label">Link:</div>
-                <div class="preview-meta-val" style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                  <span id="preview-link" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;">Loading...</span>
-                  <button class="copy-btn" onclick="copyLink()" title="Copy link"><i class="ti ti-copy"></i></button>
-                </div>
-              </div>
-              <div class="preview-meta-item">
-                <div class="preview-meta-label">Platform:</div>
-                <div class="preview-meta-val" id="preview-platform-label">Loading...
-                  <span id="preview-status-chip" class="status-pill" style="font-size:10px;padding:2px 7px;display:none;"></span>
-                </div>
-              </div>
-              <div class="preview-meta-item">
-                <div class="preview-meta-label">Submitted:</div>
-                <div class="preview-meta-val" id="preview-submitted">
-                  Loading...
-                  <button class="bookmark-btn"><i class="ti ti-bookmark"></i></button>
-                </div>
-              </div>
+            <div class="mc-summary" id="mother-summary"></div>
+            <div id="mother-videos" style="padding:0 16px 12px;">
+              <div style="text-align:center;color:var(--muted);font-size:12.5px;padding:24px;">Loading videos...</div>
             </div>
           </div>
 
@@ -788,8 +747,6 @@
 
   let mothers = []
   let selectedMotherId = null
-  let selectedPostIdx = 0
-  let postpeerPostsByUrl = {}
 
   async function loadMothersAndContent() {
     // Only the selected country's mothers (Uganda and Kenya are run separately)
@@ -798,7 +755,7 @@
 
     const { data: profiles, error: profErr } = await inCountry(supabase
       .from('profiles')
-      .select('id, full_name, email, role')
+      .select('id, full_name, email, role, country')
       .eq('role', 'mother'), scope.country)
 
     if (profErr) { console.error('Failed to load mothers:', profErr); return }
@@ -811,18 +768,20 @@
 
     if (contentErr) { console.error('Failed to load submitted content:', contentErr); return }
 
-    // Best-effort enrichment — skipped silently if PostPeer credits are unavailable
+    // Best-effort enrichment — skipped silently if PostPeer credits are unavailable.
+    // Matched by post ID (TikTok number / Instagram code), after expanding short
+    // links, so vt.tiktok.com/… links match PostPeer's full links.
+    const { postId, isCanonicalUrl, engagementsOf } = await import('./lumio-videos.js')
+    const statsById = {}
     try {
       const { data: analytics } = await supabase.functions.invoke(
         `postpeer-get-all-analytics?country=${encodeURIComponent(scope.country)}`, { method: 'GET' })
-      if (analytics?.allPosts) {
-        analytics.allPosts.forEach(p => {
-          if (p.url) postpeerPostsByUrl[normalizeUrl(p.url)] = p
-        })
-      }
+      ;(analytics?.allPosts || []).forEach(p => { if (p.url) statsById[postId(p.url)] = p })
     } catch (err) {
       console.log('PostPeer enrichment unavailable:', err)
     }
+    const shortUrls = [...new Set(content.map(c => c.video_url).filter(u => u && !isCanonicalUrl(u)))]
+    const resolved = Object.keys(statsById).length ? await resolveShortUrls(shortUrls) : {}
 
     mothers = profiles.map((p, i) => {
       const name = p.full_name || p.email || 'Unknown'
@@ -830,19 +789,21 @@
       const posts = content
         .filter(c => c.user_id === p.id)
         .map(c => {
-          const match = postpeerPostsByUrl[normalizeUrl(c.video_url)]
+          const stats = statsById[postId(resolved[c.video_url] || c.video_url)] || null
           return {
             platform: c.platform,
             caption: c.caption || '',
-            date: new Date(c.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-            time: new Date(c.submitted_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-            status: c.status,
-            views: match ? formatNumber(match.views || 0) : '—',
-            likes: match ? formatNumber(match.likes || 0) : '—',
-            comments: match ? formatNumber(match.comments || 0) : '—',
-            handle: `${name} · ${relativeTime(c.submitted_at)}`,
+            submittedAt: c.submitted_at,
             link: c.video_url,
-            thumb: c.thumbnail_url
+            fullLink: stats?.url || resolved[c.video_url] || c.video_url,
+            thumb: c.thumbnail_url,
+            stats: stats ? {
+              views: stats.views ?? 0,
+              likes: stats.likes ?? 0,
+              comments: stats.comments ?? 0,
+              shares: stats.shares ?? 0,
+              engagements: engagementsOf(stats)
+            } : null
           }
         })
 
@@ -850,10 +811,11 @@
         id: p.id,
         name,
         handle: p.email,
+        country: p.country,
         initials,
         color: AVATAR_COLORS[i % AVATAR_COLORS.length],
         links: posts.length,
-        synced: posts.filter(post => post.status === 'synced').length,
+        synced: posts.filter(post => post.stats).length, // videos PostPeer has numbers for
         posts
       }
     })
@@ -862,8 +824,33 @@
   }
 
   function formatNumber(n) {
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M'
     if (n >= 1000) return (n / 1000).toFixed(1) + 'K'
     return String(n)
+  }
+
+  // Short links → full links in one batch: saved resolutions first, then the
+  // resolver for new ones only, saving those back (same as the Reports page).
+  async function resolveShortUrls(urls) {
+    const map = {}
+    if (!urls.length) return map
+    for (let i = 0; i < urls.length; i += 200) {
+      const { data } = await supabase.from('resolved_urls')
+        .select('raw_url, resolved_url').in('raw_url', urls.slice(i, i + 200))
+      ;(data || []).forEach(r => { map[r.raw_url] = r.resolved_url })
+    }
+    const missing = urls.filter(u => !map[u])
+    if (missing.length) {
+      const { data, error } = await supabase.functions.invoke('resolve-short-urls', { body: { urls: missing } })
+      if (error) { console.error('Short-URL resolver unavailable — some TikTok videos may not match:', error); return map }
+      const fresh = (data && data.resolved) || {}
+      Object.assign(map, fresh)
+      const toSave = Object.entries(fresh)
+        .filter(([raw, res]) => res && res !== raw)
+        .map(([raw, res]) => ({ raw_url: raw, resolved_url: res }))
+      if (toSave.length) await supabase.from('resolved_urls').upsert(toSave, { onConflict: 'raw_url' })
+    }
+    return map
   }
 
   function renderMothers(query = '', platform = 'all') {
@@ -895,119 +882,84 @@
       `
       row.addEventListener('click', () => {
         selectedMotherId = m.id
-        selectedPostIdx = 0
         renderMothers(document.getElementById('mother-search').value, document.getElementById('platform-filter').value)
-        renderLinks()
-        renderPreview()
+        renderMotherPanel()
         if (window.innerWidth < 960) document.querySelector('.right-col').scrollIntoView({ behavior: 'smooth', block: 'start' })
       })
       list.appendChild(row)
     })
   }
 
-  function renderLinks() {
+  // Selected mother: summary cards (videos, views, engagements) + her videos
+  // as cards (thumbnail / playing video, date, views, engagements). Follows
+  // the platform filter. Clicking a card opens the video on TikTok/Instagram.
+  async function renderMotherPanel() {
     const mother = mothers.find(m => m.id === selectedMotherId)
-    const list = document.getElementById('links-list')
     const title = document.getElementById('links-panel-title')
+    const summary = document.getElementById('mother-summary')
+    const grid = document.getElementById('mother-videos')
 
     if (!mother) {
       title.textContent = 'No mother selected'
-      list.innerHTML = ''
+      summary.innerHTML = ''
+      grid.innerHTML = ''
       return
     }
-    title.textContent = `${mother.name} – Submitted Links (${mother.links})`
 
     const pfFilter = document.getElementById('platform-filter').value
     const posts = pfFilter === 'all' ? mother.posts : mother.posts.filter(p => p.platform === pfFilter)
+    const synced = posts.filter(p => p.stats)
+    const totalViews = synced.reduce((s, p) => s + (p.stats.views || 0), 0)
+    const totalEng = synced.reduce((s, p) => s + (p.stats.engagements || 0), 0)
 
-    if (posts.length === 0) {
-      list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:20px;">No links submitted yet.</div>'
-      return
-    }
+    title.textContent = `${mother.name} – Videos (${posts.length})`
+    const syncedNote = posts.length
+      ? (synced.length === posts.length ? 'All videos have stats' : `${synced.length} of ${posts.length} videos have stats`)
+      : 'No videos yet'
+    summary.innerHTML = `
+      <div class="mc-sum-card">
+        <div class="mc-sum-label"><i class="ti ti-movie"></i> Total videos</div>
+        <div class="mc-sum-value">${posts.length}</div>
+        <div class="mc-sum-note">${pfFilter === 'all' ? 'All platforms' : (pfFilter === 'tiktok' ? 'TikTok' : 'Instagram')}</div>
+      </div>
+      <div class="mc-sum-card">
+        <div class="mc-sum-label"><i class="ti ti-eye"></i> Views</div>
+        <div class="mc-sum-value">${formatNumber(totalViews)}</div>
+        <div class="mc-sum-note">${escapeHtml(syncedNote)}</div>
+      </div>
+      <div class="mc-sum-card">
+        <div class="mc-sum-label"><i class="ti ti-heart"></i> Engagements</div>
+        <div class="mc-sum-value">${formatNumber(totalEng)}</div>
+        <div class="mc-sum-note">Likes + comments + shares</div>
+      </div>`
 
-    list.innerHTML = ''
-    posts.forEach((post, i) => {
-      const isSelected = i === selectedPostIdx
-      const row = document.createElement('div')
-      row.className = 'link-row'
-      row.style.background = isSelected ? 'var(--brand-bg)' : ''
-      const platIcon = post.platform === 'tiktok' ? TIKTOK_SVG : INSTA_SVG
-      const platClass = post.platform === 'tiktok' ? 'tiktok' : 'instagram'
-      const captionText = post.caption ? escapeHtml(post.caption) : '<span style="color:var(--muted);font-style:italic;">No caption yet</span>'
-
-      const linkHtml = post.link
-        ? `<a class="video-link-cell" href="${post.link}" target="_blank" rel="noopener" title="${post.link}" onclick="event.stopPropagation()">${post.link}</a>`
-        : '<span style="color:var(--muted);">—</span>'
-
-      row.innerHTML = `
-        <div class="plat-icon ${platClass}">${platIcon}</div>
-        <div class="link-info" style="flex:1;min-width:0;">
-          <div class="link-caption">${captionText}</div>
-          <div class="link-meta" style="margin-bottom:2px;">${linkHtml}</div>
-          <div class="link-meta">${post.date} · ${post.time}</div>
-        </div>
-      `
-      row.addEventListener('click', () => { selectedPostIdx = i; renderLinks(); renderPreview() })
-      list.appendChild(row)
+    const { renderVideoStrip } = await import('./lumio-videos.js')
+    // Most-viewed first; videos without stats after, newest first.
+    const ordered = [...posts].sort((a, b) =>
+      (b.stats?.views ?? -1) - (a.stats?.views ?? -1) || new Date(b.submittedAt) - new Date(a.submittedAt))
+    renderVideoStrip(grid, ordered.map(p => ({
+      name: mother.name,
+      country: mother.country,
+      platform: p.platform,
+      url: p.fullLink || p.link,
+      thumbnail: p.thumb,
+      date: p.submittedAt,
+      views: p.stats ? p.stats.views : null,
+      engagements: p.stats ? p.stats.engagements : null,
+      likes: p.stats ? p.stats.likes : null,
+      comments: p.stats ? p.stats.comments : null,
+      shares: p.stats ? p.stats.shares : null
+    })), {
+      grid: true,
+      resolveUrl: async u => (await resolveShortUrls([u]))[u] || null,
+      emptyHtml: pfFilter === 'all' ? 'No videos submitted yet.' : 'No videos on this platform yet.'
     })
-  }
-
-  function renderPreview() {
-    const mother = mothers.find(m => m.id === selectedMotherId)
-    const previewPanel = document.getElementById('preview-panel')
-    if (!mother) { previewPanel.style.display = 'none'; return }
-
-    const pfFilter = document.getElementById('platform-filter').value
-    const posts = pfFilter === 'all' ? mother.posts : mother.posts.filter(p => p.platform === pfFilter)
-    if (!posts.length) { previewPanel.style.display = 'none'; return }
-    previewPanel.style.display = ''
-
-    const post = posts[selectedPostIdx] || posts[0]
-
-    document.getElementById('preview-title').textContent = 'Preview: ' + (post.caption ? post.caption.split('#')[0].trim() : '(no caption)')
-
-    const previewLinkEl = document.getElementById('preview-video-link')
-    if (previewLinkEl) {
-      previewLinkEl.href = post.link
-      previewLinkEl.textContent = post.link
-    }
-
-    document.getElementById('preview-handle').textContent = post.handle
-
-    const platEl = document.getElementById('preview-plat-icon')
-    platEl.className = 'preview-plat-icon ' + post.platform
-    platEl.innerHTML = post.platform === 'tiktok' ? TIKTOK_SVG : INSTA_SVG
-
-    const captionParts = (post.caption || '').split(/(#\S+)/g)
-    document.getElementById('preview-caption').innerHTML = post.caption
-      ? captionParts.map(p => p.startsWith('#') ? `<span class="hashtag">${escapeHtml(p)}</span>` : escapeHtml(p)).join('')
-      : '<span style="color:var(--muted);font-style:italic;">No caption yet</span>'
-
-    document.getElementById('prev-views').textContent = post.views
-    document.getElementById('prev-likes').textContent = post.likes
-    document.getElementById('prev-comments').textContent = post.comments
-
-    const shortLink = post.link.length > 40 ? post.link.slice(0, 40) + '...' : post.link
-    document.getElementById('preview-link').textContent = shortLink
-    document.getElementById('preview-platform-label').innerHTML = (post.platform === 'tiktok' ? 'TikTok' : 'Instagram') + '&nbsp;'
-
-    document.getElementById('preview-submitted').innerHTML = `${post.date} · ${post.time} <button class="bookmark-btn"><i class="ti ti-bookmark"></i></button>`
-  }
-
-  window.copyLink = function() {
-    const mother = mothers.find(m => m.id === selectedMotherId)
-    if (!mother) return
-    const pfFilter = document.getElementById('platform-filter').value
-    const posts = pfFilter === 'all' ? mother.posts : mother.posts.filter(p => p.platform === pfFilter)
-    const post = posts[selectedPostIdx] || posts[0]
-    if (post) navigator.clipboard.writeText(post.link).catch(() => {})
   }
 
   window.filterMothers = function(query) {
     const platform = document.getElementById('platform-filter').value
     renderMothers(query, platform)
-    renderLinks()
-    renderPreview()
+    renderMotherPanel()
   }
 
   document.getElementById('hamburger').addEventListener('click', () => {
@@ -1023,8 +975,7 @@
     document.getElementById('mothers-list').innerHTML = '<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:24px;">Loading mothers...</div>'
     await loadMothersAndContent()
     renderMothers()
-    renderLinks()
-    renderPreview()
+    renderMotherPanel()
   }
 
   function renderCurrentDate() {

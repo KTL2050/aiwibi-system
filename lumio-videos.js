@@ -82,6 +82,11 @@ const STYLES = `
     .lv-pill{font-size:15px;}
   }
   .lv-strip.lv-drifting{scroll-snap-type:none;}
+  /* Grid layout (opts.grid): rows of cards, no scrolling or drifting */
+  .lv-strip.lv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+    overflow:visible;contain:none;scroll-snap-type:none;padding:4px 0 8px;}
+  .lv-grid .lv-card{flex:none;min-width:0;}
+  @media(max-width:600px){.lv-strip.lv-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}}
 `;
 
 const FLAGS = { uganda: 'ug', kenya: 'ke' };
@@ -301,7 +306,8 @@ function startDrift(strip) {
  * Draws the strip into `container`.
  * @param {HTMLElement} container
  * @param {Array} cards
- * @param {{ emptyHtml?: string, resolveUrl?: (url: string) => Promise<string|null> }} [opts]
+ * @param {{ emptyHtml?: string, resolveUrl?: (url: string) => Promise<string|null>, grid?: boolean }} [opts]
+ *   grid: show the cards in rows (no horizontal scrolling or drifting).
  */
 export function renderVideoStrip(container, cards, opts = {}) {
   if (!container) return;
@@ -315,7 +321,7 @@ export function renderVideoStrip(container, cards, opts = {}) {
     return;
   }
 
-  container.innerHTML = `<div class="lv-strip">${cards.map(cardHtml).join('')}</div>`;
+  container.innerHTML = `<div class="lv-strip${opts.grid ? ' lv-grid' : ''}">${cards.map(cardHtml).join('')}</div>`;
   const strip = container.querySelector('.lv-strip');
   const medias = [...strip.querySelectorAll('.lv-media')];
   const cardOf = m => cards[Number(m.dataset.i)];
@@ -422,7 +428,7 @@ export function renderVideoStrip(container, cards, opts = {}) {
     container._lvObserver = io;
   }
 
-  container._lvStopDrift = startDrift(strip);
+  container._lvStopDrift = opts.grid ? null : startDrift(strip);
 
   medias.forEach(async media => {
     const c = cardOf(media);
