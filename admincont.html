@@ -950,7 +950,7 @@
       comments: p.stats ? p.stats.comments : null,
       shares: p.stats ? p.stats.shares : null
     })), {
-      grid: true,
+      drift: false, // scroll sideways by hand; no automatic motion
       resolveUrl: async u => (await resolveShortUrls([u]))[u] || null,
       emptyHtml: pfFilter === 'all' ? 'No videos submitted yet.' : 'No videos on this platform yet.'
     })

@@ -306,8 +306,9 @@ function startDrift(strip) {
  * Draws the strip into `container`.
  * @param {HTMLElement} container
  * @param {Array} cards
- * @param {{ emptyHtml?: string, resolveUrl?: (url: string) => Promise<string|null>, grid?: boolean }} [opts]
+ * @param {{ emptyHtml?: string, resolveUrl?: (url: string) => Promise<string|null>, grid?: boolean, drift?: boolean }} [opts]
  *   grid: show the cards in rows (no horizontal scrolling or drifting).
+ *   drift: false — horizontal strip you scroll yourself, without the automatic motion.
  */
 export function renderVideoStrip(container, cards, opts = {}) {
   if (!container) return;
@@ -428,7 +429,7 @@ export function renderVideoStrip(container, cards, opts = {}) {
     container._lvObserver = io;
   }
 
-  container._lvStopDrift = opts.grid ? null : startDrift(strip);
+  container._lvStopDrift = (opts.grid || opts.drift === false) ? null : startDrift(strip);
 
   medias.forEach(async media => {
     const c = cardOf(media);
