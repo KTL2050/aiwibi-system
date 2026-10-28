@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+/* Lumio colours — taken from the current pages (lumio-tracker.css and the
+   pages' own :root), so the new app looks the same as the old one. */
+:root {
+  /* Workspace */
+  --color-page: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-border: #e6e8ec;
+  --color-border-soft: #eef0f3;
+
+  /* Text */
+  --color-text: #121720;
+  --color-text-soft: #475467;
+  --color-muted: #667085;
+  --color-faint: #98a2b3;
+
+  /* Admin pages: Aiwibi purple */
+  --color-brand: #844fc1;
+  --color-brand-deep: #6c3fa0;
+  --color-brand-soft: #b48ee0;
+  --color-brand-bg: #f3ecfb;
+
+  /* Mother + sign-in pages: blue */
+  --color-mother: #2563eb;
+  --color-mother-deep: #1d4ed8;
+  --color-mother-soft: #c7d7fe;
+  --color-mother-bg: #eaf1ff;
+
+  /* Sidebar: navy */
+  --color-sidebar: #0a1c38;
+  --color-sidebar-text: rgba(255, 255, 255, 0.6);
+  --color-sidebar-label: rgba(255, 255, 255, 0.28);
+
+  /* Points and rewards */
+  --color-accent: #f472a8;
+  --color-accent-bg: #ffeef6;
+
+  /* Status */
+  --color-success: #16a34a;
+  --color-success-bg: #dcfce7;
+  --color-danger: #ef4444;
+  --color-danger-bg: #fdecec;
+  --color-warning: #f59e0b;
+  --color-warning-bg: #fef3c7;
+
+  /* Social */
+  --color-tiktok: #010101;
+  --color-instagram: #e1306c;
+}
+
+@theme inline {
+  --color-page: var(--color-page);
+  --color-surface: var(--color-surface);
+  --color-border: var(--color-border);
+  --color-border-soft: var(--color-border-soft);
+  --color-text: var(--color-text);
+  --color-text-soft: var(--color-text-soft);
+  --color-muted: var(--color-muted);
+  --color-faint: var(--color-faint);
+  --color-brand: var(--color-brand);
+  --color-brand-deep: var(--color-brand-deep);
+  --color-brand-soft: var(--color-brand-soft);
+  --color-brand-bg: var(--color-brand-bg);
+  --color-mother: var(--color-mother);
+  --color-mother-deep: var(--color-mother-deep);
+  --color-mother-soft: var(--color-mother-soft);
+  --color-mother-bg: var(--color-mother-bg);
+  --color-sidebar: var(--color-sidebar);
+  --color-accent: var(--color-accent);
+  --color-accent-bg: var(--color-accent-bg);
+  --color-success: var(--color-success);
+  --color-success-bg: var(--color-success-bg);
+  --color-danger: var(--color-danger);
+  --color-danger-bg: var(--color-danger-bg);
+  --color-warning: var(--color-warning);
+  --color-warning-bg: var(--color-warning-bg);
+  --color-tiktok: var(--color-tiktok);
+  --color-instagram: var(--color-instagram);
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body {
+  background: var(--color-page);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
