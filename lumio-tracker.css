@@ -178,3 +178,31 @@ body.lt-blue .checking-spinner{border-color:var(--border);border-top-color:var(-
 body.lt-blue .card{border-radius:12px;}
 /* inside the split login/onboarding shell the outer frame is the card */
 .auth-shell .card{border:none;border-radius:0;}
+
+/* ── SIDEBAR (mother + admin) ──────────────────────────────────────────────
+   Brighter Aiwibi navy, one flat menu, solid active item, "Soon" pills,
+   points card and profile menu (filled in by lumio-sidebar.js). */
+.sidebar{background:#14285e !important;}
+.sidebar .sidebar-logo{border-bottom:none;padding:18px 16px 10px;}
+.sidebar .sidebar-logo-badge{padding:6px 12px;border-radius:8px;box-shadow:none;}
+.sidebar .sidebar-section-label{display:none;}
+.sidebar .sidebar-section{padding:0 10px;}
+.sidebar .sidebar-section:first-of-type{padding-top:8px;}
+.sidebar .nav-item{color:rgba(255,255,255,.82);border-left:none;border-radius:10px;margin:0 0 3px;}
+.sidebar .nav-item:hover{background:rgba(255,255,255,.09);color:#fff;}
+.sidebar .nav-item.active{background:#3B86D1;color:#fff;font-weight:600;border-left:none;border-radius:10px;}
+.sidebar .nav-item.nav-item-soon{opacity:1;}
+.sidebar .nav-item.nav-item-soon::after{content:'Soon';margin-left:auto;background:#e2578f;color:#fff;
+  font-size:10px;font-weight:700;border-radius:999px;padding:1px 8px;}
+.sidebar .nav-item .badge{background:#d9222a;}
+.sidebar .sidebar-bottom{border-top:1px solid rgba(255,255,255,.1);}
+.sidebar .user-pill{position:relative;background:rgba(255,255,255,.07);}
+.sidebar .user-pill{cursor:pointer;}
+.sidebar .user-pill .sb-chev{color:#a9c9ec;font-size:14px;margin-left:auto;transition:transform .15s;}
+.sidebar .sidebar-bottom.menu-open .sb-chev{transform:rotate(180deg);}
+.sidebar .sidebar-bottom #logout-link{display:none;}
+.sidebar .sidebar-bottom.menu-open #logout-link{display:flex;}
+.sidebar .sb-points{display:block;background:#dd9328;color:#fff;border-radius:10px;padding:9px 12px;margin-bottom:8px;text-decoration:none;}
+.sidebar .sb-points-label{font-size:11px;opacity:.9;}
+.sidebar .sb-points-value{font-size:17px;font-weight:700;display:flex;align-items:center;gap:6px;}
+.sidebar .sb-points-tier{margin-left:auto;font-size:10px;font-weight:700;background:rgba(255,255,255,.25);border-radius:999px;padding:1px 8px;}

@@ -842,6 +842,7 @@
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdGVidmZlZ2Vvamprcmt6Ym9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODQ2NjksImV4cCI6MjA5ODU2MDY2OX0.OcCwAD-q6d1XeyHW6f1Gy9r_sBdRV3eWAOUsKLemKEA'
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   import('./lumio-notify.js').then(m => m.initNotifications(supabase))
+  import('./lumio-sidebar.js').then(m => m.initSidebar(supabase))
 
   document.getElementById('logout-link').addEventListener('click', async (e) => {
     e.preventDefault()
