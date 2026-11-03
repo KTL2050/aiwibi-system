@@ -351,6 +351,7 @@
     .reward-body { padding: 12px; }
     .reward-name { font-size: 12.5px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
     .reward-pts { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+    .reward-tier-badge { position:absolute; top:8px; left:8px; background:#dd9328; color:#fff; font-size:10px; font-weight:700; border-radius:999px; padding:2px 8px; }
     .btn-redeem {
       width: 100%; border: none; font-family: inherit; font-size: 12px; font-weight: 700;
       padding: 8px; border-radius: 10px; cursor: pointer;
@@ -1117,21 +1118,29 @@
       return;
     }
 
-    if (!rewards || rewards.length === 0) {
+    // Tier gifts (set in Settings → Tiers) are redeemable too, at the tier's points.
+    const tierGifts = TIERS.filter(t => t.reward_title).map(t => ({
+      id: '', title: t.reward_title, points_cost: t.min, image_url: t.image_url, tier: t.name
+    }));
+    const items = [...(rewards || []), ...tierGifts].sort((a, b) => a.points_cost - b.points_cost);
+
+    if (items.length === 0) {
       scroll.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:12.5px;">No rewards available yet.</div>';
       return;
     }
 
-    scroll.innerHTML = rewards.map(r => {
+    scroll.innerHTML = items.map(r => {
+      const title = r.tier ? `${r.tier} tier: ${r.title}` : r.title;
       const canRedeem = points >= r.points_cost;
       const linksNeeded = Math.max(0, Math.ceil((r.points_cost - points) / 100));
       const btnHtml = canRedeem
-        ? `<button class="btn-redeem" data-reward-id="${r.id}" data-reward-title="${escapeHtml(r.title)}" data-reward-cost="${r.points_cost}">Redeem</button>`
+        ? `<button class="btn-redeem" data-reward-id="${r.id}" data-reward-title="${escapeHtml(title)}" data-reward-cost="${r.points_cost}">Redeem</button>`
         : `<button class="btn-redeem" disabled style="opacity:0.55;cursor:not-allowed;">${linksNeeded} link${linksNeeded === 1 ? '' : 's'} to go</button>`;
 
       return `
         <div class="reward-card">
-          <div class="reward-img">
+          <div class="reward-img" style="position:relative;">
+            ${r.tier ? `<span class="reward-tier-badge">${escapeHtml(r.tier)}</span>` : ''}
             ${r.image_url ? `<img src="${r.image_url}" alt="" style="width:100%;height:100%;object-fit:cover;">` : '<i class="ti ti-gift"></i>'}
           </div>
           <div class="reward-body">
@@ -1173,7 +1182,7 @@
       .from('reward_redemptions')
       .insert({
         user_id: session.user.id,
-        reward_id: rewardId,
+        reward_id: rewardId || null,
         reward_title: rewardTitle,
         points_cost: pointsCost,
         status: 'Processing'
